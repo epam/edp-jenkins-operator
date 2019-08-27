@@ -1,13 +1,13 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: jenkins.v2.edp.epam.com
+  name: jenkinses.v2.edp.epam.com
 spec:
   group: v2.edp.epam.com
   names:
     kind: Jenkins
     listKind: JenkinsList
-    plural: jenkins
+    plural: jenkinses
     singular: jenkins
   scope: Namespaced
   subresources:

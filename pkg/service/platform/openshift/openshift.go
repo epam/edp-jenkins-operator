@@ -17,7 +17,7 @@ type OpenshiftService struct {
 	kubernetes.K8SService
 
 	appClient   appsV1client.AppsV1Client
-	routeClient routeV1Client.RoucteV1Client
+	routeClient routeV1Client.RouteV1Client
 }
 
 // Init initializes OpenshiftService

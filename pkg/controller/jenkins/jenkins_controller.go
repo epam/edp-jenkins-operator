@@ -2,7 +2,14 @@ package jenkins
 
 import (
 	"context"
+	"fmt"
+	"jenkins-operator/pkg/service/jenkins"
+	"jenkins-operator/pkg/service/platform"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"time"
 
+	errorsf "github.com/pkg/errors"
 	v2v1alpha1 "jenkins-operator/pkg/apis/v2/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -14,6 +21,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+)
+
+const (
+	StatusInstall          = "installing"
+	StatusFailed           = "failed"
+	StatusCreated          = "created"
+	StatusConfiguring      = "configuring"
+	StatusConfigured       = "configured"
+	StatusExposeStart      = "exposing config"
+	StatusExposeFinish     = "config exposed"
+	StatusIntegrationStart = "integration started"
+	StatusReady            = "ready"
 )
 
 var log = logf.Log.WithName("controller_jenkins")
@@ -31,7 +50,16 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileJenkins{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	scheme := mgr.GetScheme()
+	client := mgr.GetClient()
+	platformService, _ := platform.NewPlatformService(scheme)
+
+	jenkinsService := jenkins.NewJenkinsService(platformService, client)
+	return &ReconcileJenkins{
+		client:  client,
+		scheme:  scheme,
+		service: jenkinsService,
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -42,8 +70,19 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	p := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldObject := e.ObjectOld.(*v2v1alpha1.Jenkins)
+			newObject := e.ObjectNew.(*v2v1alpha1.Jenkins)
+			if oldObject.Status != newObject.Status {
+				return false
+			}
+			return true
+		},
+	}
+
 	// Watch for changes to primary resource Jenkins
-	err = c.Watch(&source.Kind{Type: &v2v1alpha1.Jenkins{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &v2v1alpha1.Jenkins{}}, &handler.EnqueueRequestForObject{}, p)
 	if err != nil {
 		return err
 	}
@@ -58,8 +97,9 @@ var _ reconcile.Reconciler = &ReconcileJenkins{}
 type ReconcileJenkins struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client  client.Client
+	scheme  *runtime.Scheme
+	service jenkins.JenkinsService
 }
 
 // Reconcile reads that state of the cluster for a Jenkins object and makes changes based on the state read
@@ -87,6 +127,55 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
+	if instance.Status.Status == "" || instance.Status.Status == StatusFailed {
+		reqLogger.Info("Installation has been started")
+		err = r.updateStatus(instance, StatusInstall)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: 10 * time.Second}, err
+		}
+	}
+
+	if instance.Status.Status == StatusInstall {
+		reqLogger.Info("Installation has finished")
+		err = r.updateStatus(instance, StatusReady)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: 10 * time.Second}, err
+		}
+	}
+
 	reqLogger.Info("Reconciling has been finished")
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileJenkins) updateStatus(instance *v2v1alpha1.Jenkins, newStatus string) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	currentStatus := instance.Status.Status
+	instance.Status.Status = newStatus
+	instance.Status.LastTimeUpdated = time.Now()
+	err := r.client.Status().Update(context.TODO(), instance)
+	if err != nil {
+		err := r.client.Update(context.TODO(), instance)
+		if err != nil {
+			return errorsf.Wrapf(err, "Couldn't update status from '%v' to '%v'", currentStatus, newStatus)
+		}
+	}
+	reqLogger.Info(fmt.Sprintf("Status has been updated to '%v'", newStatus))
+	return nil
+}
+
+func (r ReconcileJenkins) updateAvailableStatus(instance *v2v1alpha1.Jenkins, value bool) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	if instance.Status.Available != value {
+		instance.Status.Available = value
+		instance.Status.LastTimeUpdated = time.Now()
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			err := r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return errorsf.Wrapf(err, "Couldn't update availability status to %v", value)
+			}
+		}
+		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
+	}
+	return nil
 }

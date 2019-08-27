@@ -14,7 +14,7 @@ func (in *Jenkins) DeepCopyInto(out *Jenkins) {
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 	out.Spec = in.Spec
-	out.Status = in.Status
+	in.Status.DeepCopyInto(&out.Status)
 	return
 }
 

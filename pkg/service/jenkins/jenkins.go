@@ -2,7 +2,7 @@ package jenkins
 
 import (
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
-	"nexus-operator/pkg/service/platform"
+	"jenkins-operator/pkg/service/platform"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
