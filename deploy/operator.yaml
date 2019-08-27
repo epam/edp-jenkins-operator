@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jenkins-operator
+  name: jenkins-operator-v2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: jenkins-operator
+      name: jenkins-operator-v2
   template:
     metadata:
       labels:
-        name: jenkins-operator
+        name: jenkins-operator-v2
     spec:
-      serviceAccountName: jenkins-operator
+      serviceAccountName: edp
       containers:
-        - name: jenkins-operator
+        - name: jenkins-operator-v2
           # Replace this with the built image name
           image: REPLACE_IMAGE
           command:
@@ -22,12 +22,10 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: REPLACE_VALUE
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "jenkins-operator"
+              value: "jenkins-operator-v2"
