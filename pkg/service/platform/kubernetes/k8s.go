@@ -128,14 +128,14 @@ func (service K8SService) CreateService(instance v1alpha1.Jenkins) error {
 			Selector: labels,
 			Ports: []coreV1Api.ServicePort{
 				{
-					TargetPort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsPort},
-					Port:       jenkinsDefaultSpec.JenkinsPort,
+					TargetPort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsDefaultUiPort},
+					Port:       jenkinsDefaultSpec.JenkinsDefaultUiPort,
 					Name:       "http",
 					Protocol:   coreV1Api.ProtocolTCP,
 				},
 				{
-					TargetPort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsJNLPPort},
-					Port:       jenkinsDefaultSpec.JenkinsJNLPPort,
+					TargetPort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsDefaultJnlpPort},
+					Port:       jenkinsDefaultSpec.JenkinsDefaultJnlpPort,
 					Name:       "jnlp",
 					Protocol:   coreV1Api.ProtocolTCP,
 				},

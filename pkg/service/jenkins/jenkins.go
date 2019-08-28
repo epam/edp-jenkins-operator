@@ -37,46 +37,56 @@ type JenkinsServiceImpl struct {
 }
 
 // Integration performs integration Jenkins with other EDP components
-func (n JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
+func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	return &instance, nil
 }
 
 // ExposeConfiguration performs exposing Jenkins configuration for other EDP components
-func (n JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
+func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	return &instance, nil
 }
 
 // Configure performs self-configuration of Jenkins
-func (n JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
 	return &instance, true, nil
 }
 
 // Install performs installation of Jenkins
-func (n JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
+func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	adminSecret := map[string][]byte{
 		"user":     []byte(jenkinsDefaultSpec.JenkinsDefaultAdminUser),
 		"password": []byte(uniuri.New()),
 	}
 
 	adminSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminCredentialsSecretPostfix)
-	err := n.platformService.CreateSecret(instance, adminSecretName, adminSecret)
+	err := j.platformService.CreateSecret(instance, adminSecretName, adminSecret)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Secret %v", adminSecretName)
 	}
 
-	err = n.platformService.CreateServiceAccount(instance)
+	err = j.platformService.CreateServiceAccount(instance)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Service Account %v", instance.Name)
 	}
 
-	err = n.platformService.CreatePersistentVolumeClaim(instance)
+	err = j.platformService.CreatePersistentVolumeClaim(instance)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Volume for %v", instance.Name)
 	}
 
-	err = n.platformService.CreateService(instance)
+	err = j.platformService.CreateService(instance)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Service for %v/%v", instance.Namespace, instance.Name)
+	}
+
+	err = j.platformService.CreateExternalEndpoint(instance)
+	if err != nil {
+		return &instance, errors.Wrap(err, "Failed to create Route.")
+	}
+
+	err = j.platformService.CreateDeployConf(instance)
+	if err != nil {
+		return &instance, errors.Wrap(err, "Failed to create Deployment Config.")
 	}
 
 	return &instance, nil

@@ -6,6 +6,7 @@ import (
 	"jenkins-operator/pkg/service/platform/openshift"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
+	routeV1Api "github.com/openshift/api/route/v1"
 )
 
 // PlatformService interface
@@ -14,6 +15,9 @@ type PlatformService interface {
 	CreatePersistentVolumeClaim(instance v1alpha1.Jenkins) error
 	CreateService(instance v1alpha1.Jenkins) error
 	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
+	CreateDeployConf(instance v1alpha1.Jenkins) error
+	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
+	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 }
 
 // NewPlatformService returns platform service interface implementation

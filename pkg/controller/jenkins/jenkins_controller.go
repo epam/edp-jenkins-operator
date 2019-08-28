@@ -33,8 +33,7 @@ const (
 	StatusExposeFinish     = "config exposed"
 	StatusIntegrationStart = "integration started"
 	StatusReady            = "ready"
-
-	DefaultRequeueTime = 30
+	DefaultRequeueTime     = 30
 )
 
 var log = logf.Log.WithName("controller_jenkins")
