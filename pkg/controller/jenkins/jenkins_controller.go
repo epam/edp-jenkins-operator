@@ -33,6 +33,8 @@ const (
 	StatusExposeFinish     = "config exposed"
 	StatusIntegrationStart = "integration started"
 	StatusReady            = "ready"
+
+	DefaultRequeueTime = 30
 )
 
 var log = logf.Log.WithName("controller_jenkins")
@@ -131,15 +133,21 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Installation has been started")
 		err = r.updateStatus(instance, StatusInstall)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: 10 * time.Second}, err
+			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 		}
+	}
+
+	instance, err = r.service.Install(*instance)
+	if err != nil {
+		r.updateStatus(instance, StatusFailed)
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Installation has been failed")
 	}
 
 	if instance.Status.Status == StatusInstall {
 		reqLogger.Info("Installation has finished")
 		err = r.updateStatus(instance, StatusReady)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: 10 * time.Second}, err
+			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 		}
 	}
 

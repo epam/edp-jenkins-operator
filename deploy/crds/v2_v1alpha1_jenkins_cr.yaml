@@ -5,3 +5,7 @@ metadata:
 spec:
   version: "epamedp/edp-jenkins"
   image: "2.0.0"
+  volumes:
+    - name: "data"
+      storage_class: "efs"
+      capacity: "1Gi"

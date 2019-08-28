@@ -2,6 +2,7 @@ package platform
 
 import (
 	"github.com/pkg/errors"
+	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	"jenkins-operator/pkg/service/platform/openshift"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
@@ -9,6 +10,10 @@ import (
 
 // PlatformService interface
 type PlatformService interface {
+	CreateServiceAccount(instance v1alpha1.Jenkins) error
+	CreatePersistentVolumeClaim(instance v1alpha1.Jenkins) error
+	CreateService(instance v1alpha1.Jenkins) error
+	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
 }
 
 // NewPlatformService returns platform service interface implementation
