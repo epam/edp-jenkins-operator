@@ -202,3 +202,15 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 
 	return nil
 }
+
+// GetSecret return data field of Secret
+func (service K8SService) GetSecretData(namespace string, name string) (map[string][]byte, error) {
+	secret, err := service.CoreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
+	if err != nil && k8serr.IsNotFound(err) {
+		log.Error(err, fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return secret.Data, nil
+}

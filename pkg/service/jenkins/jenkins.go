@@ -1,6 +1,7 @@
 package jenkins
 
 import (
+	"context"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/pkg/errors"
@@ -54,7 +55,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 // Install performs installation of Jenkins
 func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	adminSecret := map[string][]byte{
-		"user":     []byte(jenkinsDefaultSpec.JenkinsDefaultAdminUser),
+		"username": []byte(jenkinsDefaultSpec.JenkinsDefaultAdminUser),
 		"password": []byte(uniuri.New()),
 	}
 
@@ -62,6 +63,15 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	err := j.platformService.CreateSecret(instance, adminSecretName, adminSecret)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Secret %v", adminSecretName)
+	}
+
+	instance.Status.AdminSecretName = &adminSecretName
+	err = j.k8sClient.Status().Update(context.TODO(), &instance)
+	if err != nil {
+		err := j.k8sClient.Update(context.TODO(), &instance)
+		if err != nil {
+			return &instance, errors.Wrap(err, "Couldn't set admin secret name in status")
+		}
 	}
 
 	err = j.platformService.CreateServiceAccount(instance)

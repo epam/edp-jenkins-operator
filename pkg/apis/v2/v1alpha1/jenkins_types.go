@@ -21,7 +21,7 @@ type JenkinsSpec struct {
 
 type JenkinsVolumes struct {
 	Name         string `json:"name"`
-	StorageClass string `json:"storage_class"`
+	StorageClass string `json:"storageClass"`
 	Capacity     string `json:"capacity"`
 }
 
@@ -34,6 +34,7 @@ type JenkinsStatus struct {
 	Available       bool      `json:"available, omitempty"`
 	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
 	Status          string    `json:"status, omitempty"`
+	AdminSecretName *string   `json:"adminSecretName, omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

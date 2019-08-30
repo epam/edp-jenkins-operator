@@ -3,4 +3,4 @@ kind: JenkinsScript
 metadata:
   name: example-jenkinsscript
 spec:
-  source_cm_name: ""
+  sourceConfigMapName: ""

@@ -18,6 +18,7 @@ type PlatformService interface {
 	CreateDeployConf(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
+	GetSecretData(namespace string, name string) (map[string][]byte, error)
 }
 
 // NewPlatformService returns platform service interface implementation

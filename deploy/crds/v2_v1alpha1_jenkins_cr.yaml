@@ -7,5 +7,5 @@ spec:
   image: "epamedp/edp-jenkins"
   volumes:
     - name: "data"
-      storage_class: "efs"
+      storageClass: "efs"
       capacity: "1Gi"
