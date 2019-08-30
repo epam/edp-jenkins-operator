@@ -17,5 +17,4 @@ const (
 	JenkinsRecreateTimeout int64 = 6000
 
 	JenkinsPasswordSecretName string = "admin-password"
-
 )

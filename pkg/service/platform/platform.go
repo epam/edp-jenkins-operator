@@ -1,12 +1,12 @@
 package platform
 
 import (
+	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	"jenkins-operator/pkg/service/platform/openshift"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
-	routeV1Api "github.com/openshift/api/route/v1"
 )
 
 // PlatformService interface

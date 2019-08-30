@@ -26,8 +26,8 @@ import (
 
 // Change below variables to serve metrics on different host or port.
 var (
-	metricsHost               = "0.0.0.0"
-	metricsPort         int32 = 8383
+	metricsHost       = "0.0.0.0"
+	metricsPort int32 = 8383
 )
 var log = logf.Log.WithName("cmd")
 
@@ -83,8 +83,8 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
-		Namespace:          namespace,
-		MapperProvider:     restmapper.NewDynamicRESTMapper,
+		Namespace:      namespace,
+		MapperProvider: restmapper.NewDynamicRESTMapper,
 	})
 	if err != nil {
 		log.Error(err, "")

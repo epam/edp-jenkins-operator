@@ -1,0 +1,6 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsScript
+metadata:
+  name: example-jenkinsscript
+spec:
+  source_cm_name: ""

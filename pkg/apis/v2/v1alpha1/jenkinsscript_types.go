@@ -2,62 +2,51 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// JenkinsSpec defines the desired state of Jenkins
+// JenkinsScriptSpec defines the desired state of JenkinsScript
 // +k8s:openapi-gen=true
-type JenkinsSpec struct {
+type JenkinsScriptSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Image   string           `json:"image"`
-	Version string           `json:"version"`
-	Volumes []JenkinsVolumes `json:"volumes, omitempty"`
+	SourceCmName string `json:"source_cm_name, omitempty"`
 }
 
-type JenkinsVolumes struct {
-	Name         string `json:"name"`
-	StorageClass string `json:"storage_class"`
-	Capacity     string `json:"capacity"`
-}
-
-// JenkinsStatus defines the observed state of Jenkins
+// JenkinsScriptStatus defines the observed state of JenkinsScript
 // +k8s:openapi-gen=true
-type JenkinsStatus struct {
+type JenkinsScriptStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool      `json:"available, omitempty"`
-	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
-	Status          string    `json:"status, omitempty"`
+	Executed bool `json:"available, omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Jenkins is the Schema for the jenkins API
+// JenkinsScript is the Schema for the jenkinsscripts API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-type Jenkins struct {
+type JenkinsScript struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JenkinsSpec   `json:"spec,omitempty"`
-	Status JenkinsStatus `json:"status,omitempty"`
+	Spec   JenkinsScriptSpec   `json:"spec,omitempty"`
+	Status JenkinsScriptStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// JenkinsList contains a list of Jenkins
-type JenkinsList struct {
+// JenkinsScriptList contains a list of JenkinsScript
+type JenkinsScriptList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Jenkins `json:"items"`
+	Items           []JenkinsScript `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Jenkins{}, &JenkinsList{})
+	SchemeBuilder.Register(&JenkinsScript{}, &JenkinsScriptList{})
 }

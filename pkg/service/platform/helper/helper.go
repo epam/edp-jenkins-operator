@@ -13,8 +13,8 @@ func GenerateLabels(name string) map[string]string {
 }
 
 func RuntimeObjectsEqual(new runtime.Object, old runtime.Object) bool {
-		if reflect.DeepEqual(new, old) {
-			return true
-		}
+	if reflect.DeepEqual(new, old) {
+		return true
+	}
 	return false
 }
