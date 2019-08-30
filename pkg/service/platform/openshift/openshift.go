@@ -60,7 +60,7 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 func (service OpenshiftService) GetRoute(namespace string, name string) (*routeV1Api.Route, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8serrors.IsNotFound(err) {
-		return nil, "", errors.New(fmt.Sprintf("Route %v in namespace %v not found",name, namespace))
+		return nil, "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
 	} else if err != nil {
 		return nil, "", err
 	}
@@ -118,19 +118,19 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 					Labels: labels,
 				},
 				Spec: coreV1Api.PodSpec{
-					SecurityContext: &coreV1Api.PodSecurityContext{},
-					RestartPolicy: coreV1Api.RestartPolicyAlways,
-					DeprecatedServiceAccount: instance.Name,
-					DNSPolicy: coreV1Api.DNSClusterFirst,
+					SecurityContext:               &coreV1Api.PodSecurityContext{},
+					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
+					DeprecatedServiceAccount:      instance.Name,
+					DNSPolicy:                     coreV1Api.DNSClusterFirst,
 					TerminationGracePeriodSeconds: &terminationGracePeriod,
-					SchedulerName: coreV1Api.DefaultSchedulerName,
+					SchedulerName:                 coreV1Api.DefaultSchedulerName,
 					InitContainers: []coreV1Api.Container{
 						{
-							Image:           "busybox",
-							ImagePullPolicy: coreV1Api.PullIfNotPresent,
-							Name:            "grant-permissions",
-							Command:         command,
-							TerminationMessagePath: "/dev/termination-log",
+							Image:                    "busybox",
+							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
+							Name:                     "grant-permissions",
+							Command:                  command,
+							TerminationMessagePath:   "/dev/termination-log",
 							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
 						},
 					},
@@ -180,7 +180,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 							Ports: []coreV1Api.ContainerPort{
 								{
 									ContainerPort: jenkinsDefaultSpec.JenkinsDefaultUiPort,
-									Protocol: coreV1Api.ProtocolTCP,
+									Protocol:      coreV1Api.ProtocolTCP,
 								},
 							},
 
@@ -188,12 +188,12 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 								TimeoutSeconds:      10,
 								InitialDelaySeconds: 60,
 								SuccessThreshold:    1,
-								PeriodSeconds: 10,
-								FailureThreshold: 3,
+								PeriodSeconds:       10,
+								FailureThreshold:    3,
 								Handler: coreV1Api.Handler{
 									HTTPGet: &coreV1Api.HTTPGetAction{
-										Path: "/login",
-										Port: intstr.FromInt(jenkinsDefaultSpec.JenkinsDefaultUiPort),
+										Path:   "/login",
+										Port:   intstr.FromInt(jenkinsDefaultSpec.JenkinsDefaultUiPort),
 										Scheme: coreV1Api.URISchemeHTTP,
 									},
 								},
@@ -201,14 +201,14 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 
 							VolumeMounts: []coreV1Api.VolumeMount{
 								{
-									MountPath: "/var/lib/jenkins",
-									Name:      fmt.Sprintf("%v-jenkins-data",instance.Name),
-									ReadOnly: false,
-									SubPath: "",
+									MountPath:        "/var/lib/jenkins",
+									Name:             fmt.Sprintf("%v-jenkins-data", instance.Name),
+									ReadOnly:         false,
+									SubPath:          "",
 									MountPropagation: nil,
 								},
 							},
-							TerminationMessagePath: "/dev/termination-log",
+							TerminationMessagePath:   "/dev/termination-log",
 							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
 							Resources: coreV1Api.ResourceRequirements{
 								Requests: map[coreV1Api.ResourceName]resource.Quantity{
@@ -220,7 +220,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 					ServiceAccountName: instance.Name,
 					Volumes: []coreV1Api.Volume{
 						{
-							Name: fmt.Sprintf("%v-jenkins-data",instance.Name),
+							Name: fmt.Sprintf("%v-jenkins-data", instance.Name),
 							VolumeSource: coreV1Api.VolumeSource{
 								PersistentVolumeClaim: &coreV1Api.PersistentVolumeClaimVolumeSource{
 									ClaimName: fmt.Sprintf("%v-data", instance.Name),
@@ -279,6 +279,9 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 			To: routeV1Api.RouteTargetReference{
 				Name: instance.Name,
 				Kind: "Service",
+			},
+			Port: &routeV1Api.RoutePort{
+				TargetPort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsDefaultUiPort},
 			},
 		},
 	}
