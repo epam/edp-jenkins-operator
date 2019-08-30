@@ -150,6 +150,12 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
+	err = r.updateAvailableStatus(instance, true)
+	if err != nil {
+		reqLogger.Info("Failed to update availability status")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+	}
+
 	reqLogger.Info("Reconciling has been finished")
 	return reconcile.Result{}, nil
 }
