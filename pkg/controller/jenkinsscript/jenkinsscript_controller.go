@@ -126,7 +126,7 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Failed to get owner for %v", instance.Name)
 	}
 	if jenkinsInstance == nil {
-		reqLogger.Info("Couldn't find Jenkins owner instance")
+		reqLogger.Info("Couldn't find Jenkins Script owner instance")
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
 	}
 
@@ -137,6 +137,12 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 	}
 	if jc == nil {
 		reqLogger.V(1).Info("Unable to init Jenkins REST client")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+	}
+
+	err = r.updateAvailableStatus(instance, true)
+	if err != nil {
+		reqLogger.Info("Failed to update availability status")
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 	}
 
@@ -159,6 +165,7 @@ func (r *ReconcileJenkinsScript) getInstanceByName(namespace string, name string
 }
 
 func (r *ReconcileJenkinsScript) getInstanceByOwnerFromSpec(jenkinsScript *v2v1alpha1.JenkinsScript) (*v2v1alpha1.Jenkins, error) {
+	reqLogger := log.WithValues("Request.Namespace", jenkinsScript.Namespace, "Request.Name", jenkinsScript.Name)
 	nsn := types.NamespacedName{
 		Namespace: jenkinsScript.Namespace,
 		Name:      *jenkinsScript.Spec.OwnerName,
@@ -166,7 +173,8 @@ func (r *ReconcileJenkinsScript) getInstanceByOwnerFromSpec(jenkinsScript *v2v1a
 	jenkinsInstance := &v2v1alpha1.Jenkins{}
 	err := r.client.Get(context.TODO(), nsn, jenkinsInstance)
 	if err != nil {
-		return nil, errorsf.Wrapf(err, "Failed to get owner CR by owner name from spec for %v", jenkinsScript.Name)
+		reqLogger.Info(fmt.Sprintf("Failed to get owner CR %v", *jenkinsScript.Spec.OwnerName))
+		return nil, nil
 	}
 	jenkinsScript = r.setOwnerReference(jenkinsInstance, jenkinsScript)
 	err = r.client.Update(context.TODO(), jenkinsScript)
@@ -249,4 +257,21 @@ func (r *ReconcileJenkinsScript) setOwnerReference(owner *v2v1alpha1.Jenkins, je
 	jenkinsScriptOwners = append(jenkinsScriptOwners, newOwnerRef)
 	jenkinsScript.SetOwnerReferences(jenkinsScriptOwners)
 	return jenkinsScript
+}
+
+func (r ReconcileJenkinsScript) updateAvailableStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	if instance.Status.Available != value {
+		instance.Status.Available = value
+		instance.Status.LastTimeUpdated = time.Now()
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			err := r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return errorsf.Wrapf(err, "Couldn't update availability status to %v", value)
+			}
+		}
+		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
+	}
+	return nil
 }

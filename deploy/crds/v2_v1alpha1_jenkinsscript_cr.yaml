@@ -4,3 +4,4 @@ metadata:
   name: example-jenkinsscript
 spec:
   sourceConfigMapName: ""
+  ownerName: "example-jenkins"

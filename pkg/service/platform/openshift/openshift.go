@@ -320,5 +320,3 @@ func (service OpenshiftService) GetDeploymentConfig(instance v1alpha1.Jenkins) (
 
 	return deploymentConfig, nil
 }
-
-
