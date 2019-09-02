@@ -24,6 +24,7 @@ type JenkinsService interface {
 	Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
 	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
+	IsDeploymentConfigReady(instance v1alpha1.Jenkins) (bool, error)
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
@@ -100,4 +101,20 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	}
 
 	return &instance, nil
+}
+
+// IsDeploymentConfigReady check if DC for Nexus is ready
+func (j JenkinsServiceImpl) IsDeploymentConfigReady(instance v1alpha1.Jenkins) (bool, error) {
+	nexusIsReady := false
+
+	nexusDc, err := j.platformService.GetDeploymentConfig(instance)
+	if err != nil {
+		return nexusIsReady, err
+	}
+
+	if nexusDc.Status.AvailableReplicas == 1 {
+		nexusIsReady = true
+	}
+
+	return nexusIsReady, nil
 }

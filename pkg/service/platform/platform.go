@@ -1,6 +1,7 @@
 package platform
 
 import (
+	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
@@ -18,6 +19,7 @@ type PlatformService interface {
 	CreateDeployConf(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
+	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 }
 

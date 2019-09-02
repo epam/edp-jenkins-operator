@@ -150,6 +150,13 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
+	if dcIsReady, err := r.service.IsDeploymentConfigReady(*instance); err != nil {
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment config is ready has been failed")
+	} else if !dcIsReady {
+		reqLogger.Info("Deployment config is not ready for configuration yet")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
+	}
+
 	err = r.updateAvailableStatus(instance, true)
 	if err != nil {
 		reqLogger.Info("Failed to update availability status")

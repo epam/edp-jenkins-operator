@@ -310,3 +310,15 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 
 	return nil
 }
+
+// GetDeploymentConfig returns DeploymentConfig object from Openshift
+func (service OpenshiftService) GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error) {
+	deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return deploymentConfig, nil
+}
+
+
