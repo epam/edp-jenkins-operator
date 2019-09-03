@@ -21,6 +21,7 @@ type PlatformService interface {
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
+	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
 }
 
 // NewPlatformService returns platform service interface implementation

@@ -5,6 +5,7 @@ import (
 	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
+	authV1Client "github.com/openshift/client-go/authorization/clientset/versioned/typed/authorization/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
@@ -30,6 +31,7 @@ var log = logf.Log.WithName("platform")
 type OpenshiftService struct {
 	kubernetes.K8SService
 
+	authClient  authV1Client.AuthorizationV1Client
 	appClient   appsV1client.AppsV1Client
 	routeClient routeV1Client.RouteV1Client
 }
@@ -52,6 +54,12 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 		return errors.Wrap(err, "Failed to init route V1 client for Openshift")
 	}
 	service.routeClient = *routeClient
+
+	authClient, err := authV1Client.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to init auth V1 client for Openshift")
+	}
+	service.authClient = *authClient
 
 	return nil
 }
@@ -319,4 +327,32 @@ func (service OpenshiftService) GetDeploymentConfig(instance v1alpha1.Jenkins) (
 	}
 
 	return deploymentConfig, nil
+}
+
+func (service OpenshiftService) CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error {
+
+	acBindingObject, err := helper.GetNewRoleObject(instance, name, binding, kind)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, acBindingObject, service.Scheme); err != nil {
+		return err
+	}
+
+	acBinding, err := service.authClient.RoleBindings(acBindingObject.Namespace).Get(acBindingObject.Name, metav1.GetOptions{})
+
+	if err != nil && k8serrors.IsNotFound(err) {
+		log.Info(fmt.Sprintf("Creating a new RoleBinding %s for Jenkins %s", acBindingObject.Name, instance.Name))
+		acBinding, err = service.authClient.RoleBindings(acBindingObject.Namespace).Create(acBindingObject)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to create Role Binding %v", acBindingObject.Name)
+		}
+
+		log.V(1).Info(fmt.Sprintf("RoleBinding %s/%s has been created", acBinding.Namespace, acBinding.Name))
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }

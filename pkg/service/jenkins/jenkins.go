@@ -8,6 +8,7 @@ import (
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
 	"jenkins-operator/pkg/service/platform"
+	"jenkins-operator/pkg/service/platform/helper"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -78,6 +79,11 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	err = j.platformService.CreateServiceAccount(instance)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Service Account %v", instance.Name)
+	}
+
+	err = j.platformService.CreateUserRoleBinding(instance, instance.Name, "edit", helper.ClusterRole)
+	if err != nil {
+		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
 	}
 
 	err = j.platformService.CreatePersistentVolumeClaim(instance)
