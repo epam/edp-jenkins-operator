@@ -1,6 +1,7 @@
 package jenkins
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
@@ -13,9 +14,9 @@ var log = logf.Log.WithName("jenkins_client")
 
 // JenkinsClient abstraction fo Jenkins client
 type JenkinsClient struct {
-	Instance        *v1alpha1.Jenkins
+	instance        *v1alpha1.Jenkins
 	PlatformService platform.PlatformService
-	Resty           resty.Client
+	resty           resty.Client
 }
 
 // InitNewRestClient performs initialization of Jenkins connection
@@ -36,9 +37,46 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 		return nil, errors.Wrapf(err, "Unable to get admin secret for %v", instance.Name)
 	}
 	jc := &JenkinsClient{
-		Instance:        instance,
+		instance:        instance,
 		PlatformService: platformService,
-		Resty:           *resty.SetHostURL(apiUrl).SetBasicAuth(string(adminSecret["username"]), string(adminSecret["password"])),
+		resty:           *resty.SetHostURL(apiUrl).SetBasicAuth(string(adminSecret["username"]), string(adminSecret["password"])),
 	}
 	return jc, nil
+}
+
+// InitNewRestClient performs initialization of Jenkins connection
+func (jc JenkinsClient) GetCrumb() (string, error) {
+	resp, err := jc.resty.R().Get("/crumbIssuer/api/json")
+	var responseData map[string]string
+	err = json.Unmarshal(resp.Body(), &responseData)
+	if resp.StatusCode() == 404 {
+		return "", nil
+	}
+
+	if err != nil || resp.IsError() {
+		return "", errors.Wrap(err, "Getting Crumb failed")
+	}
+	return responseData["crumb"], nil
+}
+
+// InitNewRestClient performs initialization of Jenkins connection
+func (jc JenkinsClient) RunScript(context string) error {
+	crumb, err := jc.GetCrumb()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to get crumb")
+	}
+	headers := make(map[string]string)
+	if crumb != "" {
+		headers["Jenkins-Crumb"] = crumb
+	}
+
+	params := map[string]string{"script": context}
+	resp, err := jc.resty.R().
+		SetQueryParams(params).
+		SetHeaders(headers).
+		Post("/scriptText")
+	if err != nil || resp.IsError() {
+		return errors.Wrapf(err, fmt.Sprintf("Running script failed. Response - %s", resp.Status()))
+	}
+	return nil
 }

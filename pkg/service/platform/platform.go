@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	"jenkins-operator/pkg/service/platform/openshift"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -18,10 +19,12 @@ type PlatformService interface {
 	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
 	CreateDeployConf(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
+	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
+	GetConfigMapData(namespace string, name string) (map[string]string, error)
 }
 
 // NewPlatformService returns platform service interface implementation
@@ -33,7 +36,7 @@ func NewPlatformService(scheme *runtime.Scheme) (PlatformService, error) {
 
 	restConfig, err := config.ClientConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to get rest config for platform")
+		return nil, errors.Wrap(err, "Failed to get rest configs for platform")
 	}
 
 	platform := openshift.OpenshiftService{}

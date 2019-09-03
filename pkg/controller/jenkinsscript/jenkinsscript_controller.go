@@ -130,6 +130,10 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
 	}
 
+	if instance.Status.Executed == true {
+		return reconcile.Result{}, nil
+	}
+
 	jc, err := jenkinsClient.InitJenkinsClient(jenkinsInstance, r.platform)
 	if err != nil {
 		reqLogger.Info("Failed to init Jenkins REST client")
@@ -140,9 +144,27 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 	}
 
+	cm, err := r.platform.GetConfigMapData(instance.Namespace, instance.Spec.SourceCmName)
+	if err != nil {
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+	}
+
+	err = jc.RunScript(cm["context"])
+	if err != nil {
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+	}
+
+	reqLogger.V(1).Info("Script has been executed successfully")
+
 	err = r.updateAvailableStatus(instance, true)
 	if err != nil {
 		reqLogger.Info("Failed to update availability status")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+	}
+
+	err = r.updateExecutedStatus(instance, true)
+	if err != nil {
+		reqLogger.Info("Failed to update executed status")
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 	}
 
@@ -272,6 +294,23 @@ func (r ReconcileJenkinsScript) updateAvailableStatus(instance *v2v1alpha1.Jenki
 			}
 		}
 		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
+	}
+	return nil
+}
+
+func (r ReconcileJenkinsScript) updateExecutedStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	if instance.Status.Executed != value {
+		instance.Status.Executed = value
+		instance.Status.LastTimeUpdated = time.Now()
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			err := r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return errorsf.Wrapf(err, "Couldn't update executed status to %v", value)
+			}
+		}
+		reqLogger.Info(fmt.Sprintf("Executed status has been updated to '%v'", value))
 	}
 	return nil
 }

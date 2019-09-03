@@ -80,7 +80,7 @@ func (service OpenshiftService) GetRoute(namespace string, name string) (*routeV
 	return route, routeScheme, nil
 }
 
-// CreateDeployConf - creates deployment config for Jenkins instance
+// CreateDeployConf - creates deployment configs for Jenkins instance
 func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) error {
 
 	activeDeadlineSecond := int64(21600)
@@ -96,7 +96,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout
 	command := []string{"sh", "-c", fmt.Sprintf(
 		"if [ -d /var/lib/jenkins/.ssh/ ]; then cd /var/lib/jenkins/.ssh/;" +
-			" for file in config id_rsa jenkins-slave-id_rsa;" +
+			" for file in configs id_rsa jenkins-slave-id_rsa;" +
 			" do if [ -f $file ]; then chmod 400 $file; fi; done; fi;")}
 
 	labels := helper.GenerateLabels(instance.Name)

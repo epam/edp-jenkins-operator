@@ -29,8 +29,8 @@ const (
 	StatusCreated          = "created"
 	StatusConfiguring      = "configuring"
 	StatusConfigured       = "configured"
-	StatusExposeStart      = "exposing config"
-	StatusExposeFinish     = "config exposed"
+	StatusExposeStart      = "exposing configs"
+	StatusExposeFinish     = "configs exposed"
 	StatusIntegrationStart = "integration started"
 	StatusReady            = "ready"
 	DefaultRequeueTime     = 30
@@ -55,7 +55,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	client := mgr.GetClient()
 	platformService, _ := platform.NewPlatformService(scheme)
 
-	jenkinsService := jenkins.NewJenkinsService(platformService, client)
+	jenkinsService := jenkins.NewJenkinsService(platformService, client, scheme)
 	return &ReconcileJenkins{
 		client:  client,
 		scheme:  scheme,
@@ -144,17 +144,49 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	if instance.Status.Status == StatusInstall {
 		reqLogger.Info("Installation has finished")
-		err = r.updateStatus(instance, StatusReady)
+		err = r.updateStatus(instance, StatusCreated)
 		if err != nil {
 			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 		}
 	}
 
 	if dcIsReady, err := r.service.IsDeploymentConfigReady(*instance); err != nil {
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment config is ready has been failed")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment configs is ready has been failed")
 	} else if !dcIsReady {
-		reqLogger.Info("Deployment config is not ready for configuration yet")
+		reqLogger.Info("Deployment configs is not ready for configuration yet")
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
+	}
+
+	if instance.Status.Status == StatusCreated || instance.Status.Status == "" {
+		reqLogger.Info("Configuration has started")
+		err := r.updateStatus(instance, StatusConfiguring)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+		}
+	}
+
+	instance, isFinished, err := r.service.Configure(*instance)
+	if err != nil {
+		reqLogger.Error(err, "Configuration has failed")
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Configuration failed")
+	} else if !isFinished {
+		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
+	}
+
+	if instance.Status.Status == StatusConfiguring {
+		reqLogger.Info("Configuration has finished")
+		err = r.updateStatus(instance, StatusConfigured)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+		}
+	}
+
+	if instance.Status.Status == StatusConfigured {
+		reqLogger.Info("Exposing configuration has started")
+		err = r.updateStatus(instance, StatusReady)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+		}
 	}
 
 	err = r.updateAvailableStatus(instance, true)

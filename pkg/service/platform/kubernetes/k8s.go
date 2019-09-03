@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
 	platformHelper "jenkins-operator/pkg/service/platform/helper"
@@ -14,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -197,7 +200,7 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 		}
 		reqLogger.Info(fmt.Sprintf("Secret %v has been created", secret.Name))
 	} else if err != nil {
-		return errors.Wrapf(err, fmt.Sprintf("Couldn't get Secret %v object", secretObject.Name))
+		return errors.Wrapf(err, "Couldn't get Secret %v object", secretObject.Name)
 	}
 
 	return nil
@@ -213,4 +216,105 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 		return nil, err
 	}
 	return secret.Data, nil
+}
+
+// CreateConfigMapFromFile performs creating ConfigMap in K8S
+func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object) error {
+	configMapData, err := service.fillConfigMapData(path, configMapKey)
+	if err != nil {
+		return errors.Wrapf(err, "Couldn't generate Config Map data for %v", configMapName)
+	}
+
+	labels := platformHelper.GenerateLabels(instance.Name)
+	configMapObject := &coreV1Api.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: instance.Namespace,
+			Labels:    labels,
+		},
+		Data: configMapData,
+	}
+
+	if err := controllerutil.SetControllerReference(ownerReference, configMapObject, service.Scheme); err != nil {
+		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", configMapObject.Name)
+	}
+
+	cm, err := service.CoreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
+	if err != nil && k8serr.IsNotFound(err) {
+		cm, err = service.CoreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
+		if err != nil {
+			return errors.Wrapf(err, "Couldn't create Config Map %v object", cm.Name)
+		}
+		log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, cm.Name))
+	} else if err != nil {
+		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMapObject.Name)
+	}
+
+	return nil
+}
+
+func (service K8SService) fillConfigMapData(path string, configMapKey *string) (map[string]string, error) {
+	configMapData := make(map[string]string)
+	pathInfo, err := os.Stat(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
+	}
+	if pathInfo.Mode().IsDir() {
+		configMapData, err = service.fillConfigMapFromDir(path)
+		if err != nil {
+			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't generate config map data from directory %v", path))
+		}
+	} else {
+		configMapData, err = service.fillConfigMapFromFile(path, configMapKey)
+		if err != nil {
+			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't generate config map data from file %v", path))
+		}
+	}
+	return configMapData, nil
+}
+
+func (service K8SService) fillConfigMapFromFile(path string, configMapKey *string) (map[string]string, error) {
+	configMapData := make(map[string]string)
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't read file %v.", path))
+	}
+	key := filepath.Base(path)
+	if configMapKey != nil {
+		key = *configMapKey
+	}
+	configMapData = map[string]string{
+		key: string(content),
+	}
+	return configMapData, nil
+}
+
+func (service K8SService) fillConfigMapFromDir(path string) (map[string]string, error) {
+	configMapData := make(map[string]string)
+	directory, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
+	}
+	for _, file := range directory {
+		content, err := ioutil.ReadFile(fmt.Sprintf("%v/%v", path, file.Name()))
+		if err != nil {
+			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
+		}
+		configMapData[file.Name()] = string(content)
+	}
+	return configMapData, nil
+}
+
+// GetConfigMapData return data field of ConfigMap
+func (service K8SService) GetConfigMapData(namespace string, name string) (map[string]string, error) {
+	configMap, err := service.CoreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
+
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			log.Error(err, fmt.Sprintf("Config map %v in namespace %v not found", name, namespace))
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMap.Name)
+	}
+	return configMap.Data, nil
 }
