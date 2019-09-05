@@ -181,7 +181,7 @@ func (r *ReconcileJenkinsScript) getInstanceByName(namespace string, name string
 	instance := &v2v1alpha1.Jenkins{}
 	err := r.client.Get(context.TODO(), nsn, instance)
 	if err != nil {
-		return nil, errorsf.Wrapf(err, "Failed to get instance vy owner %v", name)
+		return nil, errorsf.Wrapf(err, "Failed to get instance by owner %v", name)
 	}
 	return instance, nil
 }
