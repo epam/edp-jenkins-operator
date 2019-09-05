@@ -47,15 +47,20 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 // InitNewRestClient performs initialization of Jenkins connection
 func (jc JenkinsClient) GetCrumb() (string, error) {
 	resp, err := jc.resty.R().Get("/crumbIssuer/api/json")
-	var responseData map[string]string
-	err = json.Unmarshal(resp.Body(), &responseData)
 	if resp.StatusCode() == 404 {
+		log.V(1).Info("Jenkins Crumb is not found")
 		return "", nil
 	}
-
 	if err != nil || resp.IsError() {
 		return "", errors.Wrap(err, "Getting Crumb failed")
 	}
+
+	var responseData map[string]string
+	err = json.Unmarshal(resp.Body(), &responseData)
+	if err != nil {
+		return "", errors.Wrap(err, "Unmarshaling response output failed")
+	}
+
 	return responseData["crumb"], nil
 }
 
