@@ -219,13 +219,19 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 }
 
 // CreateConfigMapFromFile performs creating ConfigMap in K8S
-func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object) error {
+func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
+	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
 	configMapData, err := service.fillConfigMapData(path, configMapKey)
 	if err != nil {
 		return errors.Wrapf(err, "Couldn't generate Config Map data for %v", configMapName)
 	}
 
 	labels := platformHelper.GenerateLabels(instance.Name)
+	if len(customLabels) == 1 {
+		for key, value := range customLabels[0] {
+			labels[key] = value
+		}
+	}
 	configMapObject := &coreV1Api.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,

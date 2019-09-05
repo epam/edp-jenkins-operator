@@ -335,6 +335,8 @@
   name = "github.com/openshift/api"
   packages = [
     "apps/v1",
+    "authorization/v1",
+    "pkg/serialization",
     "route/v1",
   ]
   pruneopts = "NT"
@@ -347,6 +349,8 @@
   packages = [
     "apps/clientset/versioned/scheme",
     "apps/clientset/versioned/typed/apps/v1",
+    "authorization/clientset/versioned/scheme",
+    "authorization/clientset/versioned/typed/authorization/v1",
     "route/clientset/versioned/scheme",
     "route/clientset/versioned/typed/route/v1",
   ]
@@ -546,14 +550,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fd4e4a0fc28da93ab16716b9c8b7e6f28479620d234ae0b8df5fe70b890d2dd2"
+  digest = "1:07575c8edb9054479ec15867b023b078e75bfbce31d3abfa265de10ad7bf20e6"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
-  revision = "c7b8b68b14567162c6602a7c5659ee0f26417c18"
+  revision = "749cb33beabd9aa6d3178e3de05bcc914f70b2bf"
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -926,8 +930,10 @@
     "github.com/dchest/uniuri",
     "github.com/go-openapi/spec",
     "github.com/openshift/api/apps/v1",
+    "github.com/openshift/api/authorization/v1",
     "github.com/openshift/api/route/v1",
     "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1",
+    "github.com/openshift/client-go/authorization/clientset/versioned/typed/authorization/v1",
     "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1",
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",

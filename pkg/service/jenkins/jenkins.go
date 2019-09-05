@@ -27,8 +27,11 @@ const (
 	jenkinsAdminCredentialsSecretPostfix = "admin-password"
 	jenkinsAdminTokenSecretPostfix       = "admin-token"
 	jenkinsDefaultScriptsDirectory       = "scripts"
+	jenkinsDefaultSlavesDirectory        = "slaves"
 	jenkinsDefaultScriptsAbsolutePath    = "/usr/local/configs/" + jenkinsDefaultScriptsDirectory
+	jenkinsDefaultSlavesAbsolutePath     = "/usr/local/configs/" + jenkinsDefaultSlavesDirectory
 	localConfigsRelativePath             = "configs"
+	jenkinsSlavesConfigmapName           = "jenkins-slaves"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -186,6 +189,28 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		if err != nil {
 			return &instance, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
 		}
+	}
+
+	jenkinsSlavesDirectoryPath := jenkinsDefaultSlavesAbsolutePath
+
+	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
+		jenkinsSlavesDirectoryPath = fmt.Sprintf("%v/../%v", executableFilePath, localConfigsRelativePath)
+	}
+
+	directory, err = ioutil.ReadDir(jenkinsSlavesDirectoryPath)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", jenkinsScriptsDirectoryPath))
+	}
+
+	JenkinsSlavesConfigmapLabels := map[string]string{
+		"role": "jenkins-slave",
+	}
+
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, jenkinsSlavesConfigmapName, nil,
+		fmt.Sprintf("%v/%v", jenkinsSlavesDirectoryPath, jenkinsDefaultSlavesDirectory), &instance, JenkinsSlavesConfigmapLabels)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
+			jenkinsSlavesConfigmapName, instance.Namespace)
 	}
 
 	return &instance, true, nil

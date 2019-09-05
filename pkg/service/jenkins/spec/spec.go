@@ -16,5 +16,6 @@ const (
 	//JenkinsRecreateTimeout default timeout for recreate strategy in DeploymentConfig
 	JenkinsRecreateTimeout int64 = 6000
 
+	// JenkinsPasswordSecretName default admin user secret name
 	JenkinsPasswordSecretName string = "admin-password"
 )

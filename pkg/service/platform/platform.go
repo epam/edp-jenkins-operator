@@ -19,7 +19,7 @@ type PlatformService interface {
 	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
 	CreateDeployConf(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
-	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object) error
+	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)

@@ -1,0 +1,42 @@
+<org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+  <inheritFrom></inheritFrom>
+  <name>npm</name>
+  <namespace></namespace>
+  <privileged>false</privileged>
+  <alwaysPullImage>false</alwaysPullImage>
+  <instanceCap>2147483647</instanceCap>
+  <slaveConnectTimeout>100</slaveConnectTimeout>
+  <idleMinutes>60</idleMinutes>
+  <activeDeadlineSeconds>0</activeDeadlineSeconds>
+  <label>npm</label>
+  <serviceAccount>jenkins</serviceAccount>
+  <nodeSelector></nodeSelector>
+  <nodeUsageMode>NORMAL</nodeUsageMode>
+  <customWorkspaceVolumeEnabled>false</customWorkspaceVolumeEnabled>
+  <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
+    <memory>false</memory>
+  </workspaceVolume>
+  <volumes/>
+  <containers>
+    <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+      <name>jnlp</name>
+      <image>openshift/jenkins-agent-nodejs-8-centos7:v3.10</image>
+      <privileged>false</privileged>
+      <alwaysPullImage>false</alwaysPullImage>
+      <workingDir>/tmp</workingDir>
+      <command></command>
+      <args>${computer.jnlpmac} ${computer.name}</args>
+      <ttyEnabled>false</ttyEnabled>
+      <resourceRequestCpu></resourceRequestCpu>
+      <resourceRequestMemory></resourceRequestMemory>
+      <resourceLimitCpu></resourceLimitCpu>
+      <resourceLimitMemory></resourceLimitMemory>
+      <envVars/>
+      <ports/>
+    </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+  </containers>
+  <envVars/>
+  <annotations/>
+  <imagePullSecrets/>
+  <podRetention class="org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"/>
+</org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
