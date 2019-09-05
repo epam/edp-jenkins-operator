@@ -4,8 +4,17 @@ metadata:
   name: example-jenkins
 spec:
   version: "2.176.3"
-  image: "docker-registry.default.svc:5000/edp-cicd-delivery/jenkins"
+  image: "docker-registry.default.svc:5000/edp-cicd-delivery/edp-jenkins"
   volumes:
     - name: "data"
       storageClass: "efs"
       capacity: "1Gi"
+  sharedLibraries:
+    - name: "edp-library-stages"
+      id: "Stages"
+      repository: "https://github.com/epmd-edp/edp-library-stages.git"
+      version: "2.1.0"
+    - name: "edp-library-pipelines"
+      id: "Pipelines"
+      repository: "https://github.com/epmd-edp/edp-library-pipelines.git"
+      version: "2.1.0"

@@ -14,15 +14,23 @@ type JenkinsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Image   string           `json:"image"`
-	Version string           `json:"version"`
-	Volumes []JenkinsVolumes `json:"volumes, omitempty"`
+	Image           string                   `json:"image"`
+	Version         string                   `json:"version"`
+	Volumes         []JenkinsVolumes         `json:"volumes, omitempty"`
+	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries, omitempty"`
 }
 
 type JenkinsVolumes struct {
 	Name         string `json:"name"`
 	StorageClass string `json:"storageClass"`
 	Capacity     string `json:"capacity"`
+}
+
+type JenkinsSharedLibraries struct {
+	Name       string `json:"name"`
+	Id         string `json:"id"`
+	Repository string `json:"repository"`
+	Version    string `json:"version"`
 }
 
 // JenkinsStatus defines the observed state of Jenkins

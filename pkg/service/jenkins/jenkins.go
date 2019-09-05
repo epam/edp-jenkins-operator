@@ -1,6 +1,7 @@
 package jenkins
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/dchest/uniuri"
@@ -14,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"text/template"
 
 	jenkinsClient "jenkins-operator/pkg/client/jenkins"
 	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
@@ -26,12 +28,17 @@ import (
 const (
 	jenkinsAdminCredentialsSecretPostfix = "admin-password"
 	jenkinsAdminTokenSecretPostfix       = "admin-token"
+	jenkinsDefaultConfigsAbsolutePath    = "/usr/local/configs/"
 	jenkinsDefaultScriptsDirectory       = "scripts"
 	jenkinsDefaultSlavesDirectory        = "slaves"
-	jenkinsDefaultScriptsAbsolutePath    = "/usr/local/configs/" + jenkinsDefaultScriptsDirectory
-	jenkinsDefaultSlavesAbsolutePath     = "/usr/local/configs/" + jenkinsDefaultSlavesDirectory
+	jenkinsDefaultTemplatesDirectory     = "templates"
+	jenkinsDefaultScriptsAbsolutePath    = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultScriptsDirectory
+	jenkinsDefaultSlavesAbsolutePath     = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultSlavesDirectory
+	jenkinsDefaultTemplatesAbsolutePath  = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultTemplatesDirectory
 	localConfigsRelativePath             = "configs"
-	jenkinsSlavesConfigmapName           = "jenkins-slaves"
+	jenkinsSlavesConfigMapName           = "jenkins-slaves"
+	jenkinsSharedLibrariesConfigFileName = "config-shared-libraries.tmpl"
+	jenkinsDefaultScriptConfigMapKey     = "context"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -179,7 +186,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	for _, file := range directory {
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
-		configMapKey := "context"
+		configMapKey := jenkinsDefaultScriptConfigMapKey
 
 		jenkinsScript, err := j.createJenkinsScript(instance, file.Name(), configMapName)
 		if err != nil {
@@ -206,11 +213,38 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		"role": "jenkins-slave",
 	}
 
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, jenkinsSlavesConfigmapName, nil,
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, jenkinsSlavesConfigMapName, nil,
 		jenkinsSlavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
-			jenkinsSlavesConfigmapName, instance.Namespace)
+			jenkinsSlavesConfigMapName, instance.Namespace)
+	}
+
+	jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
+	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
+		jenkinsTemplatesDirectoryPath = fmt.Sprintf("%v/../%v", executableFilePath, localConfigsRelativePath)
+	}
+
+	var sharedLibrariesScriptContext bytes.Buffer
+	templateAbsolutePath := fmt.Sprintf("%v/%v/%v", jenkinsTemplatesDirectoryPath, jenkinsDefaultTemplatesDirectory, jenkinsSharedLibrariesConfigFileName)
+	t := template.Must(template.New(jenkinsSharedLibrariesConfigFileName).ParseFiles(templateAbsolutePath))
+	err = t.Execute(&sharedLibrariesScriptContext, instance.Spec.SharedLibraries)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "Couldn't parse template %v", jenkinsSharedLibrariesConfigFileName)
+	}
+
+	jenkinsScriptName := "config-shared-libraries"
+	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+
+	jenkinsScript, err := j.createJenkinsScript(instance, jenkinsScriptName, configMapName)
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", jenkinsScriptName)
+	}
+	labels := platformHelper.GenerateLabels(instance.Name)
+	configMapData := map[string]string{jenkinsDefaultScriptConfigMapKey: sharedLibrariesScriptContext.String()}
+	err = j.platformService.CreateConfigMapFromData(instance, configMapName, configMapData, labels, jenkinsScript)
+	if err != nil {
+		return &instance, false, err
 	}
 
 	return &instance, true, nil

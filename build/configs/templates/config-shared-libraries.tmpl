@@ -1,0 +1,49 @@
+/* Copyright 2018 EPAM Systems.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License. */
+
+import jenkins.plugins.git.GitSCMSource
+import jenkins.plugins.git.traits.*
+import jenkins.plugins.git.traits.RefSpecsSCMSourceTrait.RefSpecTemplate
+import jenkins.scm.api.trait.SCMSourceTrait
+import org.jenkinsci.plugins.workflow.libs.*
+import org.jenkinsci.plugins.workflow.libs.LibraryConfiguration
+import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever
+
+def globalLibraries = Jenkins.instance.getDescriptor("org.jenkinsci.plugins.workflow.libs.GlobalLibraries")
+
+List<SCMSourceTrait> traits = new ArrayList<>()
+traits.add(new BranchDiscoveryTrait())
+List<RefSpecsSCMSourceTrait.RefSpecTemplate> templates = new ArrayList<>()
+templates.add(new RefSpecTemplate('+refs/heads/*:refs/remotes/@{remote}/*'))
+templates.add(new RefSpecTemplate('+refs/changes/*:refs/remotes/@{remote}/*'))
+traits.add(new RefSpecsSCMSourceTrait(templates))
+def librariesArray = []
+{{ range . }}
+GitSCMSource gitSCMSource{{.Id}} = new GitSCMSource(
+"{{ .Name }}",
+"{{ .Repository }}",
+"",
+"*",
+"",
+false
+)
+
+gitSCMSource{{.Id}}.setTraits(traits)
+SCMSourceRetriever sCMSourceRetriever{{.Id}} = new SCMSourceRetriever(gitSCMSource{{.Id}})
+LibraryConfiguration libraryConfiguration{{.Id}} = new LibraryConfiguration("{{.Name}}", sCMSourceRetriever{{.Id}})
+libraryConfiguration{{.Id}}.setDefaultVersion("{{ .Version }}")
+libraryConfiguration{{.Id}}.setImplicit(false)
+librariesArray.add(libraryConfiguration{{.Id}})
+{{ end }}
+globalLibraries.get().setLibraries(librariesArray)

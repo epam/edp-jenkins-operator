@@ -218,20 +218,8 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 	return secret.Data, nil
 }
 
-// CreateConfigMapFromFile performs creating ConfigMap in K8S
-func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
-	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
-	configMapData, err := service.fillConfigMapData(path, configMapKey)
-	if err != nil {
-		return errors.Wrapf(err, "Couldn't generate Config Map data for %v", configMapName)
-	}
-
-	labels := platformHelper.GenerateLabels(instance.Name)
-	if len(customLabels) == 1 {
-		for key, value := range customLabels[0] {
-			labels[key] = value
-		}
-	}
+func (service K8SService) CreateConfigMapFromData(instance v1alpha1.Jenkins, configMapName string,
+	configMapData map[string]string, labels map[string]string, ownerReference metav1.Object) error {
 	configMapObject := &coreV1Api.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
@@ -254,6 +242,28 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 		log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, cm.Name))
 	} else if err != nil {
 		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMapObject.Name)
+	}
+	return nil
+}
+
+// CreateConfigMapFromFile performs creating ConfigMap in K8S
+func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
+	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
+	configMapData, err := service.fillConfigMapData(path, configMapKey)
+	if err != nil {
+		return errors.Wrapf(err, "Couldn't generate Config Map data for %v", configMapName)
+	}
+
+	labels := platformHelper.GenerateLabels(instance.Name)
+	if len(customLabels) == 1 {
+		for key, value := range customLabels[0] {
+			labels[key] = value
+		}
+	}
+
+	err = service.CreateConfigMapFromData(instance, configMapName, configMapData, labels, ownerReference)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
 	}
 
 	return nil
