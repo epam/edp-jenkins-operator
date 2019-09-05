@@ -5,6 +5,8 @@ ENV OPERATOR=/usr/local/bin/jenkins-operator \
     USER_NAME=jenkins-operator \
     HOME=/home/jenkins-operator
 
+RUN apk add --no-cache ca-certificates openssh-client
+
 # install operator binary
 COPY jenkins-operator ${OPERATOR}
 
