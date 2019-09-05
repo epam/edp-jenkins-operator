@@ -1,0 +1,46 @@
+def globalLibraries = Jenkins.instance.getDescriptor("org.jenkinsci.plugins.workflow.libs.GlobalLibraries")
+
+GitSCMSource gitSCMSourceStages = new GitSCMSource(
+"EDP-library-stages",
+"{{ stages_repo }}",
+"",
+"*",
+"",
+false
+)
+
+GitSCMSource gitSCMSourcePipelines = new GitSCMSource(
+"EDP-library-pipelines",
+"{{ pipelines_repo }}",
+"",
+"*",
+"",
+false
+)
+
+List<SCMSourceTrait> traits = new ArrayList<>()
+traits.add(new BranchDiscoveryTrait())
+List<RefSpecsSCMSourceTrait.RefSpecTemplate> templates = new ArrayList<>()
+templates.add(new RefSpecTemplate('+refs/heads/:refs/remotes/@{remote}/'))
+templates.add(new RefSpecTemplate("+refs/changes/:refs/remotes/@{remote}/"))
+traits.add(new RefSpecsSCMSourceTrait(templates))
+
+gitSCMSourceStages.setTraits(traits)
+gitSCMSourcePipelines.setTraits(traits)
+
+SCMSourceRetriever sCMSourceRetrieverStages = new SCMSourceRetriever(gitSCMSourceStages)
+
+SCMSourceRetriever sCMSourceRetrieverPipelines = new SCMSourceRetriever(gitSCMSourcePipelines)
+
+LibraryConfiguration libraryConfigurationStages = new LibraryConfiguration("edp-library-stages",
+sCMSourceRetrieverStages)
+LibraryConfiguration libraryConfigurationPipelines = new LibraryConfiguration("edp-library-pipelines",
+sCMSourceRetrieverPipelines)
+
+libraryConfigurationStages.setDefaultVersion("{{ stages_version }}")
+libraryConfigurationPipelines.setDefaultVersion("{{ pipelines_version }}")
+
+libraryConfigurationStages.setImplicit(false)
+libraryConfigurationPipelines.setImplicit(false)
+
+globalLibraries.get().setLibraries([libraryConfigurationStages, libraryConfigurationPipelines])

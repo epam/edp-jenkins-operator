@@ -3,8 +3,8 @@ kind: Jenkins
 metadata:
   name: example-jenkins
 spec:
-  version: "2.0.0"
-  image: "epamedp/edp-jenkins"
+  version: "2.176.3"
+  image: "docker-registry.default.svc:5000/edp-cicd-delivery/jenkins"
   volumes:
     - name: "data"
       storageClass: "efs"

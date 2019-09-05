@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	jenkinsClient "jenkins-operator/pkg/client/jenkins"
 	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
 	"jenkins-operator/pkg/service/platform"
 	platformHelper "jenkins-operator/pkg/service/platform/helper"
@@ -24,6 +25,7 @@ import (
 
 const (
 	jenkinsAdminCredentialsSecretPostfix = "admin-password"
+	jenkinsAdminTokenSecretPostfix       = "admin-token"
 	jenkinsDefaultScriptsDirectory       = "scripts"
 	jenkinsDefaultScriptsAbsolutePath    = "/usr/local/configs/" + jenkinsDefaultScriptsDirectory
 	localConfigsRelativePath             = "configs"
@@ -50,6 +52,18 @@ type JenkinsServiceImpl struct {
 	platformService platform.PlatformService
 	k8sClient       client.Client
 	k8sScheme       *runtime.Scheme
+}
+
+func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *v1alpha1.Jenkins, value *string) (*v1alpha1.Jenkins, error) {
+	instance.Status.AdminSecretName = value
+	err := j.k8sClient.Status().Update(context.TODO(), instance)
+	if err != nil {
+		err := j.k8sClient.Update(context.TODO(), instance)
+		if err != nil {
+			return instance, errors.Wrap(err, "Couldn't set admin secret name in status")
+		}
+	}
+	return instance, nil
 }
 
 func (j JenkinsServiceImpl) createJenkinsScript(instance v1alpha1.Jenkins, name string, configMapName string) (*v1alpha1.JenkinsScript, error) {
@@ -85,6 +99,25 @@ func (j JenkinsServiceImpl) createJenkinsScript(instance v1alpha1.Jenkins, name 
 	return jenkinsScriptObject, nil
 }
 
+func (j JenkinsServiceImpl) createSecret(instance v1alpha1.Jenkins, secretName string, username string, password *string) error {
+	var secretPassword string
+	if password == nil {
+		secretPassword = uniuri.New()
+	} else {
+		secretPassword = *password
+	}
+	secretData := map[string][]byte{
+		"username": []byte(username),
+		"password": []byte(secretPassword),
+	}
+
+	err := j.platformService.CreateSecret(instance, secretName, secretData)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to create Secret %v", secretName)
+	}
+	return nil
+}
+
 // Integration performs integration Jenkins with other EDP components
 func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	return &instance, nil
@@ -97,6 +130,38 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 
 // Configure performs self-configuration of Jenkins
 func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
+	if err != nil {
+		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
+	}
+	if jc == nil {
+		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
+	}
+
+	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminTokenSecretPostfix)
+	adminTokenSecret, err := j.platformService.GetSecretData(instance.Namespace, adminTokenSecretName)
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Unable to get admin token secret for %v", instance.Name)
+	}
+
+	if adminTokenSecret == nil {
+		token, err := jc.GetAdminToken()
+		if err != nil {
+			return &instance, false, errors.Wrap(err, "Failed to get token from admin user")
+		}
+
+		err = j.createSecret(instance, adminTokenSecretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, token)
+		if err != nil {
+			return &instance, false, err
+		}
+
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, &adminTokenSecretName)
+		if err != nil {
+			return &instance, false, err
+		}
+		instance = *updatedInstance
+	}
+
 	executableFilePath := helper.GetExecutableFilePath()
 	jenkinsScriptsDirectoryPath := jenkinsDefaultScriptsAbsolutePath
 
@@ -106,7 +171,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	directory, err := ioutil.ReadDir(jenkinsScriptsDirectoryPath)
 	if err != nil {
-		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", jenkinsScriptsDirectoryPath))
+		return &instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", jenkinsScriptsDirectoryPath))
 	}
 
 	for _, file := range directory {
@@ -115,11 +180,11 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 		jenkinsScript, err := j.createJenkinsScript(instance, file.Name(), configMapName)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", file.Name())
+			return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", file.Name())
 		}
 		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, fmt.Sprintf("%v/%v", jenkinsScriptsDirectoryPath, file.Name()), jenkinsScript)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
+			return &instance, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
 		}
 	}
 
@@ -128,24 +193,17 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 // Install performs installation of Jenkins
 func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
-	adminSecret := map[string][]byte{
-		"username": []byte(jenkinsDefaultSpec.JenkinsDefaultAdminUser),
-		"password": []byte(uniuri.New()),
-	}
-
-	adminSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminCredentialsSecretPostfix)
-	err := j.platformService.CreateSecret(instance, adminSecretName, adminSecret)
+	secretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminCredentialsSecretPostfix)
+	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
 	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Secret %v", adminSecretName)
+		return &instance, err
 	}
-
-	instance.Status.AdminSecretName = &adminSecretName
-	err = j.k8sClient.Status().Update(context.TODO(), &instance)
-	if err != nil {
-		err := j.k8sClient.Update(context.TODO(), &instance)
+	if instance.Status.AdminSecretName == nil {
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, &secretName)
 		if err != nil {
-			return &instance, errors.Wrap(err, "Couldn't set admin secret name in status")
+			return &instance, err
 		}
+		instance = *updatedInstance
 	}
 
 	err = j.platformService.CreateServiceAccount(instance)

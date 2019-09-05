@@ -140,7 +140,7 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 	}
 	if jc == nil {
-		reqLogger.V(1).Info("Unable to init Jenkins REST client")
+		reqLogger.V(1).Info("Jenkins returns nil client")
 		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
 	}
 

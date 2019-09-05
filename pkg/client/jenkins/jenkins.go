@@ -63,7 +63,7 @@ func (jc JenkinsClient) GetCrumb() (string, error) {
 func (jc JenkinsClient) RunScript(context string) error {
 	crumb, err := jc.GetCrumb()
 	if err != nil {
-		return errors.Wrapf(err, "Failed to get crumb")
+		return err
 	}
 	headers := make(map[string]string)
 	if crumb != "" {
@@ -79,4 +79,38 @@ func (jc JenkinsClient) RunScript(context string) error {
 		return errors.Wrapf(err, fmt.Sprintf("Running script failed. Response - %s", resp.Status()))
 	}
 	return nil
+}
+
+// InitNewRestClient performs initialization of Jenkins connection
+func (jc JenkinsClient) GetAdminToken() (*string, error) {
+	crumb, err := jc.GetCrumb()
+	if err != nil {
+		return nil, err
+	}
+	headers := make(map[string]string)
+	if crumb != "" {
+		headers["Jenkins-Crumb"] = crumb
+	}
+
+	params := map[string]string{"newTokenName": "admin"}
+	resp, err := jc.resty.R().
+		SetQueryParams(params).
+		SetHeaders(headers).
+		Post("/me/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken")
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Running POST request failed")
+	}
+	if resp.IsError() {
+		return nil, errors.New(fmt.Sprintf("Request returns with error - %v", resp.Status()))
+	}
+
+	var parsedResponse map[string]interface{}
+	err = json.Unmarshal(resp.Body(), &parsedResponse)
+	parsedData, valid := parsedResponse["data"].(map[string]interface{})
+	if valid {
+		token := fmt.Sprintf("%v", parsedData["tokenValue"])
+		return &token, nil
+	}
+	return nil, errors.New("No token find for admin")
 }
