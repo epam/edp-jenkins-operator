@@ -222,11 +222,11 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
 	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-		jenkinsTemplatesDirectoryPath = fmt.Sprintf("%v/../%v", executableFilePath, localConfigsRelativePath)
+		jenkinsTemplatesDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultTemplatesDirectory)
 	}
 
 	var sharedLibrariesScriptContext bytes.Buffer
-	templateAbsolutePath := fmt.Sprintf("%v/%v/%v", jenkinsTemplatesDirectoryPath, jenkinsDefaultTemplatesDirectory, jenkinsSharedLibrariesConfigFileName)
+	templateAbsolutePath := fmt.Sprintf("%v/%v", jenkinsTemplatesDirectoryPath, jenkinsSharedLibrariesConfigFileName)
 	t := template.Must(template.New(jenkinsSharedLibrariesConfigFileName).ParseFiles(templateAbsolutePath))
 	err = t.Execute(&sharedLibrariesScriptContext, instance.Spec.SharedLibraries)
 	if err != nil {
