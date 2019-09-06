@@ -194,7 +194,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	jenkinsSlavesDirectoryPath := jenkinsDefaultSlavesAbsolutePath
 
 	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-		jenkinsSlavesDirectoryPath = fmt.Sprintf("%v/../%v", executableFilePath, localConfigsRelativePath)
+		jenkinsSlavesDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultSlavesDirectory)
 	}
 
 	directory, err = ioutil.ReadDir(jenkinsSlavesDirectoryPath)
@@ -207,7 +207,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 
 	err = j.platformService.CreateConfigMapFromFileOrDir(instance, jenkinsSlavesConfigmapName, nil,
-		fmt.Sprintf("%v/%v", jenkinsSlavesDirectoryPath, jenkinsDefaultSlavesDirectory), &instance, JenkinsSlavesConfigmapLabels)
+		jenkinsSlavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
 			jenkinsSlavesConfigmapName, instance.Namespace)
