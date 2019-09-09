@@ -1,39 +1,38 @@
-package jenkinsscript
+package jenkinsserviceaccount
 
 import (
 	"context"
 	"fmt"
-	"jenkins-operator/pkg/controller/helper"
-	"jenkins-operator/pkg/service/platform"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
-	v2v1alpha1 "jenkins-operator/pkg/apis/v2/v1alpha1"
-
 	errorsf "github.com/pkg/errors"
+	v2v1alpha1 "jenkins-operator/pkg/apis/v2/v1alpha1"
 	jenkinsClient "jenkins-operator/pkg/client/jenkins"
+	"jenkins-operator/pkg/controller/helper"
+	"jenkins-operator/pkg/service/platform"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_jenkinsscript")
+var log = logf.Log.WithName("controller_jenkinsserviceaccount")
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new JenkinsScript Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new JenkinsServiceAccount Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -41,11 +40,11 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	scheme := mgr.GetScheme()
 	client := mgr.GetClient()
+	scheme := mgr.GetScheme()
 	platformService, _ := platform.NewPlatformService(scheme)
 
-	return &ReconcileJenkinsScript{
+	return &ReconcileJenkinsServiceAccount{
 		client:   client,
 		scheme:   scheme,
 		platform: platformService,
@@ -55,7 +54,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("jenkinsscript-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("jenkinsserviceaccount-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
@@ -71,8 +70,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		},
 	}
 
-	// Watch for changes to primary resource JenkinsScript
-	err = c.Watch(&source.Kind{Type: &v2v1alpha1.JenkinsScript{}}, &handler.EnqueueRequestForObject{}, p)
+	// Watch for changes to primary resource JenkinsServiceAccount
+	err = c.Watch(&source.Kind{Type: &v2v1alpha1.JenkinsServiceAccount{}}, &handler.EnqueueRequestForObject{}, p)
 	if err != nil {
 		return err
 	}
@@ -80,11 +79,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileJenkinsScript implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileJenkinsScript{}
+var _ reconcile.Reconciler = &ReconcileJenkinsServiceAccount{}
 
-// ReconcileJenkinsScript reconciles a JenkinsScript object
-type ReconcileJenkinsScript struct {
+// ReconcileJenkinsServiceAccount reconciles a JenkinsServiceAccount object
+type ReconcileJenkinsServiceAccount struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client   client.Client
@@ -92,19 +90,19 @@ type ReconcileJenkinsScript struct {
 	platform platform.PlatformService
 }
 
-// Reconcile reads that state of the cluster for a JenkinsScript object and makes changes based on the state read
-// and what is in the JenkinsScript.Spec
+// Reconcile reads that state of the cluster for a JenkinsServiceAccount object and makes changes based on the state read
+// and what is in the JenkinsServiceAccount.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
 // a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileJenkinsServiceAccount) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling JenkinsScript")
+	reqLogger.Info("Reconciling JenkinsServiceAccount")
 
-	// Fetch the JenkinsScript instance
-	instance := &v2v1alpha1.JenkinsScript{}
+	// Fetch the JenkinsServiceAccount instance
+	instance := &v2v1alpha1.JenkinsServiceAccount{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -126,7 +124,7 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
-	if instance.Status.Executed == true {
+	if instance.Status.Created == true {
 		return reconcile.Result{}, nil
 	}
 
@@ -140,89 +138,86 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 	}
 
-	cm, err := r.platform.GetConfigMapData(instance.Namespace, instance.Spec.SourceCmName)
-	if err != nil {
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
-	}
-
-	err = jc.RunScript(cm["context"])
-	if err != nil {
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
-	}
-
-	reqLogger.V(1).Info("Script has been executed successfully")
-
-	err = r.updateAvailableStatus(instance, true)
-	if err != nil {
-		reqLogger.Info("Failed to update availability status")
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
-	}
-
-	err = r.updateExecutedStatus(instance, true)
-	if err != nil {
-		reqLogger.Info("Failed to update executed status")
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
-	}
-
-	reqLogger.Info("Reconciling has been finished")
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileJenkinsScript) getInstanceByName(namespace string, name string) (*v2v1alpha1.Jenkins, error) {
-	nsn := types.NamespacedName{
-		Namespace: namespace,
-		Name:      name,
-	}
-
-	instance := &v2v1alpha1.Jenkins{}
-	err := r.client.Get(context.TODO(), nsn, instance)
+func (r *ReconcileJenkinsServiceAccount) getJenkinsInstance(namespace string) (*v2v1alpha1.Jenkins, error) {
+	list := &v2v1alpha1.JenkinsList{}
+	err := r.client.List(context.TODO(), &client.ListOptions{Namespace: namespace}, list)
 	if err != nil {
-		return nil, errorsf.Wrapf(err, "Failed to get instance by owner %v", name)
+		return nil, errorsf.Wrapf(err, "Couldn't get Jenkins instance in namespace %v", namespace)
 	}
-	return instance, nil
-}
-
-func (r *ReconcileJenkinsScript) getInstanceByOwnerFromSpec(jenkinsScript *v2v1alpha1.JenkinsScript) (*v2v1alpha1.Jenkins, error) {
-	reqLogger := log.WithValues("Request.Namespace", jenkinsScript.Namespace, "Request.Name", jenkinsScript.Name)
-	nsn := types.NamespacedName{
-		Namespace: jenkinsScript.Namespace,
-		Name:      *jenkinsScript.Spec.OwnerName,
-	}
-	jenkinsInstance := &v2v1alpha1.Jenkins{}
-	err := r.client.Get(context.TODO(), nsn, jenkinsInstance)
-	if err != nil {
-		reqLogger.Info(fmt.Sprintf("Failed to get owner CR %v", *jenkinsScript.Spec.OwnerName))
+	if len(list.Items) == 0 {
 		return nil, nil
 	}
-	jenkinsScript = r.setOwnerReference(jenkinsInstance, jenkinsScript)
-	err = r.client.Update(context.TODO(), jenkinsScript)
-	if err != nil {
-		return nil, errorsf.Wrapf(err, "Failed to set owner name from spec for %v", jenkinsScript.Name)
+	jenkins := list.Items[0]
+	nsn := types.NamespacedName{
+		Namespace: jenkins.Namespace,
+		Name:      jenkins.Name,
 	}
-	return jenkinsInstance, nil
+	jenkinsInstance := &v2v1alpha1.Jenkins{}
+	err = r.client.Get(context.TODO(), nsn, jenkinsInstance)
+	return jenkinsInstance, err
 }
 
-func (r *ReconcileJenkinsScript) getOwnerByCr(jenkinsScript *v2v1alpha1.JenkinsScript) *metav1.OwnerReference {
-	owners := jenkinsScript.GetOwnerReferences()
-	if len(owners) == 0 {
-		return nil
+func (r *ReconcileJenkinsServiceAccount) setOwnerReference(owner *v2v1alpha1.Jenkins, jenkinsScript *v2v1alpha1.JenkinsServiceAccount) *v2v1alpha1.JenkinsServiceAccount {
+	jenkinsScriptOwners := jenkinsScript.GetOwnerReferences()
+	newOwnerRef := metav1.OwnerReference{
+		APIVersion:         owner.APIVersion,
+		Kind:               owner.Kind,
+		Name:               owner.Name,
+		UID:                owner.UID,
+		BlockOwnerDeletion: helper.NewTrue(),
+		Controller:         helper.NewTrue(),
 	}
-	for _, owner := range owners {
-		if owner.Kind == "Jenkins" {
-			return &owner
+
+	jenkinsScriptOwners = append(jenkinsScriptOwners, newOwnerRef)
+	jenkinsScript.SetOwnerReferences(jenkinsScriptOwners)
+	return jenkinsScript
+}
+
+func (r ReconcileJenkinsServiceAccount) updateAvailableStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	if instance.Status.Available != value {
+		instance.Status.Available = value
+		instance.Status.LastTimeUpdated = time.Now()
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			err := r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return errorsf.Wrapf(err, "Couldn't update availability status to %v", value)
+			}
 		}
+		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
 	}
 	return nil
 }
 
-func (r *ReconcileJenkinsScript) getOrCreateInstanceOwner(jenkinsScript *v2v1alpha1.JenkinsScript) (*v2v1alpha1.Jenkins, error) {
+func (r ReconcileJenkinsServiceAccount) updateExecutedStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	if instance.Status.Executed != value {
+		instance.Status.Executed = value
+		instance.Status.LastTimeUpdated = time.Now()
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			err := r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return errorsf.Wrapf(err, "Couldn't update executed status to %v", value)
+			}
+		}
+		reqLogger.Info(fmt.Sprintf("Executed status has been updated to '%v'", value))
+	}
+	return nil
+}
+
+func (r *ReconcileJenkinsServiceAccount) getOrCreateInstanceOwner(jenkinsScript *v2v1alpha1.JenkinsServiceAccount) (*v2v1alpha1.Jenkins, error) {
 	reqLogger := log.WithValues("Request.Namespace", jenkinsScript.Namespace, "Request.Name", jenkinsScript.Name)
 	owner := r.getOwnerByCr(jenkinsScript)
 	if owner != nil {
 		return r.getInstanceByName(jenkinsScript.Namespace, owner.Name)
 	}
 
-	if jenkinsScript.Spec.OwnerName != nil {
+	if jenkinsScript.Spec.OwnerName != "" {
 		return r.getInstanceByOwnerFromSpec(jenkinsScript)
 	}
 
@@ -242,71 +237,49 @@ func (r *ReconcileJenkinsScript) getOrCreateInstanceOwner(jenkinsScript *v2v1alp
 	return jenkinsInstance, nil
 }
 
-func (r *ReconcileJenkinsScript) getJenkinsInstance(namespace string) (*v2v1alpha1.Jenkins, error) {
-	list := &v2v1alpha1.JenkinsList{}
-	err := r.client.List(context.TODO(), &client.ListOptions{Namespace: namespace}, list)
-	if err != nil {
-		return nil, errorsf.Wrapf(err, "Couldn't get Jenkins instance in namespace %v", namespace)
+func (r *ReconcileJenkinsServiceAccount) getOwnerByCr(jenkinsScript *v2v1alpha1.JenkinsServiceAccount) *metav1.OwnerReference {
+	owners := jenkinsScript.GetOwnerReferences()
+	if len(owners) == 0 {
+		return nil
 	}
-	if len(list.Items) == 0 {
-		return nil, nil
+	for _, owner := range owners {
+		if owner.Kind == "Jenkins" {
+			return &owner
+		}
 	}
-	jenkins := list.Items[0]
+	return nil
+}
+
+func (r *ReconcileJenkinsServiceAccount) getInstanceByOwnerFromSpec(jenkinsUser *v2v1alpha1.JenkinsServiceAccount) (*v2v1alpha1.Jenkins, error) {
+	reqLogger := log.WithValues("Request.Namespace", jenkinsUser.Namespace, "Request.Name", jenkinsUser.Name)
 	nsn := types.NamespacedName{
-		Namespace: jenkins.Namespace,
-		Name:      jenkins.Name,
+		Namespace: jenkinsUser.Namespace,
+		Name:      jenkinsUser.Spec.OwnerName,
 	}
 	jenkinsInstance := &v2v1alpha1.Jenkins{}
-	err = r.client.Get(context.TODO(), nsn, jenkinsInstance)
-	return jenkinsInstance, err
+	err := r.client.Get(context.TODO(), nsn, jenkinsInstance)
+	if err != nil {
+		reqLogger.Info(fmt.Sprintf("Failed to get owner CR %v", jenkinsUser.Spec.OwnerName))
+		return nil, nil
+	}
+	jenkinsUser = r.setOwnerReference(jenkinsInstance, jenkinsUser)
+	err = r.client.Update(context.TODO(), jenkinsUser)
+	if err != nil {
+		return nil, errorsf.Wrapf(err, "Failed to set owner name from spec for %v", jenkinsUser.Name)
+	}
+	return jenkinsInstance, nil
 }
 
-func (r *ReconcileJenkinsScript) setOwnerReference(owner *v2v1alpha1.Jenkins, jenkinsScript *v2v1alpha1.JenkinsScript) *v2v1alpha1.JenkinsScript {
-	jenkinsScriptOwners := jenkinsScript.GetOwnerReferences()
-	newOwnerRef := metav1.OwnerReference{
-		APIVersion:         owner.APIVersion,
-		Kind:               owner.Kind,
-		Name:               owner.Name,
-		UID:                owner.UID,
-		BlockOwnerDeletion: helper.NewTrue(),
-		Controller:         helper.NewTrue(),
+func (r *ReconcileJenkinsServiceAccount) getInstanceByName(namespace string, name string) (*v2v1alpha1.Jenkins, error) {
+	nsn := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
 	}
 
-	jenkinsScriptOwners = append(jenkinsScriptOwners, newOwnerRef)
-	jenkinsScript.SetOwnerReferences(jenkinsScriptOwners)
-	return jenkinsScript
-}
-
-func (r ReconcileJenkinsScript) updateAvailableStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
-	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
-	if instance.Status.Available != value {
-		instance.Status.Available = value
-		instance.Status.LastTimeUpdated = time.Now()
-		err := r.client.Status().Update(context.TODO(), instance)
-		if err != nil {
-			err := r.client.Update(context.TODO(), instance)
-			if err != nil {
-				return errorsf.Wrapf(err, "Couldn't update availability status to %v", value)
-			}
-		}
-		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
+	instance := &v2v1alpha1.Jenkins{}
+	err := r.client.Get(context.TODO(), nsn, instance)
+	if err != nil {
+		return nil, errorsf.Wrapf(err, "Failed to get instance by owner %v", name)
 	}
-	return nil
-}
-
-func (r ReconcileJenkinsScript) updateExecutedStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
-	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
-	if instance.Status.Executed != value {
-		instance.Status.Executed = value
-		instance.Status.LastTimeUpdated = time.Now()
-		err := r.client.Status().Update(context.TODO(), instance)
-		if err != nil {
-			err := r.client.Update(context.TODO(), instance)
-			if err != nil {
-				return errorsf.Wrapf(err, "Couldn't update executed status to %v", value)
-			}
-		}
-		reqLogger.Info(fmt.Sprintf("Executed status has been updated to '%v'", value))
-	}
-	return nil
+	return instance, nil
 }

@@ -86,6 +86,32 @@ func (jc JenkinsClient) RunScript(context string) error {
 	return nil
 }
 
+func (jc JenkinsClient) CreateUser(v1alpha1.JenkinsServiceAccount) error{
+	_ = createUserBody
+	return nil
+}
+
+func createUserBody (instance v1alpha1.JenkinsServiceAccount) (string, error){
+	switch instance.Annotations["auth-type"] {
+	case "ssh":
+		return createUserWithSshKey(), nil
+	case "password":
+		return createUserWithPassword(), nil
+	default:
+		return "", errors.New("Unknown authentication type!")
+	}
+
+}
+
+func createUserWithSshKey () string {
+	return ""
+}
+
+func createUserWithPassword() string {
+	return ""
+}
+
+
 // InitNewRestClient performs initialization of Jenkins connection
 func (jc JenkinsClient) GetAdminToken() (*string, error) {
 	crumb, err := jc.GetCrumb()

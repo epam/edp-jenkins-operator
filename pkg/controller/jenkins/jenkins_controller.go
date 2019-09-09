@@ -3,6 +3,7 @@ package jenkins
 import (
 	"context"
 	"fmt"
+	"jenkins-operator/pkg/controller/helper"
 	"jenkins-operator/pkg/service/jenkins"
 	"jenkins-operator/pkg/service/platform"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -33,8 +34,9 @@ const (
 	StatusExposeFinish     = "configs exposed"
 	StatusIntegrationStart = "integration started"
 	StatusReady            = "ready"
-	DefaultRequeueTime     = 30
+
 )
+
 
 var log = logf.Log.WithName("controller_jenkins")
 
@@ -132,52 +134,52 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Installation has been started")
 		err = r.updateStatus(instance, StatusInstall)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 		}
 	}
 
 	instance, err = r.service.Install(*instance)
 	if err != nil {
 		r.updateStatus(instance, StatusFailed)
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Installation has been failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Installation has been failed")
 	}
 
 	if instance.Status.Status == StatusInstall {
 		reqLogger.Info("Installation has finished")
 		err = r.updateStatus(instance, StatusCreated)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 		}
 	}
 
 	if dcIsReady, err := r.service.IsDeploymentConfigReady(*instance); err != nil {
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment configs is ready has been failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment configs is ready has been failed")
 	} else if !dcIsReady {
 		reqLogger.Info("Deployment configs is not ready for configuration yet")
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
 	if instance.Status.Status == StatusCreated || instance.Status.Status == "" {
 		reqLogger.Info("Configuration has started")
 		err := r.updateStatus(instance, StatusConfiguring)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 		}
 	}
 
 	instance, isFinished, err := r.service.Configure(*instance)
 	if err != nil {
 		reqLogger.Error(err, "Configuration has failed")
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Configuration failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Configuration failed")
 	} else if !isFinished {
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, nil
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
 	if instance.Status.Status == StatusConfiguring {
 		reqLogger.Info("Configuration has finished")
 		err = r.updateStatus(instance, StatusConfigured)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 		}
 	}
 
@@ -185,14 +187,14 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Exposing configuration has started")
 		err = r.updateStatus(instance, StatusReady)
 		if err != nil {
-			return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 		}
 	}
 
 	err = r.updateAvailableStatus(instance, true)
 	if err != nil {
 		reqLogger.Info("Failed to update availability status")
-		return reconcile.Result{RequeueAfter: DefaultRequeueTime * time.Second}, err
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 	}
 
 	reqLogger.Info("Reconciling has been finished")
