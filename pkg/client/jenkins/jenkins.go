@@ -27,12 +27,12 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 	}
 	apiUrl := fmt.Sprintf("%v://%v", scheme, route.Spec.Host)
 
-	if instance.Status.AdminSecretName == nil {
+	if instance.Status.AdminSecretName == "" {
 		log.V(1).Info("Admin secret is not created yet")
 		return nil, nil
 	}
 
-	adminSecret, err := platformService.GetSecretData(instance.Namespace, *instance.Status.AdminSecretName)
+	adminSecret, err := platformService.GetSecretData(instance.Namespace, instance.Status.AdminSecretName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get admin secret for %v", instance.Name)
 	}

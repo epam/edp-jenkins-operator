@@ -42,7 +42,7 @@ type JenkinsStatus struct {
 	Available       bool      `json:"available, omitempty"`
 	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
 	Status          string    `json:"status, omitempty"`
-	AdminSecretName *string   `json:"adminSecretName, omitempty"`
+	AdminSecretName string    `json:"adminSecretName, omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

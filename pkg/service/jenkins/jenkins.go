@@ -64,7 +64,7 @@ type JenkinsServiceImpl struct {
 	k8sScheme       *runtime.Scheme
 }
 
-func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *v1alpha1.Jenkins, value *string) (*v1alpha1.Jenkins, error) {
+func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *v1alpha1.Jenkins, value string) (*v1alpha1.Jenkins, error) {
 	instance.Status.AdminSecretName = value
 	err := j.k8sClient.Status().Update(context.TODO(), instance)
 	if err != nil {
@@ -165,7 +165,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			return &instance, false, err
 		}
 
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, &adminTokenSecretName)
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, adminTokenSecretName)
 		if err != nil {
 			return &instance, false, err
 		}
@@ -257,8 +257,8 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	if err != nil {
 		return &instance, err
 	}
-	if instance.Status.AdminSecretName == nil {
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, &secretName)
+	if instance.Status.AdminSecretName == "" {
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
 		if err != nil {
 			return &instance, err
 		}
