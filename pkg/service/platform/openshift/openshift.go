@@ -183,6 +183,10 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 									Name:  "JENKINS_UI_URL",
 									Value: jenkinsUiUrl,
 								},
+								{
+									Name: "JENKINS_OPTS",
+									Value: "--requestHeaderSize=32768",
+								},
 							},
 							SecurityContext: nil,
 							Ports: []coreV1Api.ContainerPort{
