@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
@@ -47,12 +48,15 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 // InitNewRestClient performs initialization of Jenkins connection
 func (jc JenkinsClient) GetCrumb() (string, error) {
 	resp, err := jc.resty.R().Get("/crumbIssuer/api/json")
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to send request for Crumb!")
+	}
 	if resp.StatusCode() == 404 {
 		log.V(1).Info("Jenkins Crumb is not found")
 		return "", nil
 	}
-	if err != nil || resp.IsError() {
-		return "", errors.Wrap(err, "Getting Crumb failed")
+	if resp.IsError() {
+		return "", errors.Wrapf(err, "Getting Crumb failed! Response code: %v, response body: %s", resp.StatusCode(), resp.Body())
 	}
 
 	var responseData map[string]string
@@ -80,35 +84,60 @@ func (jc JenkinsClient) RunScript(context string) error {
 		SetQueryParams(params).
 		SetHeaders(headers).
 		Post("/scriptText")
-	if err != nil || resp.IsError() {
-		return errors.Wrapf(err, fmt.Sprintf("Running script failed. Response - %s", resp.Status()))
+	if err != nil {
+		return errors.Wrap(err, "Request to Jenkins script API failed!")
 	}
+
+	if resp.IsError() {
+		return errors.Wrapf(err, "Running script in Jenkins failed! Status: - %s", resp.Status())
+	}
+
 	return nil
 }
 
-func (jc JenkinsClient) CreateUser(v1alpha1.JenkinsServiceAccount) error {
-	_ = createUserBody
-	return nil
-}
-
-func createUserBody(instance v1alpha1.JenkinsServiceAccount) (string, error) {
-	switch instance.Annotations["auth-type"] {
-	case "ssh":
-		return createUserWithSshKey(), nil
-	case "password":
-		return createUserWithPassword(), nil
-	default:
-		return "", errors.New("Unknown authentication type!")
+// CreateUser creates new non-interactive user in Jenkins
+func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) error {
+	crumb, err := jc.GetCrumb()
+	if err != nil {
+		return err
 	}
 
-}
+	headers := make(map[string]string)
+	if crumb != "" {
+		headers["Jenkins-Crumb"] = crumb
+		headers["Content-Type"] = "application/x-www-form-urlencoded"
+	}
 
-func createUserWithSshKey() string {
-	return ""
-}
+	secretData, err := jc.PlatformService.GetSecretData(instance.Namespace, instance.Spec.Credentials)
+	if err != nil {
+		return err
+	}
 
-func createUserWithPassword() string {
-	return ""
+	credentials, err := helper.NewJenkinsUser(secretData, instance.Spec.Type)
+	if err != nil {
+		return err
+	}
+
+	requestParams := map[string]string{}
+	requestParams["json"], err = credentials.ToString()
+	if err != nil {
+		return err
+	}
+
+	resp, err := jc.resty.
+		SetRedirectPolicy(resty.FlexibleRedirectPolicy(10)).R().
+		SetQueryParams(requestParams).
+		SetHeaders(headers).
+		Post("/credentials/store/system/domain/_/createCredentials")
+	if err != nil {
+		return errors.Wrap(err, "Failed to sent Jenkins user creation request!")
+	}
+
+	if resp.StatusCode() != 200 || resp.StatusCode() != 302 {
+		return errors.New(fmt.Sprintf("Failed to create user in Jenkins! Response code: %v, response body: %s", resp.StatusCode(), resp.Body()))
+	}
+
+	return nil
 }
 
 // InitNewRestClient performs initialization of Jenkins connection

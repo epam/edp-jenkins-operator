@@ -18,4 +18,6 @@ const (
 
 	// JenkinsPasswordSecretName default admin user secret name
 	JenkinsPasswordSecretName string = "admin-password"
+
+	EdpAnnotationsPrefix string = "edp.epam.com"
 )

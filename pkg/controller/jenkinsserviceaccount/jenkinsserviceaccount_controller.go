@@ -61,8 +61,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	p := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			oldObject := e.ObjectOld.(*v2v1alpha1.JenkinsScript)
-			newObject := e.ObjectNew.(*v2v1alpha1.JenkinsScript)
+			oldObject := e.ObjectOld.(*v2v1alpha1.JenkinsServiceAccount)
+			newObject := e.ObjectNew.(*v2v1alpha1.JenkinsServiceAccount)
 			if oldObject.Status != newObject.Status {
 				return false
 			}
@@ -99,7 +99,7 @@ type ReconcileJenkinsServiceAccount struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileJenkinsServiceAccount) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling JenkinsServiceAccount")
+	reqLogger.Info("Reconciling JenkinsServiceAccounts")
 
 	// Fetch the JenkinsServiceAccount instance
 	instance := &v2v1alpha1.JenkinsServiceAccount{}
@@ -120,12 +120,8 @@ func (r *ReconcileJenkinsServiceAccount) Reconcile(request reconcile.Request) (r
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Failed to get owner for %v", instance.Name)
 	}
 	if jenkinsInstance == nil {
-		reqLogger.Info("Couldn't find Jenkins Script owner instance")
+		reqLogger.Info("Couldn't find Jenkins Service Account owner instance")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
-	}
-
-	if instance.Status.Created == true {
-		return reconcile.Result{}, nil
 	}
 
 	jc, err := jenkinsClient.InitJenkinsClient(jenkinsInstance, r.platform)
@@ -135,6 +131,22 @@ func (r *ReconcileJenkinsServiceAccount) Reconcile(request reconcile.Request) (r
 	}
 	if jc == nil {
 		reqLogger.V(1).Info("Jenkins returns nil client")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+	}
+
+	err = jc.CreateUser(*instance)
+	if err != nil {
+		reqLogger.Info("Failed to create user in Jenkins")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+	}
+
+	err = r.updateCreatedStatus(instance, true)
+	if err != nil {
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+	}
+
+	err = r.updateAvailableStatus(instance, true)
+	if err != nil {
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 	}
 
@@ -176,7 +188,7 @@ func (r *ReconcileJenkinsServiceAccount) setOwnerReference(owner *v2v1alpha1.Jen
 	return jenkinsScript
 }
 
-func (r ReconcileJenkinsServiceAccount) updateAvailableStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+func (r ReconcileJenkinsServiceAccount) updateAvailableStatus(instance *v2v1alpha1.JenkinsServiceAccount, value bool) error {
 	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
 	if instance.Status.Available != value {
 		instance.Status.Available = value
@@ -193,46 +205,46 @@ func (r ReconcileJenkinsServiceAccount) updateAvailableStatus(instance *v2v1alph
 	return nil
 }
 
-func (r ReconcileJenkinsServiceAccount) updateExecutedStatus(instance *v2v1alpha1.JenkinsScript, value bool) error {
+func (r ReconcileJenkinsServiceAccount) updateCreatedStatus(instance *v2v1alpha1.JenkinsServiceAccount, value bool) error {
 	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
-	if instance.Status.Executed != value {
-		instance.Status.Executed = value
+	if instance.Status.Created != value {
+		instance.Status.Created = value
 		instance.Status.LastTimeUpdated = time.Now()
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			err := r.client.Update(context.TODO(), instance)
 			if err != nil {
-				return errorsf.Wrapf(err, "Couldn't update executed status to %v", value)
+				return errorsf.Wrapf(err, "Couldn't update created status to %v", value)
 			}
 		}
-		reqLogger.Info(fmt.Sprintf("Executed status has been updated to '%v'", value))
+		reqLogger.Info(fmt.Sprintf("Created status has been updated to '%v'", value))
 	}
 	return nil
 }
 
-func (r *ReconcileJenkinsServiceAccount) getOrCreateInstanceOwner(jenkinsScript *v2v1alpha1.JenkinsServiceAccount) (*v2v1alpha1.Jenkins, error) {
-	reqLogger := log.WithValues("Request.Namespace", jenkinsScript.Namespace, "Request.Name", jenkinsScript.Name)
-	owner := r.getOwnerByCr(jenkinsScript)
+func (r *ReconcileJenkinsServiceAccount) getOrCreateInstanceOwner(jenkinsServiceAccount *v2v1alpha1.JenkinsServiceAccount) (*v2v1alpha1.Jenkins, error) {
+	reqLogger := log.WithValues("Request.Namespace", jenkinsServiceAccount.Namespace, "Request.Name", jenkinsServiceAccount.Name)
+	owner := r.getOwnerByCr(jenkinsServiceAccount)
 	if owner != nil {
-		return r.getInstanceByName(jenkinsScript.Namespace, owner.Name)
+		return r.getInstanceByName(jenkinsServiceAccount.Namespace, owner.Name)
 	}
 
-	if jenkinsScript.Spec.OwnerName != "" {
-		return r.getInstanceByOwnerFromSpec(jenkinsScript)
+	if jenkinsServiceAccount.Spec.OwnerName != "" {
+		return r.getInstanceByOwnerFromSpec(jenkinsServiceAccount)
 	}
 
-	jenkinsInstance, err := r.getJenkinsInstance(jenkinsScript.Namespace)
+	jenkinsInstance, err := r.getJenkinsInstance(jenkinsServiceAccount.Namespace)
 	if err != nil {
 		return nil, err
 	}
 	if jenkinsInstance == nil {
 		return nil, nil
 	}
-	jenkinsScript = r.setOwnerReference(jenkinsInstance, jenkinsScript)
-	reqLogger.Info(fmt.Sprintf("jenkinsScript.GetOwnerReferences() - %v", jenkinsScript.GetOwnerReferences()))
-	err = r.client.Update(context.TODO(), jenkinsScript)
+	jenkinsServiceAccount = r.setOwnerReference(jenkinsInstance, jenkinsServiceAccount)
+	reqLogger.Info(fmt.Sprintf("jenkinsServiceAccount.GetOwnerReferences() - %v", jenkinsServiceAccount.GetOwnerReferences()))
+	err = r.client.Update(context.TODO(), jenkinsServiceAccount)
 	if err != nil {
-		return nil, errorsf.Wrapf(err, "Failed to set owner reference for %v", jenkinsScript.Name)
+		return nil, errorsf.Wrapf(err, "Failed to set owner reference for %v", jenkinsServiceAccount.Name)
 	}
 	return jenkinsInstance, nil
 }

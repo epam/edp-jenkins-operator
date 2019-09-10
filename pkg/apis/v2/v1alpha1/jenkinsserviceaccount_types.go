@@ -11,6 +11,7 @@ import (
 // JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount
 // +k8s:openapi-gen=true
 type JenkinsServiceAccountSpec struct {
+	Type        string `json:"type"`
 	Credentials string `json:"credentials"`
 	OwnerName   string `json:"ownerName, omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
