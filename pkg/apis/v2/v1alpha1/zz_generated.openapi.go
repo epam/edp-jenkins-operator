@@ -13,15 +13,15 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"jenkins-operator/pkg/apis/v2/v1alpha1.Jenkins":                     schema_pkg_apis_v2_v1alpha1_Jenkins(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScript":               schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec":           schema_pkg_apis_v2_v1alpha1_JenkinsScriptSpec(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus":         schema_pkg_apis_v2_v1alpha1_JenkinsScriptStatus(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccount":       schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec":   schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountSpec(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus": schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountStatus(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec":                 schema_pkg_apis_v2_v1alpha1_JenkinsSpec(ref),
-		"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.Jenkins":                     schema_pkg_apis_v2_v1alpha1_Jenkins(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScript":               schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptSpec":           schema_pkg_apis_v2_v1alpha1_JenkinsScriptSpec(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptStatus":         schema_pkg_apis_v2_v1alpha1_JenkinsScriptStatus(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccount":       schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec":   schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountSpec(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus": schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountStatus(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsSpec":                 schema_pkg_apis_v2_v1alpha1_JenkinsSpec(ref),
+		"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
 	}
 }
 
@@ -52,19 +52,19 @@ func schema_pkg_apis_v2_v1alpha1_Jenkins(ref common.ReferenceCallback) common.Op
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec", "jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsSpec", "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -95,19 +95,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec", "jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptSpec", "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsScriptStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -196,19 +196,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref common.ReferenceCallb
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus"),
+							Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec", "jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec", "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -261,7 +261,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsSpec(ref common.ReferenceCallback) commo
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsVolumes"),
+										Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsVolumes"),
 									},
 								},
 							},
@@ -273,7 +273,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsSpec(ref common.ReferenceCallback) commo
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSharedLibraries"),
+										Ref: ref("github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsSharedLibraries"),
 									},
 								},
 							},
@@ -284,7 +284,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsSpec(ref common.ReferenceCallback) commo
 			},
 		},
 		Dependencies: []string{
-			"jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSharedLibraries", "jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsVolumes"},
+			"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsSharedLibraries", "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1.JenkinsVolumes"},
 	}
 }
 

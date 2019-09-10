@@ -2,16 +2,16 @@ package openshift
 
 import (
 	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
 	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	authV1Client "github.com/openshift/client-go/authorization/clientset/versioned/typed/authorization/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
-	"jenkins-operator/pkg/apis/v2/v1alpha1"
-	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
-	"jenkins-operator/pkg/service/platform/helper"
-	"jenkins-operator/pkg/service/platform/kubernetes"
 	coreV1Api "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -184,7 +184,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 									Value: jenkinsUiUrl,
 								},
 								{
-									Name: "JENKINS_OPTS",
+									Name:  "JENKINS_OPTS",
 									Value: "--requestHeaderSize=32768",
 								},
 							},

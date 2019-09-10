@@ -3,15 +3,15 @@ package jenkins
 import (
 	"context"
 	"fmt"
-	"jenkins-operator/pkg/controller/helper"
-	"jenkins-operator/pkg/service/jenkins"
-	"jenkins-operator/pkg/service/platform"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
+	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	errorsf "github.com/pkg/errors"
-	v2v1alpha1 "jenkins-operator/pkg/apis/v2/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -34,9 +34,7 @@ const (
 	StatusExposeFinish     = "configs exposed"
 	StatusIntegrationStart = "integration started"
 	StatusReady            = "ready"
-
 )
-
 
 var log = logf.Log.WithName("controller_jenkins")
 

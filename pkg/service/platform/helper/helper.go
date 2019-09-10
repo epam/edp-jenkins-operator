@@ -2,16 +2,16 @@ package helper
 
 import (
 	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	authV1Api "github.com/openshift/api/authorization/v1"
 	"github.com/pkg/errors"
-	"jenkins-operator/pkg/apis/v2/v1alpha1"
 	coreV1Api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
 
 const (
-	ClusterRole      string = "clusterrole"
+	ClusterRole string = "clusterrole"
 )
 
 // GenerateLabels returns map with labels for k8s objects

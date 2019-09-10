@@ -3,10 +3,10 @@ package jenkins
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
-	"jenkins-operator/pkg/apis/v2/v1alpha1"
-	"jenkins-operator/pkg/service/platform"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -86,12 +86,12 @@ func (jc JenkinsClient) RunScript(context string) error {
 	return nil
 }
 
-func (jc JenkinsClient) CreateUser(v1alpha1.JenkinsServiceAccount) error{
+func (jc JenkinsClient) CreateUser(v1alpha1.JenkinsServiceAccount) error {
 	_ = createUserBody
 	return nil
 }
 
-func createUserBody (instance v1alpha1.JenkinsServiceAccount) (string, error){
+func createUserBody(instance v1alpha1.JenkinsServiceAccount) (string, error) {
 	switch instance.Annotations["auth-type"] {
 	case "ssh":
 		return createUserWithSshKey(), nil
@@ -103,14 +103,13 @@ func createUserBody (instance v1alpha1.JenkinsServiceAccount) (string, error){
 
 }
 
-func createUserWithSshKey () string {
+func createUserWithSshKey() string {
 	return ""
 }
 
 func createUserWithPassword() string {
 	return ""
 }
-
 
 // InitNewRestClient performs initialization of Jenkins connection
 func (jc JenkinsClient) GetAdminToken() (*string, error) {

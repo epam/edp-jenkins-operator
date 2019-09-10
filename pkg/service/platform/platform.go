@@ -1,11 +1,11 @@
 package platform
 
 import (
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
 	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
-	"jenkins-operator/pkg/apis/v2/v1alpha1"
-	"jenkins-operator/pkg/service/platform/openshift"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"

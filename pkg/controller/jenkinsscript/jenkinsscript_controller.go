@@ -3,18 +3,18 @@ package jenkinsscript
 import (
 	"context"
 	"fmt"
-	"jenkins-operator/pkg/controller/helper"
-	"jenkins-operator/pkg/service/platform"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
-	v2v1alpha1 "jenkins-operator/pkg/apis/v2/v1alpha1"
+	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 
+	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
 	errorsf "github.com/pkg/errors"
-	jenkinsClient "jenkins-operator/pkg/client/jenkins"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -2,11 +2,11 @@ package kubernetes
 
 import (
 	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
+	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"jenkins-operator/pkg/apis/v2/v1alpha1"
-	jenkinsDefaultSpec "jenkins-operator/pkg/service/jenkins/spec"
-	platformHelper "jenkins-operator/pkg/service/platform/helper"
 	coreV1Api "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
