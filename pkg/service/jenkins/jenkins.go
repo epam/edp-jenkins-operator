@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"text/template"
 
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
@@ -38,7 +35,6 @@ const (
 	localConfigsRelativePath             = "configs"
 	jenkinsSlavesConfigMapName           = "jenkins-slaves"
 	jenkinsSharedLibrariesConfigFileName = "config-shared-libraries.tmpl"
-	jenkinsDefaultScriptConfigMapKey     = "context"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -74,39 +70,6 @@ func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *v1alpha1.Jenkins, v
 		}
 	}
 	return instance, nil
-}
-
-func (j JenkinsServiceImpl) createJenkinsScript(instance v1alpha1.Jenkins, name string, configMapName string) (*v1alpha1.JenkinsScript, error) {
-	jenkinsScriptObject := &v1alpha1.JenkinsScript{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: instance.Namespace,
-		},
-		Spec: v1alpha1.JenkinsScriptSpec{
-			SourceCmName: configMapName,
-		},
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, jenkinsScriptObject, j.k8sScheme); err != nil {
-		return nil, errors.Wrapf(err, "Couldn't set reference for JenkinsScript %v object", jenkinsScriptObject.Name)
-	}
-
-	nsn := types.NamespacedName{
-		Namespace: instance.Namespace,
-		Name:      name,
-	}
-
-	err := j.k8sClient.Get(context.TODO(), nsn, jenkinsScriptObject)
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			err := j.k8sClient.Create(context.TODO(), jenkinsScriptObject)
-			if err != nil {
-				return nil, errors.Wrapf(err, "Couldn't create Jenkins Script object %v", name)
-			}
-		}
-	}
-
-	return jenkinsScriptObject, nil
 }
 
 func (j JenkinsServiceImpl) createSecret(instance v1alpha1.Jenkins, secretName string, username string, password *string) error {
@@ -186,9 +149,15 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	for _, file := range directory {
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
-		configMapKey := jenkinsDefaultScriptConfigMapKey
+		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
 
-		jenkinsScript, err := j.createJenkinsScript(instance, file.Name(), configMapName)
+		jenkinsScript, err := jenkinsScriptHelper.CreateJenkinsScript(
+			jenkinsScriptHelper.K8sClient{Client: j.k8sClient, Scheme: j.k8sScheme},
+			file.Name(),
+			configMapName,
+			instance.Namespace,
+			true,
+			&instance)
 		if err != nil {
 			return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", file.Name())
 		}
@@ -235,13 +204,18 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	jenkinsScriptName := "config-shared-libraries"
 	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
-
-	jenkinsScript, err := j.createJenkinsScript(instance, jenkinsScriptName, configMapName)
+	jenkinsScript, err := jenkinsScriptHelper.CreateJenkinsScript(
+		jenkinsScriptHelper.K8sClient{Client: j.k8sClient, Scheme: j.k8sScheme},
+		jenkinsScriptName,
+		configMapName,
+		instance.Namespace,
+		true,
+		&instance)
 	if err != nil {
 		return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", jenkinsScriptName)
 	}
 	labels := platformHelper.GenerateLabels(instance.Name)
-	configMapData := map[string]string{jenkinsDefaultScriptConfigMapKey: sharedLibrariesScriptContext.String()}
+	configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: sharedLibrariesScriptContext.String()}
 	err = j.platformService.CreateConfigMapFromData(instance, configMapName, configMapData, labels, jenkinsScript)
 	if err != nil {
 		return &instance, false, err

@@ -7,7 +7,7 @@ spec:
   image: "docker-registry.default.svc:5000/edp-cicd-delivery/edp-jenkins"
   volumes:
     - name: "data"
-      storageClass: "efs"
+      storageClass: "gp2"
       capacity: "1Gi"
   sharedLibraries:
     - name: "edp-library-stages"
