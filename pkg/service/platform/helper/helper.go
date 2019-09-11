@@ -27,9 +27,7 @@ func GetNewRoleObject(instance v1alpha1.Jenkins, name string, binding string, ki
 		return NewClusterRoleBindingObject(instance, name, binding), nil
 	default:
 		return &authV1Api.RoleBinding{}, errors.New(fmt.Sprintf("Wrong role kind %s! Cant't create rolebinding", kind))
-
 	}
-
 }
 
 func NewClusterRoleBindingObject(instance v1alpha1.Jenkins, name string, binding string) *authV1Api.RoleBinding {

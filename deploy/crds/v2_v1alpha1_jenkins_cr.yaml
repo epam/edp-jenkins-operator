@@ -18,3 +18,6 @@ spec:
       id: "Pipelines"
       repository: "https://github.com/epmd-edp/edp-library-pipelines.git"
       version: "2.1.0"
+  keycloakSpec:
+    enabled: false
+    url: ""

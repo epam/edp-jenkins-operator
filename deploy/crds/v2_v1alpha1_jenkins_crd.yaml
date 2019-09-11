@@ -35,11 +35,19 @@ spec:
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
+            keycloakSpec:
+              properties:
+                enabled:
+                  type: boolean
+              required:
+              - enabled
+              type: object
             version:
               type: string
           required:
           - image
           - version
+          - keycloakSpec
           type: object
         status:
           type: object

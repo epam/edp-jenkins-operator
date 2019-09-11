@@ -10,6 +10,7 @@ import (
 
 // JenkinsSpec defines the desired state of Jenkins
 // +k8s:openapi-gen=true
+
 type JenkinsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
@@ -18,6 +19,7 @@ type JenkinsSpec struct {
 	Version         string                   `json:"version"`
 	Volumes         []JenkinsVolumes         `json:"volumes, omitempty"`
 	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries, omitempty"`
+	KeycloakSpec    KeycloakSpec             `json:"keycloakSpec"`
 }
 
 type JenkinsVolumes struct {
@@ -43,6 +45,12 @@ type JenkinsStatus struct {
 	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
 	Status          string    `json:"status, omitempty"`
 	AdminSecretName string    `json:"adminSecretName, omitempty"`
+}
+
+type KeycloakSpec struct {
+	Enabled bool   `json:"enabled"`
+	Url     string `json:"url, omitempty"`
+	Realm   string `json:"realm, omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
