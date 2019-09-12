@@ -15,3 +15,4 @@ func GetExecutableFilePath() string {
 	}
 	return filepath.Dir(executableFilePath)
 }
+
