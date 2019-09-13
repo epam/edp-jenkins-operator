@@ -133,7 +133,7 @@ func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) erro
 		return errors.Wrap(err, "Failed to sent Jenkins user creation request!")
 	}
 
-	if resp.StatusCode() != 200 || resp.StatusCode() != 302 {
+	if resp.StatusCode() != 200 {
 		return errors.New(fmt.Sprintf("Failed to create user in Jenkins! Response code: %v, response body: %s", resp.StatusCode(), resp.Body()))
 	}
 
