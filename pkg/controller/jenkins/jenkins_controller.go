@@ -183,9 +183,25 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	if instance.Status.Status == StatusConfigured {
 		reqLogger.Info("Exposing configuration has started")
-		err = r.updateStatus(instance, StatusReady)
+		err = r.updateStatus(instance, StatusIntegrationStart)
 		if err != nil {
 			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+		}
+	}
+
+	instance, isFinished, err = r.service.Integration(*instance)
+	if err != nil {
+		reqLogger.Error(err, "Integration has failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Integration failed")
+	} else if !isFinished {
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
+	}
+
+	if instance.Status.Status == StatusIntegrationStart {
+		reqLogger.Info("Configuration of %v/%v object has been finished", instance.Namespace, instance.Name)
+		err = r.updateStatus(instance, StatusReady)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 		}
 	}
 

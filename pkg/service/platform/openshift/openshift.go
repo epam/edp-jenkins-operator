@@ -1,7 +1,9 @@
 package openshift
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
@@ -13,11 +15,11 @@ import (
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/rest"
 	"reflect"
@@ -85,12 +87,12 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 
 	activeDeadlineSecond := int64(21600)
 	terminationGracePeriod := int64(30)
-	nexusRoute, routeScheme, err := service.GetRoute(instance.Namespace, instance.Name)
+	jenkinsRoute, routeScheme, err := service.GetRoute(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
 	}
 
-	jenkinsUiUrl := fmt.Sprintf("%v://%v", routeScheme, nexusRoute.Spec.Host)
+	jenkinsUiUrl := fmt.Sprintf("%v://%v", routeScheme, jenkinsRoute.Spec.Host)
 
 	// Can't assign pointer to constant, that is why — create an intermediate var.
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout
@@ -261,13 +263,6 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 		log.Info(fmt.Sprintf("DeploymentConfig %s/%s has been created", jenkinsDc.Namespace, jenkinsDc.Name))
 	} else if err != nil {
 		return err
-	} else if !apiequality.Semantic.DeepEqual(jenkinsDc.Spec, jenkinsDcObject.Spec) {
-		jenkinsDc.Spec = jenkinsDcObject.Spec
-		_, err = service.appClient.DeploymentConfigs(jenkinsDc.Namespace).Update(jenkinsDc)
-		if err != nil {
-			return errors.Wrapf(err, "Failed to update DeploymentConfig %v !", jenkinsDcObject.Name)
-		}
-		log.Info(fmt.Sprintf("DeploymentConfig %s/%s has been updated!", jenkinsDc.Namespace, jenkinsDc.Name))
 	}
 
 	return nil
@@ -359,4 +354,108 @@ func (service OpenshiftService) CreateUserRoleBinding(instance v1alpha1.Jenkins,
 	}
 
 	return nil
+}
+
+func (service OpenshiftService) PatchDeployConfVol(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig,
+	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
+
+	if len(vol) == 0 || len(volMount) == 0 {
+		return nil
+	}
+
+	container, err := selectContainer(dc.Spec.Template.Spec.Containers, instance.Name)
+	if err != nil {
+		return err
+	}
+
+	container.VolumeMounts = updateVolumeMounts(container.VolumeMounts, volMount)
+	dc.Spec.Template.Spec.Containers = append(dc.Spec.Template.Spec.Containers, container)
+	volumes := dc.Spec.Template.Spec.Volumes
+	volumes = updateVolumes(volumes, vol)
+	dc.Spec.Template.Spec.Volumes = volumes
+
+	jsonDc, err := json.Marshal(dc)
+	if err != nil {
+		return err
+	}
+
+	_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(dc.Name, types.StrategicMergePatchType, jsonDc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func selectContainer(containers []coreV1Api.Container, name string) (coreV1Api.Container, error) {
+	for _, c := range containers {
+		if c.Name == name {
+			return c, nil
+		}
+	}
+
+	return coreV1Api.Container{}, errors.New("No matching container in spec found!")
+}
+
+func updateVolumes(existing []coreV1Api.Volume, vol []coreV1Api.Volume) []coreV1Api.Volume {
+	var out []coreV1Api.Volume
+	var covered []string
+
+	for _, v := range existing {
+		newer, ok := findVolume(vol, v.Name)
+		if ok {
+			covered = append(covered, v.Name)
+			out = append(out, newer)
+			continue
+		}
+		out = append(out, v)
+	}
+	for _, v := range vol {
+		if helpers.IsStringInSlice(v.Name, covered) {
+			continue
+		}
+		covered = append(covered, v.Name)
+		out = append(out, v)
+	}
+	return out
+}
+
+func updateVolumeMounts(existing []coreV1Api.VolumeMount, volMount []coreV1Api.VolumeMount) []coreV1Api.VolumeMount {
+	var out []coreV1Api.VolumeMount
+	var covered []string
+
+	for _, v := range existing {
+		newer, ok := findVolumeMount(volMount, v.Name)
+		if ok {
+			covered = append(covered, v.Name)
+			out = append(out, newer)
+			continue
+		}
+		out = append(out, v)
+	}
+	for _, v := range volMount {
+		if helpers.IsStringInSlice(v.Name, covered) {
+			continue
+		}
+		covered = append(covered, v.Name)
+		out = append(out, v)
+	}
+	return out
+}
+
+func findVolumeMount(volMount []coreV1Api.VolumeMount, name string) (coreV1Api.VolumeMount, bool) {
+	for _, v := range volMount {
+		if v.Name == name {
+			return v, true
+		}
+	}
+	return coreV1Api.VolumeMount{}, false
+}
+
+func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
+	for _, v := range vol {
+		if v.Name == name {
+			return v, true
+		}
+	}
+	return coreV1Api.Volume{}, false
 }

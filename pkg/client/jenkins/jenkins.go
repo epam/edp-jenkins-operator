@@ -68,7 +68,7 @@ func (jc JenkinsClient) GetCrumb() (string, error) {
 	return responseData["crumb"], nil
 }
 
-// InitNewRestClient performs initialization of Jenkins connection
+// RunScript performs initialization of Jenkins connection
 func (jc JenkinsClient) RunScript(context string) error {
 	crumb, err := jc.GetCrumb()
 	if err != nil {
@@ -89,7 +89,7 @@ func (jc JenkinsClient) RunScript(context string) error {
 	}
 
 	if resp.IsError() {
-		return errors.Wrapf(err, "Running script in Jenkins failed! Status: - %s", resp.Status())
+		return errors.New(fmt.Sprintf("Running script in Jenkins failed! Status: - %s", resp.Status()))
 	}
 
 	return nil

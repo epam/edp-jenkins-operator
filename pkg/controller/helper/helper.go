@@ -35,12 +35,12 @@ func NewJenkinsUser(data map[string][]byte, credentialsType string) (JenkinsCred
 
 }
 
-func (user JenkinsCredentials) ToString() (string, error) {
+func (user JenkinsCredentials) ToString() (string, error){
 	bytes, err := json.Marshal(user)
 	if err != nil {
 		return "", err
 	}
-	return string(bytes), nil
+	 return string(bytes), nil
 }
 
 type JenkinsCredentials struct {
@@ -114,7 +114,7 @@ func createStringCredentials(data map[string][]byte) JenkinsCredentialsParams {
 
 func trimNewline(data map[string][]byte) map[string]string {
 	out := map[string]string{}
-	for k, v := range data {
+	for k,v := range data {
 		out[k] = strings.TrimSuffix(string(v), "\n")
 	}
 	return out

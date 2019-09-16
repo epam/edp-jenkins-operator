@@ -6,6 +6,7 @@ import (
 	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
+	coreV1Api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
@@ -26,6 +27,8 @@ type PlatformService interface {
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
+	PatchDeployConfVol(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, vol []coreV1Api.Volume,
+		volMount []coreV1Api.VolumeMount) error
 }
 
 // NewPlatformService returns platform service interface implementation

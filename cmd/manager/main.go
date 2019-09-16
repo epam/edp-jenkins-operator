@@ -12,6 +12,7 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis"
 	keycloakApi "github.com/epmd-edp/keycloak-operator/pkg/apis"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -104,6 +105,11 @@ func main() {
 
 	// Setup Scheme for external resources
 	if err := keycloakApi.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	if err := gerritApi.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
