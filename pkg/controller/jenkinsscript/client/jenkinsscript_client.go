@@ -38,7 +38,7 @@ func (c *EdpV1Client) Get(name string, namespace string, options metav1.GetOptio
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Get().
 		Namespace(namespace).
-		Resource("jenkinsserviceaccounts").
+		Resource("jenkinsscripts").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
 		Do().
@@ -46,12 +46,12 @@ func (c *EdpV1Client) Get(name string, namespace string, options metav1.GetOptio
 	return
 }
 
-// Create takes the representation of a jenkinsserviceaccount and creates it.  Returns the server's representation of the jenkinsserviceaccount, and an error, if there is any.
+// Create takes the representation of a jenkinsscripts and creates it.  Returns the server's representation of the jenkinsscripts, and an error, if there is any.
 func (c *EdpV1Client) Create(jsa *jenkinsV1api.JenkinsScript, namespace string) (result *jenkinsV1api.JenkinsScript, err error) {
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Post().
 		Namespace(namespace).
-		Resource("jenkinsserviceaccounts").
+		Resource("jenkinsscripts").
 		Body(jsa).
 		Do().
 		Into(result)
@@ -62,7 +62,7 @@ func (c *EdpV1Client) Update(jsa *jenkinsV1api.JenkinsScript) (result *jenkinsV1
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Put().
 		Namespace(jsa.Namespace).
-		Resource("jenkinsserviceaccounts").
+		Resource("jenkinsscripts").
 		Name(jsa.Name).
 		Body(jsa).
 		Do().
