@@ -113,8 +113,9 @@ func (j JenkinsServiceImpl) createKeycloakClient(instance v1alpha1.Jenkins, name
 				return nil, errors.Wrapf(err, "Couldn't create Keycloak client object %v", name)
 			}
 			log.Info("Keycloak client CR created")
+			return keycloakClientObject, nil
 		}
-		return nil, errors.Wrapf(err, "Couldn't create Keycloak client object %v", name)
+		return nil, errors.Wrapf(err, "Couldn't get Keycloak client object %v", name)
 	}
 
 	return keycloakClientObject, nil
