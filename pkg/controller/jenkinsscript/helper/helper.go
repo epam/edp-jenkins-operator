@@ -14,6 +14,8 @@ import (
 
 const JenkinsDefaultScriptConfigMapKey = "context"
 
+
+//TODO(Serhii_Shydlovskyi): Remove this, after refactoring in other operators.
 type K8sClient struct {
 	Client client.Client
 	Scheme *runtime.Scheme
