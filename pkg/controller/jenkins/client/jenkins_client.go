@@ -17,7 +17,7 @@ type EdpV1Client struct {
 	crClient *rest.RESTClient
 }
 
-type JenkinsServiceAccountInterface interface {
+type JenkinsInterface interface {
 	Get(name string, namespace string, options metav1.GetOptions) (result *jenkinsV1api.Jenkins, err error)
 	Create(jsa *jenkinsV1api.Jenkins, namespace string) (result *jenkinsV1api.Jenkins, err error)
 	Update(jsa *jenkinsV1api.Jenkins) (result *jenkinsV1api.Jenkins, err error)
