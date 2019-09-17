@@ -59,41 +59,40 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
         '{"name": "push"},{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-if (Boolean.valueOf("${PARAM}")) {
-    def codebaseName = "${NAME}"
-    def buildTool = "${BUILD_TOOL}"
-    def gitServerCrName = "${GIT_SERVER_CR_NAME}"
-    def gitServer = "${GIT_SERVER}"
-    def gitSshPort = "${GIT_SSH_PORT}"
-    def gitUsername = "${GIT_USERNAME}"
+def codebaseName = "${NAME}"
+def buildTool = "${BUILD_TOOL}"
+def gitServerCrName = "${GIT_SERVER_CR_NAME}"
+def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
+def gitServer = "${GIT_SERVER ? GIT_SERVER : 'gerrit'}"
+def gitSshPort = "${GIT_SSH_PORT ? GIT_SSH_PORT : '29418'}"
+def gitUsername = "${GIT_USERNAME ? GIT_USERNAME : 'jenkins'}"
 
-    def codebaseRepositoryBase = "ssh://${gitUsername}@${gitServer}:${gitSshPort}"
+def codebaseRepositoryBase = "ssh://${gitUsername}@${gitServer}:${gitSshPort}"
 
-    def codebaseFolder = jenkins.getItem(codebaseName)
-    if (codebaseFolder == null) {
-        folder(codebaseName)
-    }
+def codebaseFolder = jenkins.getItem(codebaseName)
+if (codebaseFolder == null) {
+    folder(codebaseName)
+}
 
-    createListView(codebaseName, "Releases")
-    createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-            "${codebaseRepositoryBase}/${codebaseName}")
+createListView(codebaseName, "Releases")
+createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
+        "${codebaseRepositoryBase}/${codebaseName}")
 
-    if (BRANCH) {
-        def branch = "${BRANCH}"
-        createListView(codebaseName, "${branch.toUpperCase()}")
+if (BRANCH) {
+    def branch = "${BRANCH}"
+    createListView(codebaseName, "${branch.toUpperCase()}")
 
-        def type = "${TYPE}"
-        createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}"], "code-review.groovy",
-                "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName)
+    def type = "${TYPE}"
+    createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}"], "code-review.groovy",
+            "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName, gitServerCrVersion)
 
-        if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
-            createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
-                    "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName)
-        }
+    if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
+        createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
+                "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName, gitServerCrVersion)
     }
 }
 
-def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, watchBranch = "master", gitServerCrName, gitServerName, gitSshPort, gitUsername) {
+def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
     pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
         logRotator {
             numToKeep(10)
@@ -121,9 +120,7 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
                 }
                 parameters {
                     stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
-                    stringParam("GIT_SERVER", "${gitServerName}", "Name of Git Server to generate link to Git server")
-                    stringParam("GIT_SSH_PORT", "${gitServerName}", "Git Server SSH port to generate link to Git server")
-                    stringParam("GIT_USERNAME", "${gitUsername}", "Username for CI user to generate link to Git server")
+                    stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                     stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
                     stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
                     if (pipelineName.contains("Build"))
@@ -198,12 +195,12 @@ project.getBuildersList().clear()
 executeDslScripts = new ExecuteDslScripts()
 executeDslScripts.setScriptText(scriptText)
 project.getBuildersList().add(executeDslScripts)
-def definitionList = [new BooleanParameterDefinition("PARAM", false, ""),
-                      new StringParameterDefinition("NAME", ""),
+def definitionList = [new StringParameterDefinition("NAME", ""),
                       new StringParameterDefinition("TYPE", ""),
                       new StringParameterDefinition("BUILD_TOOL", ""),
                       new StringParameterDefinition("BRANCH", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_NAME", ""),
+                      new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
                       new StringParameterDefinition("GIT_SERVER", ""),
                       new StringParameterDefinition("GIT_SSH_PORT", ""),
                       new StringParameterDefinition("GIT_USERNAME", "")]
