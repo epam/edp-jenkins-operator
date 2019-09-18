@@ -27,7 +27,7 @@ type PlatformService interface {
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
-	PatchDeployConfVol(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, vol []coreV1Api.Volume,
+	AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string, vol []coreV1Api.Volume,
 		volMount []coreV1Api.VolumeMount) error
 }
 

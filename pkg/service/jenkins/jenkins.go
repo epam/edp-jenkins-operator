@@ -31,6 +31,7 @@ import (
 )
 
 const (
+	jenkinsInitContainerName             = "grant-permissions"
 	jenkinsAdminCredentialsSecretPostfix = "admin-password"
 	jenkinsAdminTokenSecretPostfix       = "admin-token"
 	jenkinsDefaultConfigsAbsolutePath    = "/usr/local/configs/"
@@ -45,8 +46,7 @@ const (
 	jenkinsSharedLibrariesConfigFileName = "config-shared-libraries.tmpl"
 	jenkinsKeycloakConfigFileName        = "config-keycloak.tmpl"
 	jenkinsDefaultScriptConfigMapKey     = "context"
-	sshKeyDefaultMountPath               = "/var/lib/jenkins/.ssh"
-	gerritDefaultName                    = "gerrit"
+	sshKeyDefaultMountPath               = "/tmp/ssh"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -126,7 +126,7 @@ func (j JenkinsServiceImpl) createKeycloakClient(instance v1alpha1.Jenkins, name
 	return keycloakClientObject, nil
 }
 
-func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins, gerritName string) error {
+func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) error {
 	options := client.ListOptions{Namespace: instance.Namespace}
 	list := &gerritApi.GerritList{}
 
@@ -181,7 +181,7 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins, ge
 			},
 		}
 
-		err = j.platformService.PatchDeployConfVol(instance, dcJenkins, vol, volMount)
+		err = j.platformService.AddVolumeToInitContainer(instance, dcJenkins, jenkinsInitContainerName, vol, volMount)
 		if err != nil {
 			return errors.Wrapf(err, fmt.Sprintf("Unable to patch Jenkins DC in namespace %v", instance.Namespace))
 		}
@@ -263,7 +263,7 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		}
 	}
 
-	err := j.mountGerritCredentials(instance, gerritDefaultName)
+	err := j.mountGerritCredentials(instance)
 	if err != nil {
 		return &instance, false, errors.Wrapf(err, "Failed to mount Gerrit credentials")
 	}

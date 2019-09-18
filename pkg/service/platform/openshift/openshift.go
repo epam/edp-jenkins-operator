@@ -97,9 +97,9 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 	// Can't assign pointer to constant, that is why — create an intermediate var.
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout
 	command := []string{"sh", "-c", fmt.Sprintf(
-		"if [ -d /var/lib/jenkins/.ssh/ ]; then cd /var/lib/jenkins/.ssh/;" +
-			" for file in configs id_rsa jenkins-slave-id_rsa;" +
-			" do if [ -f $file ]; then chmod 400 $file; fi; done; fi;")}
+		"JENKINS_HOME=\"/var/lib/jenkins\"; mkdir -p $JENKINS_HOME/.ssh; if [ -d /tmp/ssh ];" +
+		"then chmod 777 -R $JENKINS_HOME/.ssh; cat /tmp/ssh/id_rsa >> $JENKINS_HOME/.ssh/id_rsa;" +
+        	"chmod 400 $JENKINS_HOME/.ssh/id_rsa; fi")}
 
 	labels := helper.GenerateLabels(instance.Name)
 	jenkinsDcObject := &appsV1Api.DeploymentConfig{
@@ -142,6 +142,15 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 							Command:                  command,
 							TerminationMessagePath:   "/dev/termination-log",
 							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
+							VolumeMounts: []coreV1Api.VolumeMount{
+								{
+									MountPath:        "/var/lib/jenkins",
+									Name:             fmt.Sprintf("%v-jenkins-data", instance.Name),
+									ReadOnly:         false,
+									SubPath:          "",
+									MountPropagation: nil,
+								},
+							},
 						},
 					},
 					Containers: []coreV1Api.Container{
@@ -356,20 +365,20 @@ func (service OpenshiftService) CreateUserRoleBinding(instance v1alpha1.Jenkins,
 	return nil
 }
 
-func (service OpenshiftService) PatchDeployConfVol(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig,
+func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string,
 	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if len(vol) == 0 || len(volMount) == 0 {
 		return nil
 	}
 
-	container, err := selectContainer(dc.Spec.Template.Spec.Containers, instance.Name)
+	initContainer, err := selectContainer(dc.Spec.Template.Spec.InitContainers, containerName)
 	if err != nil {
 		return err
 	}
 
-	container.VolumeMounts = updateVolumeMounts(container.VolumeMounts, volMount)
-	dc.Spec.Template.Spec.Containers = append(dc.Spec.Template.Spec.Containers, container)
+	initContainer.VolumeMounts = updateVolumeMounts(initContainer.VolumeMounts, volMount)
+	dc.Spec.Template.Spec.InitContainers = append(dc.Spec.Template.Spec.InitContainers, initContainer)
 	volumes := dc.Spec.Template.Spec.Volumes
 	volumes = updateVolumes(volumes, vol)
 	dc.Spec.Template.Spec.Volumes = volumes
