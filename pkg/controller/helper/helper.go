@@ -10,6 +10,9 @@ import (
 const (
 	DefaultRequeueTime        = 30
 	GlobalScope        string = "GLOBAL"
+	SSHUserType         string = "ssh"
+	PasswordUserType   string = "password"
+	TokenUserType      string = "token"
 )
 
 func NewTrue() *bool {
@@ -20,13 +23,13 @@ func NewTrue() *bool {
 func NewJenkinsUser(data map[string][]byte, credentialsType string) (JenkinsCredentials, error) {
 	out := JenkinsCredentials{}
 	switch credentialsType {
-	case "ssh":
+	case SSHUserType:
 		params := createSshUserParams(data)
 		return JenkinsCredentials{Credentials: params}, nil
-	case "password":
+	case PasswordUserType:
 		params := createUserWithPassword(data)
 		return JenkinsCredentials{Credentials: params}, nil
-	case "token":
+	case TokenUserType:
 		params := createStringCredentials(data)
 		return JenkinsCredentials{Credentials: params}, nil
 	default:
@@ -92,7 +95,7 @@ func createSshUserParams(data map[string][]byte) JenkinsCredentialsParams {
 		Password:    &password,
 		Description: &description,
 		PrivateKeySource: &PrivateKeySource{
-			PrivateKey:   values["private_key"],
+			PrivateKey:   values["id_rsa"],
 			StaplerClass: "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource",
 		},
 		StaplerClass: "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey",
