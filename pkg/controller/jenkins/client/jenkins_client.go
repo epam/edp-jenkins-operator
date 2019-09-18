@@ -70,6 +70,18 @@ func (c *EdpV1Client) Update(jsa *jenkinsV1api.Jenkins) (result *jenkinsV1api.Je
 	return
 }
 
+// List takes label and field selectors, and returns the list of Jenkins that match those selectors.
+func (c *EdpV1Client) List(opts metav1.ListOptions, namespace string) (result *jenkinsV1api.JenkinsList, err error) {
+	result = &jenkinsV1api.JenkinsList{}
+	err = c.crClient.Get().
+		Namespace(namespace).
+		Resource("jenkins").
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Do().
+		Into(result)
+	return
+}
+
 func createCrdClient(cfg *rest.Config) error {
 	scheme := runtime.NewScheme()
 	SchemeBuilder := runtime.NewSchemeBuilder(addKnownTypes)
