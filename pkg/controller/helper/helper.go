@@ -52,7 +52,7 @@ type JenkinsCredentialsParams struct {
 	Scope            string            `json:"scope"`
 	Username         *string           `json:"username,omitempty"`
 	Password         *string           `json:"password,omitempty"`
-	Description      string            `json:"description"`
+	Description      *string           `json:"description,omitempty"`
 	Secret           *string           `json:"secret,omitempty"`
 	PrivateKeySource *PrivateKeySource `json:"privateKeySource,omitempty"`
 	StaplerClass     StaplerClass      `json:"stapler-class"`
@@ -69,12 +69,13 @@ func createUserWithPassword(data map[string][]byte) JenkinsCredentialsParams {
 	values := trimNewline(data)
 	username := values["username"]
 	password := values["password"]
+	description := fmt.Sprintf("%s %s", values["first_name"], values["last_name"])
 	return JenkinsCredentialsParams{
 		Id:           username,
 		Scope:        GlobalScope,
 		Username:     &username,
 		Password:     &password,
-		Description:  fmt.Sprintf("%s %s", values["first_name"], values["last_name"]),
+		Description:  &description,
 		StaplerClass: "com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl",
 	}
 }
@@ -83,12 +84,13 @@ func createSshUserParams(data map[string][]byte) JenkinsCredentialsParams {
 	values := trimNewline(data)
 	username := values["username"]
 	password := values["password"]
+	description := fmt.Sprintf("%s %s", values["first_name"], values["last_name"])
 	return JenkinsCredentialsParams{
 		Id:          username,
 		Scope:       GlobalScope,
 		Username:    &username,
 		Password:    &password,
-		Description: fmt.Sprintf("%s %s", values["first_name"], values["last_name"]),
+		Description: &description,
 		PrivateKeySource: &PrivateKeySource{
 			PrivateKey:   values["private_key"],
 			StaplerClass: "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource",
@@ -100,11 +102,13 @@ func createSshUserParams(data map[string][]byte) JenkinsCredentialsParams {
 func createStringCredentials(data map[string][]byte) JenkinsCredentialsParams {
 	values := trimNewline(data)
 	secret := values["secret"]
+	description := values["username"]
 	return JenkinsCredentialsParams{
 		Id:           values["username"],
 		Scope:        GlobalScope,
 		Secret:       &secret,
-		StaplerClass: "com.cloudbees.plugins.credentials.impl.StringCredentialsImpl",
+		Description:  &description,
+		StaplerClass: "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl",
 	}
 }
 
