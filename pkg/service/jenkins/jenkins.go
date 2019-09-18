@@ -139,6 +139,12 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins, ge
 			return errors.Wrapf(err, fmt.Sprintf("Unable to get Gerrit CRs in namespace %v", instance.Namespace))
 		}
 	}
+
+	if len(list.Items) == 0 {
+		log.Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
+		return nil
+	}
+
 	gerritCrObject := &list.Items[0]
 	gerritSpecName := fmt.Sprintf("%v/%v", gerritSpec.EdpAnnotationsPrefix, gerritSpec.EdpCiUSerSshKeySuffix)
 	if val, ok := gerritCrObject.ObjectMeta.Annotations[gerritSpecName]; ok {
