@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"os"
 	"path/filepath"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -14,4 +16,9 @@ func GetExecutableFilePath() string {
 		log.Error(err, "Couldn't get executable path")
 	}
 	return filepath.Dir(executableFilePath)
+}
+
+func GenerateAnnotationKey(entitySuffix string) string {
+	key := fmt.Sprintf("%v/%v", spec.EdpAnnotationsPrefix, entitySuffix)
+	return key
 }

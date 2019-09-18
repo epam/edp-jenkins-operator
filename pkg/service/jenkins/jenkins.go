@@ -140,6 +140,17 @@ func (j JenkinsServiceImpl) createSecret(instance v1alpha1.Jenkins, secretName s
 	return nil
 }
 
+//setAnnotation add key:value to current resource annotation
+func (j JenkinsServiceImpl) setAnnotation(instance *v1alpha1.Jenkins, key string, value string) {
+	if len(instance.Annotations) == 0 {
+		instance.ObjectMeta.Annotations = map[string]string{
+			key: value,
+		}
+	} else {
+		instance.ObjectMeta.Annotations[key] = value
+	}
+}
+
 // Integration performs integration Jenkins with other EDP components
 func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
 	return &instance, nil
@@ -173,6 +184,14 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 
 		err = j.createSecret(instance, adminTokenSecretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, token)
+		if err != nil {
+			return &instance, false, err
+		}
+
+		adminTokenAnnotationKey := helper.GenerateAnnotationKey(jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
+		j.setAnnotation(&instance, adminTokenAnnotationKey, adminTokenSecretName)
+
+		err = j.k8sClient.Update(context.TODO(), &instance)
 		if err != nil {
 			return &instance, false, err
 		}

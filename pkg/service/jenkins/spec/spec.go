@@ -16,8 +16,12 @@ const (
 	//JenkinsRecreateTimeout default timeout for recreate strategy in DeploymentConfig
 	JenkinsRecreateTimeout int64 = 6000
 
-	// JenkinsPasswordSecretName default admin user secret name
+	//JenkinsPasswordSecretName default admin user secret name
 	JenkinsPasswordSecretName string = "admin-password"
 
+	//EdpAnnotationsPrefix
 	EdpAnnotationsPrefix string = "edp.epam.com"
+
+	//JenkinsTokenAnnotationSuffix
+	JenkinsTokenAnnotationSuffix string = "admin-token"
 )
