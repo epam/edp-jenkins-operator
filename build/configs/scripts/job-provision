@@ -66,8 +66,9 @@ def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
 def gitServer = "${GIT_SERVER ? GIT_SERVER : 'gerrit'}"
 def gitSshPort = "${GIT_SSH_PORT ? GIT_SSH_PORT : '29418'}"
 def gitUsername = "${GIT_USERNAME ? GIT_USERNAME : 'jenkins'}"
-
-def codebaseRepositoryBase = "ssh://${gitUsername}@${gitServer}:${gitSshPort}"
+def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"
+def defaultRepoPath = "ssh://${gitUsername}@${gitServer}:${gitSshPort}/${codebaseName}"
+def repositoryPath = "${REPOSITORY_PATH ? REPOSITORY_PATH : defaultRepoPath}"
 
 def codebaseFolder = jenkins.getItem(codebaseName)
 if (codebaseFolder == null) {
@@ -76,7 +77,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        "${codebaseRepositoryBase}/${codebaseName}", gitServerCrName, gitServerCrVersion)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
 
 if (BRANCH) {
     def branch = "${BRANCH}"
@@ -84,15 +85,15 @@ if (BRANCH) {
 
     def type = "${TYPE}"
     createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}"], "code-review.groovy",
-            "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName, gitServerCrVersion)
+            repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
         createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
-                "${codebaseRepositoryBase}/${codebaseName}", branch, gitServerCrName, gitServerCrVersion)
+                repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
     }
 }
 
-def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
+def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
     pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
         logRotator {
             numToKeep(10)
@@ -113,7 +114,10 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
             cpsScm {
                 scm {
                     git {
-                        remote { url(repository) }
+                        remote {
+                            url(repository)
+                            credentials(credId)
+                        }
                         branches("${watchBranch}")
                         scriptPath("${pipelineScript}")
                     }
@@ -131,7 +135,7 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
     }
 }
 
-def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, gitServerCrName, gitServerCrVersion) {
+def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, gitServerCrName, gitServerCrVersion) {
     pipelineJob("${codebaseName}/${pipelineName}") {
         logRotator {
             numToKeep(14)
@@ -141,7 +145,10 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
             cpsScm {
                 scm {
                     git {
-                        remote { url(repository) }
+                        remote {
+                            url(repository)
+                            credentials(credId)
+                        }
                         branches("master")
                         scriptPath("${pipelineScript}")
                     }
