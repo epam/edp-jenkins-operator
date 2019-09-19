@@ -4,6 +4,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
 	appsV1Api "github.com/openshift/api/apps/v1"
+	authV1Api "github.com/openshift/api/authorization/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -22,6 +23,7 @@ type PlatformService interface {
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	CreateConfigMapFromData(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels map[string]string, ownerReference metav1.Object) error
+	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)

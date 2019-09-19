@@ -8,6 +8,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
+	authV1Api "github.com/openshift/api/authorization/v1"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -47,6 +48,7 @@ const (
 	jenkinsKeycloakConfigFileName        = "config-keycloak.tmpl"
 	jenkinsDefaultScriptConfigMapKey     = "context"
 	sshKeyDefaultMountPath               = "/tmp/ssh"
+	edpJenkinsRoleName                   = "edp-jenkins-role"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -427,7 +429,27 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrapf(err, "Failed to create Service Account %v", instance.Name)
 	}
 
-	err = j.platformService.CreateUserRoleBinding(instance, instance.Name, "edit", platformHelper.ClusterRole)
+	rules := []authV1Api.PolicyRule{
+		{
+			APIGroups: []string{"*"},
+			Resources: []string{"codebases", "codebasebranches", "cdpipelines", "stages", "gitservers", "adminconsoles"},
+			Verbs:     []string{"get", "create", "update"},
+		},
+	}
+
+	err = j.platformService.CreateRole(instance, edpJenkinsRoleName, rules)
+	if err != nil {
+		return &instance, errors.Wrapf(err, "Failed to create Role %v", edpJenkinsRoleName)
+	}
+
+	roleBindingName := fmt.Sprintf("%v-edp-resources-permissions", instance.Name)
+	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, edpJenkinsRoleName, "Role")
+	if err != nil {
+		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
+	}
+
+	roleBindingName = fmt.Sprintf("%v-edit-permissions", instance.Name)
+	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, "edit", "ClusterRole")
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
 	}
