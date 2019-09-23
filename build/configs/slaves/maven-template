@@ -17,11 +17,10 @@
     <memory>false</memory>
   </workspaceVolume>
   <volumes>
-    <org.csanchez.jenkins.plugins.kubernetes.volumes.PersistentVolumeClaim>
+    <org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume>
       <mountPath>/opt/caches/maven</mountPath>
-      <claimName>maven-cache</claimName>
-      <readOnly>false</readOnly>
-    </org.csanchez.jenkins.plugins.kubernetes.volumes.PersistentVolumeClaim>
+      <memory>false</memory>
+    </org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume>
   </volumes>
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
