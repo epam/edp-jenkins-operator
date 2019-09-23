@@ -8,6 +8,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
+	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	authV1Api "github.com/openshift/api/authorization/v1"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pkg/errors"
@@ -16,7 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"text/template"
 
 	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis/v2/v1alpha1"
@@ -101,10 +101,6 @@ func (j JenkinsServiceImpl) createKeycloakClient(instance v1alpha1.Jenkins, name
 			Public:      true,
 			ClientId:    instance.Name,
 		},
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, keycloakClientObject, j.k8sScheme); err != nil {
-		return nil, errors.Wrapf(err, "Couldn't set reference for JenkinsScript %v object", keycloakClientObject.Name)
 	}
 
 	nsn := types.NamespacedName{
@@ -224,10 +220,25 @@ func (j JenkinsServiceImpl) setAnnotation(instance *v1alpha1.Jenkins, key string
 // Integration performs integration Jenkins with other EDP components
 func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
 	if instance.Spec.KeycloakSpec.Enabled {
-		_, err := j.createKeycloakClient(instance, instance.Name)
+
+		routeObject, scheme, err := j.platformService.GetRoute(instance.Namespace, instance.Name)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, fmt.Sprintf("Failed to create Keycloak Client"))
+			return &instance, false, errors.Wrap(err, "Failed to get route from cluster!")
 		}
+
+		webUrl := fmt.Sprintf("%s://%s", scheme, routeObject.Spec.Host)
+		keycloakClient := keycloakV1Api.KeycloakClient{}
+		keycloakClient.Name = instance.Name
+		keycloakClient.Namespace = instance.Namespace
+		keycloakClient.Spec.ClientId = instance.Name
+		keycloakClient.Spec.Public = true
+		keycloakClient.Spec.WebUrl = webUrl
+
+		err = j.platformService.CreateKeycloakClient(&keycloakClient)
+		if err != nil {
+			return &instance, false, nil
+		}
+
 
 		jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
 		executableFilePath := helper.GetExecutableFilePath()

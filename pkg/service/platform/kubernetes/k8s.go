@@ -1,10 +1,12 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
+	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
@@ -12,12 +14,14 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -28,15 +32,17 @@ var log = logf.Log.WithName("platform")
 type K8SService struct {
 	Scheme     *runtime.Scheme
 	CoreClient coreV1Client.CoreV1Client
+	k8sUnstructuredClient       client.Client
 }
 
 // Init initializes K8SService
-func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme) error {
+func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
 	CoreClient, err := coreV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init core client for K8S")
 	}
 	service.CoreClient = *CoreClient
+	service.k8sUnstructuredClient = *k8sClient
 	service.Scheme = Scheme
 	return nil
 }
@@ -333,4 +339,25 @@ func (service K8SService) GetConfigMapData(namespace string, name string) (map[s
 		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMap.Name)
 	}
 	return configMap.Data, nil
+}
+
+func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
+	nsn := types.NamespacedName{
+		Namespace: kc.Namespace,
+		Name: kc.Name,
+	}
+
+	err := service.k8sUnstructuredClient.Get(context.TODO(),nsn, kc)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			err := service.k8sUnstructuredClient.Create(context.TODO(), kc)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
+			}
+			log.Info(fmt.Sprintf("Keycloak client %s/%s created",  kc.Namespace, kc.Name))
+		}
+		return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
+	}
+
+	return nil
 }
