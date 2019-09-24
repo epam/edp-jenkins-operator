@@ -30,9 +30,9 @@ var log = logf.Log.WithName("platform")
 
 // K8SService struct for K8S platform service
 type K8SService struct {
-	Scheme     *runtime.Scheme
-	CoreClient coreV1Client.CoreV1Client
-	k8sUnstructuredClient       client.Client
+	Scheme                *runtime.Scheme
+	CoreClient            coreV1Client.CoreV1Client
+	k8sUnstructuredClient client.Client
 }
 
 // Init initializes K8SService
@@ -333,8 +333,7 @@ func (service K8SService) GetConfigMapData(namespace string, name string) (map[s
 
 	if err != nil {
 		if k8serr.IsNotFound(err) {
-			log.Error(err, fmt.Sprintf("Config map %v in namespace %v not found", name, namespace))
-			return nil, nil
+			return nil, errors.Wrapf(err, "Config map %v in namespace %v not found", name, namespace)
 		}
 		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMap.Name)
 	}
@@ -344,17 +343,17 @@ func (service K8SService) GetConfigMapData(namespace string, name string) (map[s
 func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
 	nsn := types.NamespacedName{
 		Namespace: kc.Namespace,
-		Name: kc.Name,
+		Name:      kc.Name,
 	}
 
-	err := service.k8sUnstructuredClient.Get(context.TODO(),nsn, kc)
+	err := service.k8sUnstructuredClient.Get(context.TODO(), nsn, kc)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
 			err := service.k8sUnstructuredClient.Create(context.TODO(), kc)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
 			}
-			log.Info(fmt.Sprintf("Keycloak client %s/%s created",  kc.Namespace, kc.Name))
+			log.Info(fmt.Sprintf("Keycloak client %s/%s created", kc.Namespace, kc.Name))
 		}
 		return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
 	}
