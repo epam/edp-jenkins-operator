@@ -63,12 +63,8 @@ def codebaseName = "${NAME}"
 def buildTool = "${BUILD_TOOL}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
 def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
-def gitServer = "${GIT_SERVER ? GIT_SERVER : 'gerrit'}"
-def gitSshPort = "${GIT_SSH_PORT ? GIT_SSH_PORT : '29418'}"
-def gitUsername = "${GIT_USERNAME ? GIT_USERNAME : 'jenkins'}"
 def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"
-def defaultRepoPath = "ssh://${gitUsername}@${gitServer}:${gitSshPort}/${codebaseName}"
-def repositoryPath = "${REPOSITORY_PATH ? REPOSITORY_PATH : defaultRepoPath}"
+def repositoryPath = "${REPOSITORY_PATH}"
 
 def codebaseFolder = jenkins.getItem(codebaseName)
 if (codebaseFolder == null) {
@@ -211,9 +207,6 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
                       new StringParameterDefinition("BRANCH", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
-                      new StringParameterDefinition("GIT_SERVER", ""),
-                      new StringParameterDefinition("GIT_SSH_PORT", ""),
-                      new StringParameterDefinition("GIT_USERNAME", ""),
                       new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
                       new StringParameterDefinition("REPOSITORY_PATH", "")]
 
