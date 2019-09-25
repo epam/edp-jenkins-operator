@@ -165,7 +165,7 @@ func (r *ReconcileJenkinsScript) Reconcile(request reconcile.Request) (reconcile
 	}
 
 	reqLogger.Info("Reconciling has been finished")
-	return reconcile.Result{}, nil
+	return reconcile.Result{RequeueAfter: 60 * time.Second}, nil
 }
 
 func (r *ReconcileJenkinsScript) getInstanceByName(namespace string, name string) (*v2v1alpha1.Jenkins, error) {

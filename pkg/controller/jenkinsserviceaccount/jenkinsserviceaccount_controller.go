@@ -150,7 +150,7 @@ func (r *ReconcileJenkinsServiceAccount) Reconcile(request reconcile.Request) (r
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
 	}
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{RequeueAfter: 60 * time.Second}, nil
 }
 
 func (r *ReconcileJenkinsServiceAccount) getJenkinsInstance(namespace string) (*v2v1alpha1.Jenkins, error) {

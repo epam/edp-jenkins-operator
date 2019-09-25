@@ -212,7 +212,7 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	reqLogger.Info("Reconciling has been finished")
-	return reconcile.Result{}, nil
+	return reconcile.Result{RequeueAfter: 60 * time.Second}, nil
 }
 
 func (r *ReconcileJenkins) updateStatus(instance *v2v1alpha1.Jenkins, newStatus string) error {
