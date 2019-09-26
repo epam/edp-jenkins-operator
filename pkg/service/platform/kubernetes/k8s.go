@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
@@ -32,6 +33,7 @@ var log = logf.Log.WithName("platform")
 type K8SService struct {
 	Scheme                *runtime.Scheme
 	CoreClient            coreV1Client.CoreV1Client
+	JenkinsScriptClient   *jenkinsScriptV1Client.EdpV1Client
 	k8sUnstructuredClient client.Client
 }
 
@@ -41,6 +43,13 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	if err != nil {
 		return errors.Wrap(err, "Failed to init core client for K8S")
 	}
+
+	jenkinsScriptClient, err := jenkinsScriptV1Client.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	service.JenkinsScriptClient = jenkinsScriptClient
+
 	service.CoreClient = *CoreClient
 	service.k8sUnstructuredClient = *k8sClient
 	service.Scheme = Scheme
@@ -224,8 +233,8 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 	return secret.Data, nil
 }
 
-func (service K8SService) CreateConfigMapFromData(instance v1alpha1.Jenkins, configMapName string,
-	configMapData map[string]string, labels map[string]string, ownerReference metav1.Object) error {
+func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string) error {
+	labels := platformHelper.GenerateLabels(instance.Name)
 	configMapObject := &coreV1Api.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
@@ -235,18 +244,19 @@ func (service K8SService) CreateConfigMapFromData(instance v1alpha1.Jenkins, con
 		Data: configMapData,
 	}
 
-	if err := controllerutil.SetControllerReference(ownerReference, configMapObject, service.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(&instance, configMapObject, service.Scheme); err != nil {
 		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", configMapObject.Name)
 	}
 
 	cm, err := service.CoreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
-	if err != nil && k8serr.IsNotFound(err) {
-		cm, err = service.CoreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
-		if err != nil {
-			return errors.Wrapf(err, "Couldn't create Config Map %v object", cm.Name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			cm, err = service.CoreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
+			if err != nil {
+				return errors.Wrapf(err, "Couldn't create Config Map %v object", configMapObject.Name)
+			}
+			log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, configMapObject.Name))
 		}
-		log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, cm.Name))
-	} else if err != nil {
 		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMapObject.Name)
 	}
 	return nil
@@ -267,7 +277,7 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 		}
 	}
 
-	err = service.CreateConfigMapFromData(instance, configMapName, configMapData, labels, ownerReference)
+	err = service.CreateConfigMap(instance, configMapName, configMapData)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
 	}
@@ -359,4 +369,49 @@ func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient)
 	}
 
 	return nil
+}
+
+func (service K8SService) GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error) {
+	out := keycloakV1Api.KeycloakClient{}
+	nsn := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+
+	err := service.k8sUnstructuredClient.Get(context.TODO(), nsn, &out)
+	if err != nil {
+		return out, err
+	}
+
+	return out, nil
+}
+
+func (service K8SService) CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error) {
+	jso := &v1alpha1.JenkinsScript{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMap,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.JenkinsScriptSpec{
+			SourceCmName: configMap,
+		},
+	}
+
+	js, err := service.JenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			js, err := service.JenkinsScriptClient.Create(jso, namespace)
+			if err != nil {
+				return nil, err
+			}
+			// Success
+			return js, nil
+		}
+		// Error occurred
+		return nil, err
+	}
+	// Nothing to do
+	return js, nil
+
 }

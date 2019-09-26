@@ -35,10 +35,10 @@ import org.kohsuke.stapler.*
 
 def keycloak_json ='''\
 {
-  "realm": "{{ .Spec.KeycloakSpec.Realm }}",
-  "auth-server-url": "{{ .Spec.KeycloakSpec.Url }}/auth",
+  "realm": "{{ .RealmName }}",
+  "auth-server-url": "{{ .KeycloakUrl }}/auth",
   "ssl-required": "external",
-  "resource": "{{ .Name }}",
+  "resource": "{{ .KeycloakClientName }}",
   "public-client": true,
   "confidential-port": 0
 }'''.stripIndent()

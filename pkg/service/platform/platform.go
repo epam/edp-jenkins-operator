@@ -24,7 +24,6 @@ type PlatformService interface {
 	CreateDeployConf(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
-	CreateConfigMapFromData(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels map[string]string, ownerReference metav1.Object) error
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	CreateClusterRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
@@ -36,6 +35,9 @@ type PlatformService interface {
 	AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string, vol []coreV1Api.Volume,
 		volMount []coreV1Api.VolumeMount) error
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
+	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient,error)
+	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)
+	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string) error
 }
 
 // NewPlatformService returns platform service interface implementation

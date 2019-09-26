@@ -29,7 +29,7 @@ templates.add(new RefSpecTemplate('+refs/heads/*:refs/remotes/@{remote}/*'))
 templates.add(new RefSpecTemplate('+refs/changes/*:refs/remotes/@{remote}/*'))
 traits.add(new RefSpecsSCMSourceTrait(templates))
 def librariesArray = []
-{{ range . }}
+{{ range .JenkinsSharedLibraries }}
 GitSCMSource gitSCMSource{{.Id}} = new GitSCMSource(
 "{{ .Name }}",
 "{{ .Repository }}",

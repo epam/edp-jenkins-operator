@@ -5,18 +5,25 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"os"
 	"path/filepath"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("controller_jenkins")
 
-func GetExecutableFilePath() string {
+func GetExecutableFilePath() (string, error) {
 	executableFilePath, err := os.Executable()
 	if err != nil {
-		log.Error(err, "Couldn't get executable path")
+		return "", err
 	}
-	return filepath.Dir(executableFilePath)
+	return filepath.Dir(executableFilePath), nil
 }
+
+func FileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 
 func GenerateAnnotationKey(entitySuffix string) string {
 	key := fmt.Sprintf("%v/%v", spec.EdpAnnotationsPrefix, entitySuffix)

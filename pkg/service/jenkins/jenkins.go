@@ -1,55 +1,47 @@
 package jenkins
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/dchest/uniuri"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
-	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
-	authV1Api "github.com/openshift/api/authorization/v1"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/pkg/errors"
-	"io/ioutil"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"text/template"
-
 	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	gerritSpec "github.com/epmd-edp/gerrit-operator/v2/pkg/service/gerrit/spec"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
+	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakApi "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakControllerHelper "github.com/epmd-edp/keycloak-operator/pkg/controller/helper"
+	authV1Api "github.com/openshift/api/authorization/v1"
+	"github.com/pkg/errors"
+	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
-	jenkinsInitContainerName             = "grant-permissions"
-	jenkinsAdminCredentialsSecretPostfix = "admin-password"
-	jenkinsAdminTokenSecretPostfix       = "admin-token"
-	jenkinsDefaultConfigsAbsolutePath    = "/usr/local/configs/"
-	jenkinsDefaultScriptsDirectory       = "scripts"
-	jenkinsDefaultSlavesDirectory        = "slaves"
-	jenkinsDefaultTemplatesDirectory     = "templates"
-	jenkinsDefaultScriptsAbsolutePath    = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultScriptsDirectory
-	jenkinsDefaultSlavesAbsolutePath     = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultSlavesDirectory
-	jenkinsDefaultTemplatesAbsolutePath  = jenkinsDefaultConfigsAbsolutePath + jenkinsDefaultTemplatesDirectory
-	localConfigsRelativePath             = "configs"
-	jenkinsSlavesConfigMapName           = "jenkins-slaves"
-	jenkinsSharedLibrariesConfigFileName = "config-shared-libraries.tmpl"
-	jenkinsKeycloakConfigFileName        = "config-keycloak.tmpl"
-	jenkinsDefaultScriptConfigMapKey     = "context"
-	sshKeyDefaultMountPath               = "/tmp/ssh"
-	edpJenkinsRoleName                   = "edp-jenkins-role"
-	edpJenkinsClusterRoleName            = "edp-jenkins-cluster-role"
+	initContainerName             = "grant-permissions"
+	adminCredentialsSecretPostfix = "admin-password"
+	adminTokenSecretPostfix       = "admin-token"
+	defaultScriptsDirectory       = "scripts"
+	defaultSlavesDirectory        = "slaves"
+	defaultTemplatesDirectory     = "templates"
+	slavesTemplateName            = "jenkins-slaves"
+	sharedLibrariesTemplateName   = "config-shared-libraries.tmpl"
+	keycloakConfigTemplateName    = "config-keycloak.tmpl"
+	defaultScriptConfigMapKey     = "context"
+	sshKeyDefaultMountPath        = "/tmp/ssh"
+	edpJenkinsRoleName            = "edp-jenkins-role"
+	edpJenkinsClusterRoleName     = "edp-jenkins-cluster-role"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -180,7 +172,7 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 			},
 		}
 
-		err = j.platformService.AddVolumeToInitContainer(instance, dcJenkins, jenkinsInitContainerName, vol, volMount)
+		err = j.platformService.AddVolumeToInitContainer(instance, dcJenkins, initContainerName, vol, volMount)
 		if err != nil {
 			return errors.Wrapf(err, fmt.Sprintf("Unable to patch Jenkins DC in namespace %v", instance.Namespace))
 		}
@@ -234,43 +226,67 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		keycloakClient.Spec.ClientId = instance.Name
 		keycloakClient.Spec.Public = true
 		keycloakClient.Spec.WebUrl = webUrl
+		keycloakClient.Spec.RealmRoles = &[]keycloakV1Api.RealmRole{
+			{
+				Name:      "jenkins-administrators",
+				Composite: "administrator",
+			},
+			{
+				Name:      "jenkins-users",
+				Composite: "developer",
+			},
+		}
 
 		err = j.platformService.CreateKeycloakClient(&keycloakClient)
 		if err != nil {
-			return &instance, false, nil
+			return &instance, false, errors.Wrap(err, "Failed to create Keycloak Client data!")
 		}
 
-		jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
-		executableFilePath := helper.GetExecutableFilePath()
-		if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-			jenkinsTemplatesDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultTemplatesDirectory)
-		}
-
-		var keycloakConfigScriptContext bytes.Buffer
-		templateAbsolutePath := fmt.Sprintf("%v/%v", jenkinsTemplatesDirectoryPath, jenkinsKeycloakConfigFileName)
-		t := template.Must(template.New(jenkinsKeycloakConfigFileName).ParseFiles(templateAbsolutePath))
-
-		err = t.Execute(&keycloakConfigScriptContext, instance)
+		keycloakClient, err = j.platformService.GetKeycloakClient(instance.Name, instance.Namespace)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "Couldn't parse template %v", jenkinsKeycloakConfigFileName)
+			return &instance, false, errors.Wrap(err, "Failed to get Keycloak Client CR!")
 		}
 
-		jenkinsScriptName := "config-keycloak"
-		configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
-
-		jenkinsScript, err := jenkinsScriptHelper.CreateJenkinsScript(
-			jenkinsScriptHelper.K8sClient{Client: j.k8sClient, Scheme: j.k8sScheme},
-			jenkinsScriptName,
-			configMapName,
-			instance.Namespace,
-			true,
-			&instance)
+		keycloakRealm, err := keycloakControllerHelper.GetOwnerKeycloakRealm(j.k8sClient, keycloakClient.ObjectMeta)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", jenkinsScriptName)
+			return &instance, false, errors.Wrapf(err, "Failed to get Keycloak Realm for %s client!", keycloakClient.Name)
 		}
-		labels := platformHelper.GenerateLabels(instance.Name)
-		configMapData := map[string]string{jenkinsDefaultScriptConfigMapKey: keycloakConfigScriptContext.String()}
-		err = j.platformService.CreateConfigMapFromData(instance, configMapName, configMapData, labels, jenkinsScript)
+
+		if keycloakRealm == nil {
+			return &instance, false, errors.New("Keycloak Realm CR in not created yet!")
+		}
+
+		keycloak, err := keycloakControllerHelper.GetOwnerKeycloak(j.k8sClient, keycloakRealm.ObjectMeta)
+		if err != nil {
+			errMsg := fmt.Sprintf("Failed to get owner for %s/%s", keycloakClient.Namespace, keycloakClient.Name)
+			return &instance, false, errors.Wrap(err, errMsg)
+		}
+
+		if keycloak == nil {
+			return &instance, false, errors.New("Keycloak CR is not created yet!")
+		}
+
+		directoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
+		keycloakCfgFilePath := fmt.Sprintf("%s/%s", directoryPath, keycloakConfigTemplateName)
+
+		jenkinsScriptData := platformHelper.JenkinsScriptData{}
+		jenkinsScriptData.RealmName = keycloakRealm.Spec.RealmName
+		jenkinsScriptData.KeycloakClientName = keycloakClient.Spec.ClientId
+		jenkinsScriptData.KeycloakUrl = keycloak.Spec.Url
+
+		scriptContext, err := platformHelper.ParseTemplate(jenkinsScriptData, keycloakCfgFilePath, keycloakConfigTemplateName)
+		if err != nil {
+			return &instance, false, err
+		}
+
+		configKeycloakName := fmt.Sprintf("%v-%v", instance.Name, "config-keycloak")
+		configMapData := map[string]string{defaultScriptConfigMapKey: scriptContext.String()}
+		err = j.platformService.CreateConfigMap(instance, configKeycloakName, configMapData)
+		if err != nil {
+			return &instance, false, err
+		}
+
+		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configKeycloakName)
 		if err != nil {
 			return &instance, false, err
 		}
@@ -299,7 +315,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
 	}
 
-	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminTokenSecretPostfix)
+	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, adminTokenSecretPostfix)
 	adminTokenSecret, err := j.platformService.GetSecretData(instance.Namespace, adminTokenSecretName)
 	if err != nil {
 		return &instance, false, errors.Wrapf(err, "Unable to get admin token secret for %v", instance.Name)
@@ -331,88 +347,79 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		instance = *updatedInstance
 	}
 
-	executableFilePath := helper.GetExecutableFilePath()
-	jenkinsScriptsDirectoryPath := jenkinsDefaultScriptsAbsolutePath
-
-	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-		jenkinsScriptsDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultScriptsDirectory)
+	scriptsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultScriptsDirectory)
+	if err != nil {
+		return &instance, false, err
 	}
 
-	directory, err := ioutil.ReadDir(jenkinsScriptsDirectoryPath)
+	directory, err := ioutil.ReadDir(scriptsDirectoryPath)
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", jenkinsScriptsDirectoryPath))
+		return &instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", scriptsDirectoryPath))
 	}
 
 	for _, file := range directory {
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
 		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
 
-		jenkinsScript, err := jenkinsScriptHelper.CreateJenkinsScript(
-			jenkinsScriptHelper.K8sClient{Client: j.k8sClient, Scheme: j.k8sScheme},
-			file.Name(),
-			configMapName,
-			instance.Namespace,
-			true,
-			&instance)
+		path := fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name())
+		jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", file.Name())
+			return &instance, false, err
 		}
-		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, fmt.Sprintf("%v/%v", jenkinsScriptsDirectoryPath, file.Name()), jenkinsScript)
+
+		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, path, jenkinsScript)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
+			errMsg := fmt.Sprintf("Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
+			return &instance, false, errors.Wrap(err, errMsg)
 		}
 	}
 
-	jenkinsSlavesDirectoryPath := jenkinsDefaultSlavesAbsolutePath
-
-	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-		jenkinsSlavesDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultSlavesDirectory)
-	}
-
-	directory, err = ioutil.ReadDir(jenkinsSlavesDirectoryPath)
+	slavesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultSlavesDirectory)
 	if err != nil {
-		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", jenkinsScriptsDirectoryPath))
+		return &instance, false, err
+	}
+
+	directory, err = ioutil.ReadDir(slavesDirectoryPath)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", slavesDirectoryPath))
 	}
 
 	JenkinsSlavesConfigmapLabels := map[string]string{
 		"role": "jenkins-slave",
 	}
 
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, jenkinsSlavesConfigMapName, nil,
-		jenkinsSlavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, slavesTemplateName, nil,
+		slavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
-			jenkinsSlavesConfigMapName, instance.Namespace)
+			slavesTemplateName, instance.Namespace)
 	}
 
-	jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
-	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
-		jenkinsTemplatesDirectoryPath = fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, jenkinsDefaultTemplatesDirectory)
-	}
-
-	var sharedLibrariesScriptContext bytes.Buffer
-	templateAbsolutePath := fmt.Sprintf("%v/%v", jenkinsTemplatesDirectoryPath, jenkinsSharedLibrariesConfigFileName)
-	t := template.Must(template.New(jenkinsSharedLibrariesConfigFileName).ParseFiles(templateAbsolutePath))
-	err = t.Execute(&sharedLibrariesScriptContext, instance.Spec.SharedLibraries)
+	sharedLibrariesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't parse template %v", jenkinsSharedLibrariesConfigFileName)
+		return &instance, false, err
 	}
+	
+	sharedLibrariesFilePath := fmt.Sprintf("%s/%s", sharedLibrariesDirectoryPath, sharedLibrariesTemplateName)
 
+	jenkinsScriptData := platformHelper.JenkinsScriptData{}
+	jenkinsScriptData.JenkinsSharedLibraries = instance.Spec.SharedLibraries
+	
+	sharedLibrariesContext, err := platformHelper.ParseTemplate(jenkinsScriptData, sharedLibrariesFilePath, sharedLibrariesTemplateName)
+	if err != nil {
+		return &instance, false, nil
+	}
+	
 	jenkinsScriptName := "config-shared-libraries"
 	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
-	jenkinsScript, err := jenkinsScriptHelper.CreateJenkinsScript(
-		jenkinsScriptHelper.K8sClient{Client: j.k8sClient, Scheme: j.k8sScheme},
-		jenkinsScriptName,
-		configMapName,
-		instance.Namespace,
-		true,
-		&instance)
+	
+	_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName) 
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create Jenkins Script %v", jenkinsScriptName)
+		return &instance, false, err
 	}
-	labels := platformHelper.GenerateLabels(instance.Name)
-	configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: sharedLibrariesScriptContext.String()}
-	err = j.platformService.CreateConfigMapFromData(instance, configMapName, configMapData, labels, jenkinsScript)
+
+	configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: sharedLibrariesContext.String()}
+	err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
 	if err != nil {
 		return &instance, false, err
 	}
@@ -422,7 +429,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 // Install performs installation of Jenkins
 func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
-	secretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsAdminCredentialsSecretPostfix)
+	secretName := fmt.Sprintf("%v-%v", instance.Name, adminCredentialsSecretPostfix)
 	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
 	if err != nil {
 		return &instance, err
