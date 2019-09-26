@@ -47,3 +47,24 @@ func GetNewRoleBindingObject(instance v1alpha1.Jenkins, roleBindingName string, 
 		},
 	}, nil
 }
+
+func GetNewClusterRoleBindingObject(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) (*authV1Api.ClusterRoleBinding, error) {
+	return &authV1Api.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      clusterRoleBindingName,
+			Namespace: instance.Namespace,
+		},
+		RoleRef: coreV1Api.ObjectReference{
+			APIVersion: "rbac.authorization.k8s.io",
+			Kind:       "ClusterRole",
+			Name:       clusterRoleName,
+		},
+		Subjects: []coreV1Api.ObjectReference{
+			{
+				Kind:      "ServiceAccount",
+				Name:      instance.Name,
+				Namespace: instance.Namespace,
+			},
+		},
+	}, nil
+}

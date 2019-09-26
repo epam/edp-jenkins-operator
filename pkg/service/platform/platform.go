@@ -26,10 +26,12 @@ type PlatformService interface {
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	CreateConfigMapFromData(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels map[string]string, ownerReference metav1.Object) error
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
+	CreateClusterRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
 	GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
+	CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, name string, binding string) error
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
 	AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string, vol []coreV1Api.Volume,
 		volMount []coreV1Api.VolumeMount) error

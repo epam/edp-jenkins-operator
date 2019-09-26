@@ -49,6 +49,7 @@ const (
 	jenkinsDefaultScriptConfigMapKey     = "context"
 	sshKeyDefaultMountPath               = "/tmp/ssh"
 	edpJenkinsRoleName                   = "edp-jenkins-role"
+	edpJenkinsClusterRoleName            = "edp-jenkins-cluster-role"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -238,7 +239,6 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		if err != nil {
 			return &instance, false, nil
 		}
-
 
 		jenkinsTemplatesDirectoryPath := jenkinsDefaultTemplatesAbsolutePath
 		executableFilePath := helper.GetExecutableFilePath()
@@ -453,6 +453,19 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrapf(err, "Failed to create Role %v", edpJenkinsRoleName)
 	}
 
+	rules = []authV1Api.PolicyRule{
+		{
+			APIGroups: []string{"*"},
+			Resources: []string{"securitycontextconstraints"},
+			Verbs:     []string{"get", "list", "update"},
+		},
+	}
+
+	err = j.platformService.CreateClusterRole(instance, edpJenkinsClusterRoleName, rules)
+	if err != nil {
+		return &instance, errors.Wrapf(err, "Failed to create ClusterRole %v", edpJenkinsClusterRoleName)
+	}
+
 	roleBindingName := fmt.Sprintf("%v-edp-resources-permissions", instance.Name)
 	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, edpJenkinsRoleName, "Role")
 	if err != nil {
@@ -463,6 +476,12 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, "edit", "ClusterRole")
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
+	}
+
+	clusterRoleBindingName := fmt.Sprintf("%v-%v-cluster-permissions", instance.Name, instance.Namespace)
+	err = j.platformService.CreateUserClusterRoleBinding(instance, clusterRoleBindingName, edpJenkinsClusterRoleName)
+	if err != nil {
+		return &instance, errors.Wrapf(err, "Failed to create Cluster Role Binding %v", instance.Name)
 	}
 
 	err = j.platformService.CreatePersistentVolumeClaim(instance)

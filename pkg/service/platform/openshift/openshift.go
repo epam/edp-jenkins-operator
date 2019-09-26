@@ -41,8 +41,8 @@ type OpenshiftService struct {
 }
 
 // Init initializes OpenshiftService
-func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme,k8sClient *client.Client) error {
-	err := service.K8SService.Init(config, scheme,k8sClient)
+func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme, k8sClient *client.Client) error {
+	err := service.K8SService.Init(config, scheme, k8sClient)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init K8S platform service")
 	}
@@ -329,6 +329,31 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 	return nil
 }
 
+// CreateClusterRole creates new cluster role
+func (service OpenshiftService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRoleName string, rules []authV1Api.PolicyRule) error {
+	clusterRoleObject := &authV1Api.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: clusterRoleName,
+		},
+		Rules: rules,
+	}
+
+	clusterRole, err := service.authClient.ClusterRoles().Get(clusterRoleObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			clusterRole, err = service.authClient.ClusterRoles().Create(clusterRoleObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Cluster Role %v", clusterRoleObject.Name)
+			}
+			log.Info(fmt.Sprintf("Cluster Role %s is created", clusterRole.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Cluster Role %v failed", clusterRoleObject.Name)
+	}
+
+	return nil
+}
+
 //noinspection GoUnresolvedReference
 func (service OpenshiftService) CreateRole(instance v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error {
 	roleObject := &authV1Api.Role{
@@ -354,6 +379,33 @@ func (service OpenshiftService) CreateRole(instance v1alpha1.Jenkins, roleName s
 			return nil
 		}
 		return errors.Wrapf(err, "Getting Role %v failed", roleObject.Name)
+	}
+
+	return nil
+}
+
+// CreateUserClusterRoleBinding binds user to clusterRole
+func (service OpenshiftService) CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) error {
+	bindingObject, err := helper.GetNewClusterRoleBindingObject(instance, clusterRoleBindingName, clusterRoleName)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, bindingObject, service.Scheme); err != nil {
+		return err
+	}
+
+	binding, err := service.authClient.ClusterRoleBindings().Get(bindingObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			binding, err = service.authClient.ClusterRoleBindings().Create(bindingObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Cluster Role Binding %v", bindingObject.Name)
+			}
+			log.Info(fmt.Sprintf("Cluster Role Binding %s has been created", binding.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Cluster Role Binding %v failed", bindingObject.Name)
 	}
 
 	return nil
