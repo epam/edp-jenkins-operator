@@ -9,7 +9,6 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
 	appsV1Api "github.com/openshift/api/apps/v1"
-	authV1Api "github.com/openshift/api/authorization/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	authV1Client "github.com/openshift/client-go/authorization/clientset/versioned/typed/authorization/v1"
@@ -324,61 +323,6 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 		if err != nil {
 			return errors.Wrapf(err, "Failed to update DeploymentConfig %v !", routeObject.Name)
 		}
-	}
-
-	return nil
-}
-
-// CreateClusterRole creates new cluster role
-func (service OpenshiftService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRoleName string, rules []authV1Api.PolicyRule) error {
-	clusterRoleObject := &authV1Api.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: clusterRoleName,
-		},
-		Rules: rules,
-	}
-
-	clusterRole, err := service.authClient.ClusterRoles().Get(clusterRoleObject.Name, metav1.GetOptions{})
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			clusterRole, err = service.authClient.ClusterRoles().Create(clusterRoleObject)
-			if err != nil {
-				return errors.Wrapf(err, "Failed to create Cluster Role %v", clusterRoleObject.Name)
-			}
-			log.Info(fmt.Sprintf("Cluster Role %s is created", clusterRole.Name))
-			return nil
-		}
-		return errors.Wrapf(err, "Getting Cluster Role %v failed", clusterRoleObject.Name)
-	}
-
-	return nil
-}
-
-//noinspection GoUnresolvedReference
-func (service OpenshiftService) CreateRole(instance v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error {
-	roleObject := &authV1Api.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      roleName,
-			Namespace: instance.Namespace,
-		},
-		Rules: rules,
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, roleObject, service.Scheme); err != nil {
-		return errors.Wrap(err, "Failed to set Owner Reference")
-	}
-
-	consoleRole, err := service.authClient.Roles(roleObject.Namespace).Get(roleObject.Name, metav1.GetOptions{})
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			consoleRole, err = service.authClient.Roles(roleObject.Namespace).Create(roleObject)
-			if err != nil {
-				return errors.Wrapf(err, "Failed to create Role %v", roleObject.Name)
-			}
-			log.Info(fmt.Sprintf("Role %s is created", consoleRole.Name))
-			return nil
-		}
-		return errors.Wrapf(err, "Getting Role %v failed", roleObject.Name)
 	}
 
 	return nil

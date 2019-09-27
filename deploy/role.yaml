@@ -12,6 +12,7 @@ rules:
   - services/finalizers
   - endpoints
   - persistentvolumeclaims
+  - serviceaccounts
   - events
   - configmaps
   - secrets

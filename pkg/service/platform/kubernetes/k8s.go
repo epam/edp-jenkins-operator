@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
+	authV1Api "k8s.io/api/rbac/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
+	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
@@ -35,6 +37,7 @@ type K8SService struct {
 	CoreClient            coreV1Client.CoreV1Client
 	JenkinsScriptClient   *jenkinsScriptV1Client.EdpV1Client
 	k8sUnstructuredClient client.Client
+	authClient            authV1Client.RbacV1Client
 }
 
 // Init initializes K8SService
@@ -53,6 +56,13 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	service.CoreClient = *CoreClient
 	service.k8sUnstructuredClient = *k8sClient
 	service.Scheme = Scheme
+
+	authClient, err := authV1Client.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to init auth V1 client for Openshift")
+	}
+	service.authClient = *authClient
+
 	return nil
 }
 
@@ -283,6 +293,61 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 	err = service.CreateConfigMap(instance, configMapName, configMapData, labels)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
+	}
+
+	return nil
+}
+
+// CreateRole creates new role in k8s
+func (service K8SService) CreateRole(instance v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error {
+	roleObject := &authV1Api.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      roleName,
+			Namespace: instance.Namespace,
+		},
+		Rules: rules,
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, roleObject, service.Scheme); err != nil {
+		return errors.Wrap(err, "Failed to set Owner Reference")
+	}
+
+	consoleRole, err := service.authClient.Roles(roleObject.ObjectMeta.Namespace).Get(roleObject.ObjectMeta.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			consoleRole, err = service.authClient.Roles(roleObject.Namespace).Create(roleObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Role %v", roleObject.Name)
+			}
+			log.Info(fmt.Sprintf("Role %s is created", consoleRole.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Role %v failed", roleObject.Name)
+	}
+
+	return nil
+}
+
+// CreateClusterRole creates new cluster role
+func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRoleName string, rules []authV1Api.PolicyRule) error {
+	clusterRoleObject := &authV1Api.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: clusterRoleName,
+		},
+		Rules: rules,
+	}
+
+	clusterRole, err := service.authClient.ClusterRoles().Get(clusterRoleObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			clusterRole, err = service.authClient.ClusterRoles().Create(clusterRoleObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Cluster Role %v", clusterRoleObject.Name)
+			}
+			log.Info(fmt.Sprintf("Cluster Role %s is created", clusterRole.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Cluster Role %v failed", clusterRoleObject.Name)
 	}
 
 	return nil

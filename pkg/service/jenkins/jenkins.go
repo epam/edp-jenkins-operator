@@ -16,10 +16,10 @@ import (
 	keycloakApi "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakControllerHelper "github.com/epmd-edp/keycloak-operator/pkg/controller/helper"
-	authV1Api "github.com/openshift/api/authorization/v1"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
+	authV1Api "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -399,21 +399,21 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	if err != nil {
 		return &instance, false, err
 	}
-	
+
 	sharedLibrariesFilePath := fmt.Sprintf("%s/%s", sharedLibrariesDirectoryPath, sharedLibrariesTemplateName)
 
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 	jenkinsScriptData.JenkinsSharedLibraries = instance.Spec.SharedLibraries
-	
+
 	sharedLibrariesContext, err := platformHelper.ParseTemplate(jenkinsScriptData, sharedLibrariesFilePath, sharedLibrariesTemplateName)
 	if err != nil {
 		return &instance, false, nil
 	}
-	
+
 	jenkinsScriptName := "config-shared-libraries"
 	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
-	
-	_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName) 
+
+	_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 	if err != nil {
 		return &instance, false, err
 	}
