@@ -233,13 +233,15 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 	return secret.Data, nil
 }
 
-func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string) error {
-	labels := platformHelper.GenerateLabels(instance.Name)
+func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error {
+	if len(labels) == 0 {
+		labels[0] = platformHelper.GenerateLabels(instance.Name)
+	}
 	configMapObject := &coreV1Api.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
 			Namespace: instance.Namespace,
-			Labels:    labels,
+			Labels:    labels[0],
 		},
 		Data: configMapData,
 	}
@@ -277,7 +279,7 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 		}
 	}
 
-	err = service.CreateConfigMap(instance, configMapName, configMapData)
+	err = service.CreateConfigMap(instance, configMapName, configMapData, labels)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
 	}

@@ -35,9 +35,9 @@ type PlatformService interface {
 	AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string, vol []coreV1Api.Volume,
 		volMount []coreV1Api.VolumeMount) error
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
-	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient,error)
+	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
 	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)
-	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string) error
+	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error
 }
 
 // NewPlatformService returns platform service interface implementation
