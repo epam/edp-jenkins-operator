@@ -234,14 +234,15 @@ func (service K8SService) GetSecretData(namespace string, name string) (map[stri
 }
 
 func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error {
-	if len(labels) == 0 {
-		labels[0] = platformHelper.GenerateLabels(instance.Name)
+	resultLabels := platformHelper.GenerateLabels(instance.Name)
+	if len(labels) != 0 {
+		resultLabels = labels[0]
 	}
 	configMapObject := &coreV1Api.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
 			Namespace: instance.Namespace,
-			Labels:    labels[0],
+			Labels:    resultLabels,
 		},
 		Data: configMapData,
 	}
