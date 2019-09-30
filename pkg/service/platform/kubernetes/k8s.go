@@ -6,13 +6,14 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
 	authV1Api "k8s.io/api/rbac/v1"
-	k8serr "k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -84,7 +85,7 @@ func (service K8SService) CreateServiceAccount(instance v1alpha1.Jenkins) error 
 	}
 
 	serviceAccount, err := service.CoreClient.ServiceAccounts(serviceAccountObject.Namespace).Get(serviceAccountObject.Name, metav1.GetOptions{})
-	if err != nil && k8serr.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		serviceAccount, err = service.CoreClient.ServiceAccounts(serviceAccountObject.Namespace).Create(serviceAccountObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Service Account %v object", serviceAccountObject.Name)
@@ -128,7 +129,7 @@ func (service K8SService) CreatePersistentVolumeClaim(instance v1alpha1.Jenkins)
 
 		volume, err := service.CoreClient.PersistentVolumeClaims(volumeObject.Namespace).Get(volumeObject.Name, metav1.GetOptions{})
 
-		if err != nil && k8serr.IsNotFound(err) {
+		if err != nil && k8sErrors.IsNotFound(err) {
 			volume, err = service.CoreClient.PersistentVolumeClaims(volumeObject.Namespace).Create(volumeObject)
 			if err != nil {
 				return errors.Wrapf(err, "Couldn't create Persistent Volume Claim %v object", volume.Name)
@@ -177,7 +178,7 @@ func (service K8SService) CreateService(instance v1alpha1.Jenkins) error {
 
 	svc, err := service.CoreClient.Services(instance.Namespace).Get(serviceObject.Name, metav1.GetOptions{})
 
-	if err != nil && k8serr.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		svc, err = service.CoreClient.Services(serviceObject.Namespace).Create(serviceObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Service %v object", svc.Name)
@@ -218,7 +219,7 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 
 	secret, err := service.CoreClient.Secrets(secretObject.Namespace).Get(secretObject.Name, metav1.GetOptions{})
 
-	if err != nil && k8serr.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		secret, err = service.CoreClient.Secrets(secretObject.Namespace).Create(secretObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Secret %v object", secret.Name)
@@ -234,7 +235,7 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 // GetSecret return data field of Secret
 func (service K8SService) GetSecretData(namespace string, name string) (map[string][]byte, error) {
 	secret, err := service.CoreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
-	if err != nil && k8serr.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		log.Info(fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
 		return nil, nil
 	} else if err != nil {
@@ -263,7 +264,7 @@ func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapNa
 
 	cm, err := service.CoreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			cm, err = service.CoreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
 			if err != nil {
 				return errors.Wrapf(err, "Couldn't create Config Map %v object", configMapObject.Name)
@@ -314,7 +315,7 @@ func (service K8SService) CreateRole(instance v1alpha1.Jenkins, roleName string,
 
 	consoleRole, err := service.authClient.Roles(roleObject.ObjectMeta.Namespace).Get(roleObject.ObjectMeta.Name, metav1.GetOptions{})
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			consoleRole, err = service.authClient.Roles(roleObject.Namespace).Create(roleObject)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Role %v", roleObject.Name)
@@ -339,7 +340,7 @@ func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRo
 
 	clusterRole, err := service.authClient.ClusterRoles().Get(clusterRoleObject.Name, metav1.GetOptions{})
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			clusterRole, err = service.authClient.ClusterRoles().Create(clusterRoleObject)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Cluster Role %v", clusterRoleObject.Name)
@@ -348,6 +349,59 @@ func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRo
 			return nil
 		}
 		return errors.Wrapf(err, "Getting Cluster Role %v failed", clusterRoleObject.Name)
+	}
+
+	return nil
+}
+
+// CreateUserClusterRoleBinding binds user to clusterRole
+func (service K8SService) CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) error {
+	bindingObject, err := helper.GetNewClusterRoleBindingObject(instance, clusterRoleBindingName, clusterRoleName)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, bindingObject, service.Scheme); err != nil {
+		return err
+	}
+
+	binding, err := service.authClient.ClusterRoleBindings().Get(bindingObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			binding, err = service.authClient.ClusterRoleBindings().Create(bindingObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Cluster Role Binding %v", bindingObject.Name)
+			}
+			log.Info(fmt.Sprintf("Cluster Role Binding %s has been created", binding.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Cluster Role Binding %v failed", bindingObject.Name)
+	}
+
+	return nil
+}
+
+func (service K8SService) CreateUserRoleBinding(instance v1alpha1.Jenkins, roleBindingName string, roleName string, roleKind string) error {
+	bindingObject, err := helper.GetNewRoleBindingObject(instance, roleBindingName, roleName, roleKind)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, bindingObject, service.Scheme); err != nil {
+		return err
+	}
+
+	binding, err := service.authClient.RoleBindings(bindingObject.Namespace).Get(bindingObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			binding, err = service.authClient.RoleBindings(bindingObject.Namespace).Create(bindingObject)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create Role Binding %v", bindingObject.Name)
+			}
+			log.Info(fmt.Sprintf("Role Binding %s has been created", binding.Name))
+			return nil
+		}
+		return errors.Wrapf(err, "Getting Role Binding %v failed", bindingObject.Name)
 	}
 
 	return nil
@@ -410,7 +464,7 @@ func (service K8SService) GetConfigMapData(namespace string, name string) (map[s
 	configMap, err := service.CoreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
 
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			return nil, errors.Wrapf(err, "Config map %v in namespace %v not found", name, namespace)
 		}
 		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMap.Name)
@@ -426,7 +480,7 @@ func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient)
 
 	err := service.k8sUnstructuredClient.Get(context.TODO(), nsn, kc)
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			err := service.k8sUnstructuredClient.Create(context.TODO(), kc)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
@@ -468,7 +522,7 @@ func (service K8SService) CreateJenkinsScript(namespace string, configMap string
 
 	js, err := service.JenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
 	if err != nil {
-		if k8serr.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			js, err := service.JenkinsScriptClient.Create(jso, namespace)
 			if err != nil {
 				return nil, err

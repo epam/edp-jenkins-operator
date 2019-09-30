@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
-	authV1Api "github.com/openshift/api/authorization/v1"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pkg/errors"
-	coreV1Api "k8s.io/api/core/v1"
+	authV1Api "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 	"text/template"
 )
 
@@ -36,25 +34,16 @@ func GenerateLabels(name string) map[string]string {
 }
 
 func GetNewRoleBindingObject(instance v1alpha1.Jenkins, roleBindingName string, roleName string, kind string) (*authV1Api.RoleBinding, error) {
-	var roleNamespace string
-	switch strings.ToLower(kind) {
-	case ClusterRole:
-		roleNamespace = ""
-	case Role:
-		roleNamespace = instance.Namespace
-	}
 	return &authV1Api.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      roleBindingName,
 			Namespace: instance.Namespace,
 		},
-		RoleRef: coreV1Api.ObjectReference{
-			APIVersion: "rbac.authorization.k8s.io",
-			Kind:       kind,
-			Name:       roleName,
-			Namespace:  roleNamespace,
+		RoleRef: authV1Api.RoleRef{
+			Kind: kind,
+			Name: roleName,
 		},
-		Subjects: []coreV1Api.ObjectReference{
+		Subjects: []authV1Api.Subject{
 			{
 				Kind: "ServiceAccount",
 				Name: instance.Name,
@@ -69,12 +58,11 @@ func GetNewClusterRoleBindingObject(instance v1alpha1.Jenkins, clusterRoleBindin
 			Name:      clusterRoleBindingName,
 			Namespace: instance.Namespace,
 		},
-		RoleRef: coreV1Api.ObjectReference{
-			APIVersion: "rbac.authorization.k8s.io",
-			Kind:       "ClusterRole",
-			Name:       clusterRoleName,
+		RoleRef: authV1Api.RoleRef{
+			Kind: "ClusterRole",
+			Name: clusterRoleName,
 		},
-		Subjects: []coreV1Api.ObjectReference{
+		Subjects: []authV1Api.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Name:      instance.Name,
@@ -100,8 +88,7 @@ func createPath(directory string, localRun bool) (string, error) {
 }
 
 func checkIfRunningLocally() bool {
-	if _, err := k8sutil.GetOperatorNamespace();
-		err != nil && err == k8sutil.ErrNoNamespace {
+	if _, err := k8sutil.GetOperatorNamespace(); err != nil && err == k8sutil.ErrNoNamespace {
 		return true
 	}
 	return false

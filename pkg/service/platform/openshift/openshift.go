@@ -15,7 +15,7 @@ import (
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -70,7 +70,7 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 // GetRoute returns Route object and connection protocol from Openshift
 func (service OpenshiftService) GetRoute(namespace string, name string) (*routeV1Api.Route, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
-	if err != nil && k8serrors.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		return nil, "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
 	} else if err != nil {
 		return nil, "", err
@@ -262,7 +262,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 	}
 
 	jenkinsDc, err := service.appClient.DeploymentConfigs(jenkinsDcObject.Namespace).Get(jenkinsDcObject.Name, metav1.GetOptions{})
-	if err != nil && k8serrors.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		log.V(1).Info(fmt.Sprintf("Creating a new DeploymentConfig %s/%s for Jenkins %s", jenkinsDcObject.Namespace, jenkinsDcObject.Name, instance.Name))
 
 		jenkinsDc, err = service.appClient.DeploymentConfigs(jenkinsDcObject.Namespace).Create(jenkinsDcObject)
@@ -308,7 +308,7 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 	}
 
 	route, err := service.routeClient.Routes(routeObject.Namespace).Get(routeObject.Name, metav1.GetOptions{})
-	if err != nil && k8serrors.IsNotFound(err) {
+	if err != nil && k8sErrors.IsNotFound(err) {
 		route, err = service.routeClient.Routes(routeObject.Namespace).Create(routeObject)
 		if err != nil {
 			return err
@@ -323,59 +323,6 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 		if err != nil {
 			return errors.Wrapf(err, "Failed to update DeploymentConfig %v !", routeObject.Name)
 		}
-	}
-
-	return nil
-}
-
-// CreateUserClusterRoleBinding binds user to clusterRole
-func (service OpenshiftService) CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) error {
-	bindingObject, err := helper.GetNewClusterRoleBindingObject(instance, clusterRoleBindingName, clusterRoleName)
-	if err != nil {
-		return err
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, bindingObject, service.Scheme); err != nil {
-		return err
-	}
-
-	binding, err := service.authClient.ClusterRoleBindings().Get(bindingObject.Name, metav1.GetOptions{})
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			binding, err = service.authClient.ClusterRoleBindings().Create(bindingObject)
-			if err != nil {
-				return errors.Wrapf(err, "Failed to create Cluster Role Binding %v", bindingObject.Name)
-			}
-			log.Info(fmt.Sprintf("Cluster Role Binding %s has been created", binding.Name))
-			return nil
-		}
-		return errors.Wrapf(err, "Getting Cluster Role Binding %v failed", bindingObject.Name)
-	}
-
-	return nil
-}
-
-func (service OpenshiftService) CreateUserRoleBinding(instance v1alpha1.Jenkins, roleBindingName string, roleName string, kind string) error {
-	bindingObject, err := helper.GetNewRoleBindingObject(instance, roleBindingName, roleName, kind)
-	if err != nil {
-		return err
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, bindingObject, service.Scheme); err != nil {
-		return err
-	}
-
-	binding, err := service.authClient.RoleBindings(bindingObject.Namespace).Get(bindingObject.Name, metav1.GetOptions{})
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			binding, err = service.authClient.RoleBindings(bindingObject.Namespace).Create(bindingObject)
-			if err != nil {
-				return errors.Wrapf(err, "Failed to create Role Binding %v", bindingObject.Name)
-			}
-			log.Info(fmt.Sprintf("Role Binding %s has been created", binding.Name))
-			return nil
-		}
-		return errors.Wrapf(err, "Getting Role Binding %v failed", bindingObject.Name)
 	}
 
 	return nil
