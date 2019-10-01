@@ -11,7 +11,6 @@ import (
 	appsV1Api "github.com/openshift/api/apps/v1"
 	routeV1Api "github.com/openshift/api/route/v1"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
-	authV1Client "github.com/openshift/client-go/authorization/clientset/versioned/typed/authorization/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -34,7 +33,6 @@ var log = logf.Log.WithName("platform")
 type OpenshiftService struct {
 	kubernetes.K8SService
 
-	authClient  authV1Client.AuthorizationV1Client
 	appClient   appsV1client.AppsV1Client
 	routeClient routeV1Client.RouteV1Client
 }
@@ -50,19 +48,14 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	if err != nil {
 		return errors.Wrap(err, "Failed to init apps V1 client for Openshift")
 	}
-	service.appClient = *appClient
 
 	routeClient, err := routeV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init route V1 client for Openshift")
 	}
-	service.routeClient = *routeClient
 
-	authClient, err := authV1Client.NewForConfig(config)
-	if err != nil {
-		return errors.Wrap(err, "Failed to init auth V1 client for Openshift")
-	}
-	service.authClient = *authClient
+	service.appClient = *appClient
+	service.routeClient = *routeClient
 
 	return nil
 }
@@ -83,8 +76,8 @@ func (service OpenshiftService) GetExternalEndpoint(namespace string, name strin
 	return route.Spec.Host, routeScheme, nil
 }
 
-// CreateDeployConf - creates deployment configs for Jenkins instance
-func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) error {
+// CreateDeployment - creates deployment configs for Jenkins instance
+func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) error {
 
 	activeDeadlineSecond := int64(21600)
 	terminationGracePeriod := int64(30)

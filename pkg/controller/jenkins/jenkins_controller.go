@@ -53,7 +53,9 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	scheme := mgr.GetScheme()
 	client := mgr.GetClient()
-	platformService, _ := platform.NewPlatformService(scheme, &client)
+
+	platformType := helper.GetPlatformTypeEnv()
+	platformService, _ := platform.NewPlatformService(platformType, scheme, &client)
 
 	jenkinsService := jenkins.NewJenkinsService(platformService, client, scheme)
 	return &ReconcileJenkins{

@@ -35,15 +35,15 @@ var log = logf.Log.WithName("platform")
 // K8SService struct for K8S platform service
 type K8SService struct {
 	Scheme                *runtime.Scheme
-	CoreClient            coreV1Client.CoreV1Client
-	JenkinsScriptClient   *jenkinsScriptV1Client.EdpV1Client
+	coreClient            coreV1Client.CoreV1Client
+	jenkinsScriptClient   jenkinsScriptV1Client.EdpV1Client
 	k8sUnstructuredClient client.Client
 	authClient            authV1Client.RbacV1Client
 }
 
 // Init initializes K8SService
 func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
-	CoreClient, err := coreV1Client.NewForConfig(config)
+	coreClient, err := coreV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init core client for K8S")
 	}
@@ -52,16 +52,16 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	if err != nil {
 		return err
 	}
-	service.JenkinsScriptClient = jenkinsScriptClient
-
-	service.CoreClient = *CoreClient
-	service.k8sUnstructuredClient = *k8sClient
-	service.Scheme = Scheme
 
 	authClient, err := authV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init auth V1 client for Openshift")
 	}
+
+	service.jenkinsScriptClient = *jenkinsScriptClient
+	service.coreClient = *coreClient
+	service.k8sUnstructuredClient = *k8sClient
+	service.Scheme = Scheme
 	service.authClient = *authClient
 
 	return nil
@@ -84,9 +84,9 @@ func (service K8SService) CreateServiceAccount(instance v1alpha1.Jenkins) error 
 		return errors.Wrapf(err, "Couldn't set reference for Service Account %v object", serviceAccountObject.Name)
 	}
 
-	serviceAccount, err := service.CoreClient.ServiceAccounts(serviceAccountObject.Namespace).Get(serviceAccountObject.Name, metav1.GetOptions{})
+	serviceAccount, err := service.coreClient.ServiceAccounts(serviceAccountObject.Namespace).Get(serviceAccountObject.Name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
-		serviceAccount, err = service.CoreClient.ServiceAccounts(serviceAccountObject.Namespace).Create(serviceAccountObject)
+		serviceAccount, err = service.coreClient.ServiceAccounts(serviceAccountObject.Namespace).Create(serviceAccountObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Service Account %v object", serviceAccountObject.Name)
 		}
@@ -96,6 +96,28 @@ func (service K8SService) CreateServiceAccount(instance v1alpha1.Jenkins) error 
 	}
 
 	return nil
+}
+
+// GetExternalEndpoint returns Route object and connection protocol from Openshift
+func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
+	panic("Implement me")
+}
+
+func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
+	panic("Implement me")
+}
+
+func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
+	panic("Implement me")
+}
+
+// CreateDeployment performs creating Deployment in K8S
+func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
+	panic("Implement me")
+}
+
+func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+	panic("Implement me")
 }
 
 // CreateVolume performs creating PersistentVolumeClaim in K8S
@@ -127,10 +149,10 @@ func (service K8SService) CreatePersistentVolumeClaim(instance v1alpha1.Jenkins)
 			return errors.Wrapf(err, "Couldn't set reference for Persistent Volume Claim %v object", volumeObject.Name)
 		}
 
-		volume, err := service.CoreClient.PersistentVolumeClaims(volumeObject.Namespace).Get(volumeObject.Name, metav1.GetOptions{})
+		volume, err := service.coreClient.PersistentVolumeClaims(volumeObject.Namespace).Get(volumeObject.Name, metav1.GetOptions{})
 
 		if err != nil && k8sErrors.IsNotFound(err) {
-			volume, err = service.CoreClient.PersistentVolumeClaims(volumeObject.Namespace).Create(volumeObject)
+			volume, err = service.coreClient.PersistentVolumeClaims(volumeObject.Namespace).Create(volumeObject)
 			if err != nil {
 				return errors.Wrapf(err, "Couldn't create Persistent Volume Claim %v object", volume.Name)
 			}
@@ -176,10 +198,10 @@ func (service K8SService) CreateService(instance v1alpha1.Jenkins) error {
 		return errors.Wrapf(err, "Couldn't set reference for Service %v object", serviceObject.Name)
 	}
 
-	svc, err := service.CoreClient.Services(instance.Namespace).Get(serviceObject.Name, metav1.GetOptions{})
+	svc, err := service.coreClient.Services(instance.Namespace).Get(serviceObject.Name, metav1.GetOptions{})
 
 	if err != nil && k8sErrors.IsNotFound(err) {
-		svc, err = service.CoreClient.Services(serviceObject.Namespace).Create(serviceObject)
+		svc, err = service.coreClient.Services(serviceObject.Namespace).Create(serviceObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Service %v object", svc.Name)
 		}
@@ -188,7 +210,7 @@ func (service K8SService) CreateService(instance v1alpha1.Jenkins) error {
 		return errors.Wrapf(err, "Couldn't get Service %v object", serviceObject.Name)
 	} else if !reflect.DeepEqual(svc.Spec.Ports, serviceObject.Spec.Ports) {
 		svc.Spec.Ports = serviceObject.Spec.Ports
-		_, err := service.CoreClient.Services(instance.Namespace).Update(svc)
+		_, err := service.coreClient.Services(instance.Namespace).Update(svc)
 		if err != nil {
 			return errors.Wrapf(err, fmt.Sprintf("Couldn't update Service %v object", svc.Name))
 		}
@@ -217,10 +239,10 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secretObject.Name)
 	}
 
-	secret, err := service.CoreClient.Secrets(secretObject.Namespace).Get(secretObject.Name, metav1.GetOptions{})
+	secret, err := service.coreClient.Secrets(secretObject.Namespace).Get(secretObject.Name, metav1.GetOptions{})
 
 	if err != nil && k8sErrors.IsNotFound(err) {
-		secret, err = service.CoreClient.Secrets(secretObject.Namespace).Create(secretObject)
+		secret, err = service.coreClient.Secrets(secretObject.Namespace).Create(secretObject)
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Secret %v object", secret.Name)
 		}
@@ -234,7 +256,7 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 
 // GetSecret return data field of Secret
 func (service K8SService) GetSecretData(namespace string, name string) (map[string][]byte, error) {
-	secret, err := service.CoreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
+	secret, err := service.coreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		log.Info(fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
 		return nil, nil
@@ -262,10 +284,10 @@ func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapNa
 		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", configMapObject.Name)
 	}
 
-	cm, err := service.CoreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
+	cm, err := service.coreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			cm, err = service.CoreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
+			cm, err = service.coreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
 			if err != nil {
 				return errors.Wrapf(err, "Couldn't create Config Map %v object", configMapObject.Name)
 			}
@@ -461,7 +483,7 @@ func (service K8SService) fillConfigMapFromDir(path string) (map[string]string, 
 
 // GetConfigMapData return data field of ConfigMap
 func (service K8SService) GetConfigMapData(namespace string, name string) (map[string]string, error) {
-	configMap, err := service.CoreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
+	configMap, err := service.coreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
 
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -520,10 +542,10 @@ func (service K8SService) CreateJenkinsScript(namespace string, configMap string
 		},
 	}
 
-	js, err := service.JenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
+	js, err := service.jenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			js, err := service.JenkinsScriptClient.Create(jso, namespace)
+			js, err := service.jenkinsScriptClient.Create(jso, namespace)
 			if err != nil {
 				return nil, err
 			}

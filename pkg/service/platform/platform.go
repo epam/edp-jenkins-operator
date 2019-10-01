@@ -2,6 +2,7 @@ package platform
 
 import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 // PlatformService interface
@@ -19,7 +21,7 @@ type PlatformService interface {
 	CreatePersistentVolumeClaim(instance v1alpha1.Jenkins) error
 	CreateService(instance v1alpha1.Jenkins) error
 	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
-	CreateDeployConf(instance v1alpha1.Jenkins) error
+	CreateDeployment(instance v1alpha1.Jenkins) error
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
@@ -38,7 +40,7 @@ type PlatformService interface {
 }
 
 // NewPlatformService returns platform service interface implementation
-func NewPlatformService(scheme *runtime.Scheme, k8sClient *client.Client) (PlatformService, error) {
+func NewPlatformService(platformType string, scheme *runtime.Scheme, k8sClient *client.Client) (PlatformService, error) {
 	config := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -49,11 +51,22 @@ func NewPlatformService(scheme *runtime.Scheme, k8sClient *client.Client) (Platf
 		return nil, errors.Wrap(err, "Failed to get rest configs for platform")
 	}
 
-	platform := openshift.OpenshiftService{}
-
-	err = platform.Init(restConfig, scheme, k8sClient)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to init for platform")
+	switch strings.ToLower(platformType) {
+	case "openshift":
+		platform := openshift.OpenshiftService{}
+		err := platform.Init(restConfig, scheme, k8sClient)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to init for Openshift platform")
+		}
+		return platform, nil
+	case "kubernetes":
+		platform := kubernetes.K8SService{}
+		err := platform.Init(restConfig, scheme, k8sClient)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to init for Kubernetes platform")
+		}
+		return platform, nil
+	default:
+		return nil, errors.Wrap(err, "Unknown platform type")
 	}
-	return platform, nil
 }

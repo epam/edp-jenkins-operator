@@ -501,7 +501,7 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrap(err, "Failed to create Route.")
 	}
 
-	err = j.platformService.CreateDeployConf(instance)
+	err = j.platformService.CreateDeployment(instance)
 	if err != nil {
 		return &instance, errors.Wrap(err, "Failed to create Deployment Config.")
 	}
