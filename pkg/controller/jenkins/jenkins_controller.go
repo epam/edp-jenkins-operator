@@ -150,7 +150,7 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
-	if dcIsReady, err := r.service.IsDeploymentConfigReady(*instance); err != nil {
+	if dcIsReady, err := r.service.IsDeploymentReady(*instance); err != nil {
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment configs is ready has been failed")
 	} else if !dcIsReady {
 		reqLogger.Info("Deployment configs is not ready for configuration yet")

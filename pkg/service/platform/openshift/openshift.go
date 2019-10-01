@@ -328,14 +328,17 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 	return nil
 }
 
-// GetDeploymentConfig returns DeploymentConfig object from Openshift
-func (service OpenshiftService) GetDeploymentConfig(instance v1alpha1.Jenkins) (*appsV1Api.DeploymentConfig, error) {
+func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 	deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return deploymentConfig, nil
+	if deploymentConfig.Status.UpdatedReplicas == 1 && deploymentConfig.Status.AvailableReplicas == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins,

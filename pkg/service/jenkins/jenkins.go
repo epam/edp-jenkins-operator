@@ -52,7 +52,7 @@ type JenkinsService interface {
 	Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
 	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
-	IsDeploymentConfigReady(instance v1alpha1.Jenkins) (bool, error)
+	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
@@ -510,17 +510,6 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 }
 
 // IsDeploymentConfigReady check if DC for Jenkins is ready
-func (j JenkinsServiceImpl) IsDeploymentConfigReady(instance v1alpha1.Jenkins) (bool, error) {
-	jenkinsIsReady := false
-
-	jenkinsDc, err := j.platformService.GetDeploymentConfig(instance)
-	if err != nil {
-		return jenkinsIsReady, err
-	}
-
-	if jenkinsDc.Status.UpdatedReplicas == 1 && jenkinsDc.Status.AvailableReplicas == 1 {
-		jenkinsIsReady = true
-	}
-
-	return jenkinsIsReady, nil
+func (j JenkinsServiceImpl) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+	return j.platformService.IsDeploymentReady(instance)
 }
