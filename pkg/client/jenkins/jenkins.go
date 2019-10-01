@@ -22,11 +22,11 @@ type JenkinsClient struct {
 
 // InitNewRestClient performs initialization of Jenkins connection
 func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
-	route, scheme, err := platformService.GetRoute(instance.Namespace, instance.Name)
+	host, scheme, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
 	}
-	apiUrl := fmt.Sprintf("%v://%v", scheme, route.Spec.Host)
+	apiUrl := fmt.Sprintf("%v://%v", scheme, host)
 
 	if instance.Status.AdminSecretName == "" {
 		log.V(1).Info("Admin secret is not created yet")

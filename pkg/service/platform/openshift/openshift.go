@@ -67,20 +67,20 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	return nil
 }
 
-// GetRoute returns Route object and connection protocol from Openshift
-func (service OpenshiftService) GetRoute(namespace string, name string) (*routeV1Api.Route, string, error) {
+// GetExternalEndpoint returns Route object and connection protocol from Openshift
+func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
-		return nil, "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
+		return "", "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
 	} else if err != nil {
-		return nil, "", err
+		return "", "", err
 	}
 
 	var routeScheme = "http"
 	if route.Spec.TLS.Termination != "" {
 		routeScheme = "https"
 	}
-	return route, routeScheme, nil
+	return route.Spec.Host, routeScheme, nil
 }
 
 // CreateDeployConf - creates deployment configs for Jenkins instance
@@ -88,12 +88,12 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 
 	activeDeadlineSecond := int64(21600)
 	terminationGracePeriod := int64(30)
-	jenkinsRoute, routeScheme, err := service.GetRoute(instance.Namespace, instance.Name)
+	routeHost, routeScheme, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
 	}
 
-	jenkinsUiUrl := fmt.Sprintf("%v://%v", routeScheme, jenkinsRoute.Spec.Host)
+	jenkinsUiUrl := fmt.Sprintf("%v://%v", routeScheme, routeHost)
 
 	// Can't assign pointer to constant, that is why — create an intermediate var.
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout

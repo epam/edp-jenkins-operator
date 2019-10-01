@@ -209,12 +209,12 @@ func (j JenkinsServiceImpl) setAnnotation(instance *v1alpha1.Jenkins, key string
 func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
 	if instance.Spec.KeycloakSpec.Enabled {
 
-		routeObject, scheme, err := j.platformService.GetRoute(instance.Namespace, instance.Name)
+		host, scheme, err := j.platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 		if err != nil {
 			return &instance, false, errors.Wrap(err, "Failed to get route from cluster!")
 		}
 
-		webUrl := fmt.Sprintf("%s://%s", scheme, routeObject.Spec.Host)
+		webUrl := fmt.Sprintf("%s://%s", scheme, host)
 		keycloakClient := keycloakV1Api.KeycloakClient{}
 		keycloakClient.Name = instance.Name
 		keycloakClient.Namespace = instance.Namespace

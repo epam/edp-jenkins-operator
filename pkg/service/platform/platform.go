@@ -4,7 +4,6 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
-	routeV1Api "github.com/openshift/api/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	authV1Api "k8s.io/api/rbac/v1"
@@ -25,7 +24,7 @@ type PlatformService interface {
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	CreateClusterRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
-	GetRoute(namespace string, name string) (*routeV1Api.Route, string, error)
+	GetExternalEndpoint(namespace string, name string) (string, string, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
