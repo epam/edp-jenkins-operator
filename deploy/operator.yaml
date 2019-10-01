@@ -21,6 +21,8 @@ spec:
           - jenkins-operator
           imagePullPolicy: Always
           env:
+            - name: PLATFORM_TYPE
+              value: "openshift"
             - name: WATCH_NAMESPACE
               value: REPLACE_VALUE
             - name: POD_NAME
