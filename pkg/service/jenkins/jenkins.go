@@ -139,11 +139,6 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 	gerritCrObject := &list.Items[0]
 	gerritSpecName := fmt.Sprintf("%v/%v", gerritSpec.EdpAnnotationsPrefix, gerritSpec.EdpCiUSerSshKeySuffix)
 	if val, ok := gerritCrObject.ObjectMeta.Annotations[gerritSpecName]; ok {
-		dcJenkins, err := j.platformService.GetDeploymentConfig(instance)
-		if err != nil {
-			return err
-		}
-
 		volMount := []coreV1Api.VolumeMount{
 			{
 				Name:      val,
@@ -172,7 +167,7 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 			},
 		}
 
-		err = j.platformService.AddVolumeToInitContainer(instance, dcJenkins, initContainerName, vol, volMount)
+		err = j.platformService.AddVolumeToInitContainer(instance, initContainerName, vol, volMount)
 		if err != nil {
 			return errors.Wrapf(err, fmt.Sprintf("Unable to patch Jenkins DC in namespace %v", instance.Namespace))
 		}

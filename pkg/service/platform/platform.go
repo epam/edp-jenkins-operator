@@ -32,8 +32,7 @@ type PlatformService interface {
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error
 	CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, name string, binding string) error
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
-	AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig, containerName string, vol []coreV1Api.Volume,
-		volMount []coreV1Api.VolumeMount) error
+	AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
 	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
 	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)

@@ -338,10 +338,15 @@ func (service OpenshiftService) GetDeploymentConfig(instance v1alpha1.Jenkins) (
 	return deploymentConfig, nil
 }
 
-func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, dc *appsV1Api.DeploymentConfig,
+func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins,
 	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if len(vol) == 0 || len(volMount) == 0 {
+		return nil
+	}
+
+	dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if err != nil {
 		return nil
 	}
 
