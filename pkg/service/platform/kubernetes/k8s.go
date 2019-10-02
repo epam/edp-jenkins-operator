@@ -58,7 +58,7 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 
 	authClient, err := authV1Client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init auth V1 client for Openshift")
+		return errors.Wrap(err, "Failed to init auth V1 client for K8S")
 	}
 
 	service.jenkinsScriptClient = *jenkinsScriptClient
@@ -69,7 +69,7 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 
 	extensionsClient, err := extensionsV1Client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init ingress V1 client for K8S")
+		return errors.Wrap(err, "Failed to init extensions V1 client for K8S")
 	}
 	service.extensionsV1Client = *extensionsClient
 
@@ -123,10 +123,6 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 	panic("Implement me")
 }
 
-func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
-	panic("Implement me")
-}
-
 // CreateDeployment performs creating Deployment in K8S
 func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	reqLog := log.WithValues("jenkins ", instance)
@@ -153,7 +149,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 				Type: "Recreate",
 			},
 			Selector: &metav1.LabelSelector{
-				MatchLabels:      labels,
+				MatchLabels: labels,
 			},
 			Template: coreV1Api.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -288,6 +284,8 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 		},
 	}
 
+	log.Info(fmt.Sprintf("Deployment objecy - %v", jenkinsObject))
+
 	if err := controllerutil.SetControllerReference(&instance, jenkinsObject, service.Scheme); err != nil {
 		return err
 	}
@@ -296,7 +294,12 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	if err != nil && k8sErrors.IsNotFound(err) {
 		reqLog.V(1).Info("Creating a new Deployment for Jenkins", jenkinsObject)
 
-		_, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jenkinsDeployment)
+		jenkinsDeployment, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jenkinsObject)
+		if err != nil {
+			return err
+		}
+
+		reqLog.Info("Deployment %s/%s has been created", jenkinsDeployment.Namespace, jenkinsDeployment.Name)
 	}
 
 	return err
@@ -571,6 +574,17 @@ func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRo
 	return nil
 }
 
+// CreateSCCPolicyRule
+func (service K8SService) CreateSCCPolicyRule() []authV1Api.PolicyRule {
+	return []authV1Api.PolicyRule{
+		{
+			APIGroups: []string{"*"},
+			Resources: []string{"podsecuritypolicies"},
+			Verbs:     []string{"get", "list", "update"},
+		},
+	}
+}
+
 // CreateUserClusterRoleBinding binds user to clusterRole
 func (service K8SService) CreateUserClusterRoleBinding(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) error {
 	bindingObject, err := helper.GetNewClusterRoleBindingObject(instance, clusterRoleBindingName, clusterRoleName)
@@ -753,4 +767,65 @@ func (service K8SService) CreateJenkinsScript(namespace string, configMap string
 	// Nothing to do
 	return js, nil
 
+}
+
+// CreateExternalEndpoint creates k8s ingress
+func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
+	labels := helper.GenerateLabels(instance.Name)
+
+	ingressObject := &extensionsApi.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+			Labels:    labels,
+		},
+		Spec: extensionsApi.IngressSpec{
+			Rules: []extensionsApi.IngressRule{
+				{
+					Host: fmt.Sprintf("%v-%v.%v", instance.Name, instance.Namespace, instance.Spec.EdpSpec.DnsWildcard),
+					IngressRuleValue: extensionsApi.IngressRuleValue{
+						HTTP: &extensionsApi.HTTPIngressRuleValue{
+							Paths: []extensionsApi.HTTPIngressPath{
+								{
+									Path: "/",
+									Backend: extensionsApi.IngressBackend{
+										ServiceName: instance.Name,
+										ServicePort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsDefaultUiPort},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, ingressObject, service.Scheme); err != nil {
+		return err
+	}
+
+	ingress, err := service.extensionsV1Client.Ingresses(ingressObject.Namespace).Get(ingressObject.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			ingress, err = service.extensionsV1Client.Ingresses(ingressObject.Namespace).Create(ingressObject)
+			if err != nil {
+				return err
+			}
+			log.Info(fmt.Sprintf("Ingress %s/%s has been created", ingress.Namespace, ingress.Name))
+		}
+		return err
+	}
+
+	if reflect.DeepEqual(ingressObject.Spec, ingress.Spec) {
+		return nil
+	}
+
+	ingress.Spec = ingressObject.Spec
+	_, err = service.extensionsV1Client.Ingresses(ingressObject.Namespace).Update(ingress)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to update Ingress %v !", ingressObject.Name)
+	}
+
+	return nil
 }

@@ -20,6 +20,11 @@ type JenkinsSpec struct {
 	Volumes         []JenkinsVolumes         `json:"volumes, omitempty"`
 	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries, omitempty"`
 	KeycloakSpec    KeycloakSpec             `json:"keycloakSpec"`
+	EdpSpec         EdpSpec                  `json:"edpSpec, omitempty"`
+}
+
+type EdpSpec struct {
+	DnsWildcard string `json:"dnsWildcard"`
 }
 
 type JenkinsVolumes struct {

@@ -455,13 +455,7 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrapf(err, "Failed to create Role %v", edpJenkinsRoleName)
 	}
 
-	rules = []authV1Api.PolicyRule{
-		{
-			APIGroups: []string{"*"},
-			Resources: []string{"securitycontextconstraints"},
-			Verbs:     []string{"get", "list", "update"},
-		},
-	}
+	rules = j.platformService.CreateSCCPolicyRule()
 
 	err = j.platformService.CreateClusterRole(instance, edpJenkinsClusterRoleName, rules)
 	if err != nil {

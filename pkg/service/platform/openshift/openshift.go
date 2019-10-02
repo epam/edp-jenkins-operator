@@ -14,6 +14,7 @@ import (
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
+	authV1Api "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +61,7 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	return nil
 }
 
-// GetExternalEndpoint returns Route object and connection protocol from Openshift
+// // GetExternalEndpoint returns hostname and protocol for Route
 func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
@@ -265,6 +266,7 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 	return nil
 }
 
+// CreateExternalEndpoint creates Openshift route
 func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
 
 	labels := helper.GenerateLabels(instance.Name)
@@ -308,11 +310,22 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 		route.Spec = routeObject.Spec
 		_, err = service.routeClient.Routes(routeObject.Namespace).Update(route)
 		if err != nil {
-			return errors.Wrapf(err, "Failed to update DeploymentConfig %v !", routeObject.Name)
+			return errors.Wrapf(err, "Failed to update Route %v !", routeObject.Name)
 		}
 	}
 
 	return nil
+}
+
+// CreateSCCPolicyRule
+func (service OpenshiftService) CreateSCCPolicyRule() []authV1Api.PolicyRule {
+	return []authV1Api.PolicyRule{
+		{
+			APIGroups: []string{"*"},
+			Resources: []string{"securitycontextconstraints"},
+			Verbs:     []string{"get", "list", "update"},
+		},
+	}
 }
 
 func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
