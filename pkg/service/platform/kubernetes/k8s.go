@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
+	extensionsApi "k8s.io/api/extensions/v1beta1"
 	authV1Api "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -20,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
+	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"os"
@@ -39,6 +41,7 @@ type K8SService struct {
 	jenkinsScriptClient   jenkinsScriptV1Client.EdpV1Client
 	k8sUnstructuredClient client.Client
 	authClient            authV1Client.RbacV1Client
+	extensionsV1Client    extensionsV1Client.ExtensionsV1beta1Client
 }
 
 // Init initializes K8SService
@@ -63,6 +66,12 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	service.k8sUnstructuredClient = *k8sClient
 	service.Scheme = Scheme
 	service.authClient = *authClient
+
+	extensionsClient, err := extensionsV1Client.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to init ingress V1 client for K8S")
+	}
+	service.extensionsV1Client = *extensionsClient
 
 	return nil
 }
@@ -98,9 +107,16 @@ func (service K8SService) CreateServiceAccount(instance v1alpha1.Jenkins) error 
 	return nil
 }
 
-// GetExternalEndpoint returns Route object and connection protocol from Openshift
+// GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
 func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
-	panic("Implement me")
+	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(name, metav1.GetOptions{})
+	if err != nil && k8sErrors.IsNotFound(err) {
+		return "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
+	} else if err != nil {
+		return "", "", err
+	}
+
+	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme, nil
 }
 
 func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
@@ -113,11 +129,190 @@ func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) erro
 
 // CreateDeployment performs creating Deployment in K8S
 func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
-	panic("Implement me")
+	reqLog := log.WithValues("jenkins ", instance)
+	reqLog.Info("Start creating jenkins deployment...")
+
+	labels := platformHelper.GenerateLabels(instance.Name)
+
+	host, scheme, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
+	if err != nil {
+		return err
+	}
+
+	jenkinsUiUrl := fmt.Sprintf("%v://%v", scheme, host)
+
+	jenkinsObject := &extensionsApi.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+			Labels:    labels,
+		},
+		Spec: extensionsApi.DeploymentSpec{
+			Replicas: &jenkinsDefaultSpec.Replicas,
+			Strategy: extensionsApi.DeploymentStrategy{
+				Type: "Recreate",
+			},
+			Selector: &metav1.LabelSelector{
+				MatchLabels:      labels,
+			},
+			Template: coreV1Api.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: coreV1Api.PodSpec{
+					SecurityContext:               &coreV1Api.PodSecurityContext{},
+					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
+					DeprecatedServiceAccount:      instance.Name,
+					DNSPolicy:                     coreV1Api.DNSClusterFirst,
+					TerminationGracePeriodSeconds: &jenkinsDefaultSpec.TerminationGracePeriod,
+					SchedulerName:                 coreV1Api.DefaultSchedulerName,
+					InitContainers: []coreV1Api.Container{
+						{
+							Image:                    "busybox",
+							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
+							Name:                     "grant-permissions",
+							Command:                  jenkinsDefaultSpec.Command,
+							TerminationMessagePath:   "/dev/termination-log",
+							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
+							VolumeMounts: []coreV1Api.VolumeMount{
+								{
+									MountPath:        "/var/lib/jenkins",
+									Name:             fmt.Sprintf("%v-jenkins-data", instance.Name),
+									ReadOnly:         false,
+									SubPath:          "",
+									MountPropagation: nil,
+								},
+							},
+						},
+					},
+					Containers: []coreV1Api.Container{
+						{
+							Name:            instance.Name,
+							Image:           instance.Spec.Image + ":" + instance.Spec.Version,
+							ImagePullPolicy: coreV1Api.PullAlways,
+							Env: []coreV1Api.EnvVar{
+								{
+									Name:  "OPENSHIFT_ENABLE_OAUTH",
+									Value: "false",
+								},
+								{
+									Name:  "OPENSHIFT_ENABLE_REDIRECT_PROMPT",
+									Value: "true",
+								},
+								{
+									Name:  "KUBERNETES_MASTER",
+									Value: "https://kubernetes.default:443",
+								},
+								{
+									Name:  "KUBERNETES_TRUST_CERTIFICATES",
+									Value: "true",
+								},
+								{
+									Name:  "JNLP_SERVICE_NAME",
+									Value: fmt.Sprintf("%v-jnlp", instance.Name),
+								},
+								{
+									Name: "JENKINS_PASSWORD",
+									ValueFrom: &coreV1Api.EnvVarSource{
+										SecretKeyRef: &coreV1Api.SecretKeySelector{
+											LocalObjectReference: coreV1Api.LocalObjectReference{
+												Name: fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsPasswordSecretName),
+											},
+											Key: "password",
+										},
+									},
+								},
+								{
+									Name:  "JENKINS_UI_URL",
+									Value: jenkinsUiUrl,
+								},
+								{
+									Name:  "JENKINS_OPTS",
+									Value: "--requestHeaderSize=32768",
+								},
+							},
+							SecurityContext: nil,
+							Ports: []coreV1Api.ContainerPort{
+								{
+									ContainerPort: jenkinsDefaultSpec.JenkinsDefaultUiPort,
+									Protocol:      coreV1Api.ProtocolTCP,
+								},
+							},
+
+							ReadinessProbe: &coreV1Api.Probe{
+								TimeoutSeconds:      10,
+								InitialDelaySeconds: 60,
+								SuccessThreshold:    1,
+								PeriodSeconds:       10,
+								FailureThreshold:    3,
+								Handler: coreV1Api.Handler{
+									HTTPGet: &coreV1Api.HTTPGetAction{
+										Path:   "/login",
+										Port:   intstr.FromInt(jenkinsDefaultSpec.JenkinsDefaultUiPort),
+										Scheme: coreV1Api.URISchemeHTTP,
+									},
+								},
+							},
+
+							VolumeMounts: []coreV1Api.VolumeMount{
+								{
+									MountPath:        "/var/lib/jenkins",
+									Name:             fmt.Sprintf("%v-jenkins-data", instance.Name),
+									ReadOnly:         false,
+									SubPath:          "",
+									MountPropagation: nil,
+								},
+							},
+							TerminationMessagePath:   "/dev/termination-log",
+							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
+							Resources: coreV1Api.ResourceRequirements{
+								Requests: map[coreV1Api.ResourceName]resource.Quantity{
+									coreV1Api.ResourceMemory: resource.MustParse(jenkinsDefaultSpec.JenkinsDefaultMemoryRequest),
+								},
+							},
+						},
+					},
+					ServiceAccountName: instance.Name,
+					Volumes: []coreV1Api.Volume{
+						{
+							Name: fmt.Sprintf("%v-jenkins-data", instance.Name),
+							VolumeSource: coreV1Api.VolumeSource{
+								PersistentVolumeClaim: &coreV1Api.PersistentVolumeClaimVolumeSource{
+									ClaimName: fmt.Sprintf("%v-data", instance.Name),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if err := controllerutil.SetControllerReference(&instance, jenkinsObject, service.Scheme); err != nil {
+		return err
+	}
+
+	jenkinsDeployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if err != nil && k8sErrors.IsNotFound(err) {
+		reqLog.V(1).Info("Creating a new Deployment for Jenkins", jenkinsObject)
+
+		_, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jenkinsDeployment)
+	}
+
+	return err
 }
 
 func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	panic("Implement me")
+	deployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	if deployment.Status.UpdatedReplicas == 1 && deployment.Status.AvailableReplicas == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // CreateVolume performs creating PersistentVolumeClaim in K8S

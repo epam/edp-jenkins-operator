@@ -69,18 +69,15 @@ func (service OpenshiftService) GetExternalEndpoint(namespace string, name strin
 		return "", "", err
 	}
 
-	var routeScheme = "http"
+	var routeScheme = jenkinsDefaultSpec.RouteHTTPScheme
 	if route.Spec.TLS.Termination != "" {
-		routeScheme = "https"
+		routeScheme = jenkinsDefaultSpec.RouteHTTPSScheme
 	}
 	return route.Spec.Host, routeScheme, nil
 }
 
 // CreateDeployment - creates deployment configs for Jenkins instance
 func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) error {
-
-	activeDeadlineSecond := int64(21600)
-	terminationGracePeriod := int64(30)
 	routeHost, routeScheme, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
@@ -90,10 +87,7 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 
 	// Can't assign pointer to constant, that is why — create an intermediate var.
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout
-	command := []string{"sh", "-c", fmt.Sprintf(
-		"JENKINS_HOME=\"/var/lib/jenkins\"; mkdir -p $JENKINS_HOME/.ssh; if [ -d /tmp/ssh ];" +
-			"then chmod 777 -R $JENKINS_HOME/.ssh; cat /tmp/ssh/id_rsa >> $JENKINS_HOME/.ssh/id_rsa;" +
-			"chmod 400 $JENKINS_HOME/.ssh/id_rsa; fi")}
+	activeDeadlineSecond := int64(21600)
 
 	labels := helper.GenerateLabels(instance.Name)
 	jenkinsDcObject := &appsV1Api.DeploymentConfig{
@@ -103,7 +97,7 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 			Labels:    labels,
 		},
 		Spec: appsV1Api.DeploymentConfigSpec{
-			Replicas: 1,
+			Replicas: jenkinsDefaultSpec.Replicas,
 			Triggers: []appsV1Api.DeploymentTriggerPolicy{
 				{
 					Type: appsV1Api.DeploymentTriggerOnConfigChange,
@@ -126,14 +120,14 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,
 					DNSPolicy:                     coreV1Api.DNSClusterFirst,
-					TerminationGracePeriodSeconds: &terminationGracePeriod,
+					TerminationGracePeriodSeconds: &jenkinsDefaultSpec.TerminationGracePeriod,
 					SchedulerName:                 coreV1Api.DefaultSchedulerName,
 					InitContainers: []coreV1Api.Container{
 						{
 							Image:                    "busybox",
 							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
 							Name:                     "grant-permissions",
-							Command:                  command,
+							Command:                  jenkinsDefaultSpec.Command,
 							TerminationMessagePath:   "/dev/termination-log",
 							TerminationMessagePolicy: coreV1Api.TerminationMessageReadFile,
 							VolumeMounts: []coreV1Api.VolumeMount{
