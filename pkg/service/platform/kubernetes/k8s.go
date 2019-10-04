@@ -2,7 +2,9 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
@@ -119,14 +121,45 @@ func (service K8SService) GetExternalEndpoint(namespace string, name string) (st
 	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme, nil
 }
 
-func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
-	panic("Implement me")
+// AddVolumeToInitContainer adds volume to Jenkins init container
+func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string,
+	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
+
+	if len(vol) == 0 || len(volMount) == 0 {
+		return nil
+	}
+
+	deployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil
+	}
+
+	initContainer, err := selectContainer(deployment.Spec.Template.Spec.InitContainers, containerName)
+	if err != nil {
+		return err
+	}
+
+	initContainer.VolumeMounts = updateVolumeMounts(initContainer.VolumeMounts, volMount)
+	deployment.Spec.Template.Spec.InitContainers = append(deployment.Spec.Template.Spec.InitContainers, initContainer)
+	volumes := deployment.Spec.Template.Spec.Volumes
+	volumes = updateVolumes(volumes, vol)
+	deployment.Spec.Template.Spec.Volumes = volumes
+
+	jsonDc, err := json.Marshal(deployment)
+	if err != nil {
+		return err
+	}
+
+	_, err = service.extensionsV1Client.Deployments(deployment.Namespace).Patch(deployment.Name, types.StrategicMergePatchType, jsonDc)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // CreateDeployment performs creating Deployment in K8S
 func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	reqLog := log.WithValues("jenkins ", instance)
-	reqLog.Info("Start creating jenkins deployment...")
 
 	labels := platformHelper.GenerateLabels(instance.Name)
 
@@ -135,6 +168,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 		return err
 	}
 
+	UserId := int64(0)
 	jenkinsUiUrl := fmt.Sprintf("%v://%v", scheme, host)
 
 	jenkinsObject := &extensionsApi.Deployment{
@@ -227,7 +261,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 									Value: "--requestHeaderSize=32768",
 								},
 							},
-							SecurityContext: nil,
+							SecurityContext: &coreV1Api.SecurityContext{
+								RunAsUser: &UserId,
+							},
 							Ports: []coreV1Api.ContainerPort{
 								{
 									ContainerPort: jenkinsDefaultSpec.JenkinsDefaultUiPort,
@@ -283,8 +319,6 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 			},
 		},
 	}
-
-	log.Info(fmt.Sprintf("Deployment objecy - %v", jenkinsObject))
 
 	if err := controllerutil.SetControllerReference(&instance, jenkinsObject, service.Scheme); err != nil {
 		return err
@@ -828,4 +862,78 @@ func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) erro
 	}
 
 	return nil
+}
+
+func selectContainer(containers []coreV1Api.Container, name string) (coreV1Api.Container, error) {
+	for _, c := range containers {
+		if c.Name == name {
+			return c, nil
+		}
+	}
+
+	return coreV1Api.Container{}, errors.New("No matching container in spec found!")
+}
+
+func updateVolumes(existing []coreV1Api.Volume, vol []coreV1Api.Volume) []coreV1Api.Volume {
+	var out []coreV1Api.Volume
+	var covered []string
+
+	for _, v := range existing {
+		newer, ok := findVolume(vol, v.Name)
+		if ok {
+			covered = append(covered, v.Name)
+			out = append(out, newer)
+			continue
+		}
+		out = append(out, v)
+	}
+	for _, v := range vol {
+		if helpers.IsStringInSlice(v.Name, covered) {
+			continue
+		}
+		covered = append(covered, v.Name)
+		out = append(out, v)
+	}
+	return out
+}
+
+func updateVolumeMounts(existing []coreV1Api.VolumeMount, volMount []coreV1Api.VolumeMount) []coreV1Api.VolumeMount {
+	var out []coreV1Api.VolumeMount
+	var covered []string
+
+	for _, v := range existing {
+		newer, ok := findVolumeMount(volMount, v.Name)
+		if ok {
+			covered = append(covered, v.Name)
+			out = append(out, newer)
+			continue
+		}
+		out = append(out, v)
+	}
+	for _, v := range volMount {
+		if helpers.IsStringInSlice(v.Name, covered) {
+			continue
+		}
+		covered = append(covered, v.Name)
+		out = append(out, v)
+	}
+	return out
+}
+
+func findVolumeMount(volMount []coreV1Api.VolumeMount, name string) (coreV1Api.VolumeMount, bool) {
+	for _, v := range volMount {
+		if v.Name == name {
+			return v, true
+		}
+	}
+	return coreV1Api.VolumeMount{}, false
+}
+
+func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
+	for _, v := range vol {
+		if v.Name == name {
+			return v, true
+		}
+	}
+	return coreV1Api.Volume{}, false
 }
