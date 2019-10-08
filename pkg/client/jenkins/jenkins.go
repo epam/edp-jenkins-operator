@@ -6,9 +6,16 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
+	"io/ioutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+)
+
+const (
+	defaultTechScriptsDirectory = "tech-scripts"
+	defaultGetSlavesScript      = "get-slaves"
 )
 
 var log = logf.Log.WithName("jenkins_client")
@@ -92,6 +99,40 @@ func (jc JenkinsClient) RunScript(context string) error {
 	}
 
 	return nil
+}
+
+// GetSlaves returns a list of slaves configured in Jenkins kubernetes plugin
+func (jc JenkinsClient) GetSlaves() ([]string, error) {
+	c, err := jc.GetCrumb()
+	if err != nil {
+		return nil, err
+	}
+	h := make(map[string]string)
+	if c != "" {
+		h["Jenkins-Crumb"] = c
+	}
+
+	d, err := platformHelper.CreatePathToTemplateDirectory(defaultTechScriptsDirectory)
+	if err != nil {
+		return nil, err
+	}
+	p := fmt.Sprintf("%v/%v", d, defaultGetSlavesScript)
+	cn, err := ioutil.ReadFile(p)
+
+	pr := map[string]string{"script": string(cn)}
+	resp, err := jc.resty.R().
+		SetQueryParams(pr).
+		SetHeaders(h).
+		Post("/scriptText")
+	if err != nil {
+		return nil, errors.Wrap(err, "Obtaining Jenkins slaves list failed!")
+	}
+
+	if resp.IsError() {
+		return nil, errors.New(fmt.Sprintf("Tech script %v failed! Status: - %s", defaultGetSlavesScript, resp.Status()))
+	}
+
+	return helper.GetSlavesList(resp.String()), nil
 }
 
 // CreateUser creates new non-interactive user in Jenkins

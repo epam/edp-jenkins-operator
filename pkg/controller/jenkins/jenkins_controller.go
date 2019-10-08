@@ -192,6 +192,19 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
+	instance, upd, err := r.service.ExposeConfiguration(*instance)
+	if err != nil {
+		reqLogger.Error(err, "Expose configuration has failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Expose configuration failed")
+	}
+
+	if upd {
+		err = r.updateInstanceStatus(instance)
+		if err != nil {
+			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+		}
+	}
+
 	instance, isFinished, err = r.service.Integration(*instance)
 	if err != nil {
 		reqLogger.Error(err, "Integration has failed")
@@ -246,7 +259,21 @@ func (r ReconcileJenkins) updateAvailableStatus(instance *v2v1alpha1.Jenkins, va
 				return errorsf.Wrapf(err, "Couldn't update availability status to %v", value)
 			}
 		}
-		reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
 	}
+	reqLogger.Info(fmt.Sprintf("Availability status has been updated to '%v'", value))
+	return nil
+}
+
+func (r ReconcileJenkins) updateInstanceStatus(instance *v2v1alpha1.Jenkins) error {
+	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
+	instance.Status.LastTimeUpdated = time.Now()
+	err := r.client.Status().Update(context.TODO(), instance)
+	if err != nil {
+		err := r.client.Update(context.TODO(), instance)
+		if err != nil {
+			return errorsf.Wrapf(err, "Couldn't update instance status")
+		}
+	}
+	reqLogger.Info(fmt.Sprintf("Instance status has been updated"))
 	return nil
 }

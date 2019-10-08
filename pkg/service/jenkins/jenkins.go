@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -50,7 +51,7 @@ var log = logf.Log.WithName("jenkins_service")
 type JenkinsService interface {
 	Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
 	Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
-	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
+	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
 }
@@ -296,8 +297,31 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 }
 
 // ExposeConfiguration performs exposing Jenkins configuration for other EDP components
-func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
-	return &instance, nil
+func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
+	if err != nil {
+		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
+	}
+	if jc == nil {
+		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
+	}
+
+	sl, err := jc.GetSlaves()
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Unable to get Jenkins slaves list")
+	}
+
+	ss := []v1alpha1.Slave{}
+	for _, s := range sl {
+		ss = append(ss, v1alpha1.Slave{s})
+	}
+
+	if !reflect.DeepEqual(instance.Status.Slaves, ss) {
+		instance.Status.Slaves = ss
+		return &instance, true, nil
+	}
+
+	return &instance, false, nil
 }
 
 // Configure performs self-configuration of Jenkins

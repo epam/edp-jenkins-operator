@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -131,4 +132,11 @@ func GetPlatformTypeEnv() string {
 		panic("Environment variable PLATFORM_TYPE is not defined")
 	}
 	return platformType
+}
+
+func GetSlavesList(slaves string) []string {
+	re := regexp.MustCompile(`\[(.*)\]`)
+	s := re.FindStringSubmatch(slaves)[1]
+
+	return strings.Split(s, ", ")
 }
