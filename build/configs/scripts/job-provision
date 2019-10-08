@@ -33,7 +33,6 @@ limitations under the License. */
 
 import groovy.json.*
 import jenkins.model.Jenkins
-import groovy.json.*
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
@@ -58,6 +57,8 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
         '{"name": "tests"},{"name": "sonar"},{"name": "build-image"},' +
         '{"name": "push"},{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
+def defaultCodeReview = '[{"name": "gerrit-checkout"}]'
+def defaultBuild = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
 def buildTool = "${BUILD_TOOL}"
@@ -80,11 +81,13 @@ if (BRANCH) {
     createListView(codebaseName, "${branch.toUpperCase()}")
 
     def type = "${TYPE}"
-    createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}"], "code-review.groovy",
+    def crKey = "Code-review-${type}".toString()
+    createCiPipeline("Code-review-${codebaseName}", codebaseName, stages.get(crKey, defaultCodeReview), "code-review.groovy",
             repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
+    def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
-        createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
+        createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildkey, defaultBuild), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
     }
 }
