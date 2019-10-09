@@ -87,7 +87,7 @@ if (BRANCH) {
 
     def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
-        createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildkey, defaultBuild), "build.groovy",
+        createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultBuild), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
     }
 }
