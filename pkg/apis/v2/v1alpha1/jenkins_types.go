@@ -50,6 +50,11 @@ type JenkinsStatus struct {
 	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
 	Status          string    `json:"status, omitempty"`
 	AdminSecretName string    `json:"adminSecretName, omitempty"`
+	Slaves          []Slave   `json:"slaves, omitempty"`
+}
+
+type Slave struct {
+	Name string `json:"name, omitempty"`
 }
 
 type KeycloakSpec struct {

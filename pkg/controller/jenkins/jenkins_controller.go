@@ -6,6 +6,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
@@ -77,7 +78,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldObject := e.ObjectOld.(*v2v1alpha1.Jenkins)
 			newObject := e.ObjectNew.(*v2v1alpha1.Jenkins)
-			if oldObject.Status != newObject.Status {
+			if reflect.DeepEqual(oldObject.Status, newObject.Status) {
 				return false
 			}
 			return true
