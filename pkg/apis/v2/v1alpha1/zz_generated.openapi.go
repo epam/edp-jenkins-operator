@@ -289,10 +289,22 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref common.ReferenceCallback) com
 							},
 						},
 					},
+					"jobProvisions": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision"),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Slave"},
+			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Slave"},
 	}
 }
