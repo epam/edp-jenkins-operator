@@ -299,17 +299,19 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 
 // ExposeConfiguration performs exposing Jenkins configuration for other EDP components
 func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+	upd := false
+
 	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
 	if err != nil {
-		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
+		return &instance, upd, errors.Wrap(err, "Failed to init Jenkins REST client")
 	}
 	if jc == nil {
-		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
+		return &instance, upd, errors.Wrap(err, "Jenkins returns nil client")
 	}
 
 	sl, err := jc.GetSlaves()
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Unable to get Jenkins slaves list")
+		return &instance, upd, errors.Wrapf(err, "Unable to get Jenkins slaves list")
 	}
 
 	ss := []v1alpha1.Slave{}
@@ -319,10 +321,22 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 
 	if !reflect.DeepEqual(instance.Status.Slaves, ss) {
 		instance.Status.Slaves = ss
-		return &instance, true, nil
+		upd = true
 	}
 
-	return &instance, false, nil
+	pr, err := jc.GetJobProvisions()
+
+	ps := []v1alpha1.JobProvision{}
+	for _, p := range pr {
+		ps = append(ps, v1alpha1.JobProvision{p})
+	}
+
+	if !reflect.DeepEqual(instance.Status.JobProvisions, ps) {
+		instance.Status.JobProvisions = ps
+		upd = true
+	}
+
+	return &instance, upd, nil
 }
 
 // Configure performs self-configuration of Jenkins

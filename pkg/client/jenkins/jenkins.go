@@ -16,6 +16,7 @@ import (
 const (
 	defaultTechScriptsDirectory = "tech-scripts"
 	defaultGetSlavesScript      = "get-slaves"
+	defaultJobProvisionsFolder  = "job-provisions"
 )
 
 var log = logf.Log.WithName("jenkins_client")
@@ -212,4 +213,45 @@ func (jc JenkinsClient) GetAdminToken() (*string, error) {
 		return &token, nil
 	}
 	return nil, errors.New("No token find for admin")
+}
+
+// GetJobProvisioners returns a list of Job provisioners configured in Jenkins
+func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
+	var pl []string
+	var raw map[string]interface{}
+	c, err := jc.GetCrumb()
+
+	if err != nil {
+		return nil, err
+	}
+	h := make(map[string]string)
+	if c != "" {
+		h["Jenkins-Crumb"] = c
+	}
+
+	resp, err := jc.resty.R().
+		SetHeaders(h).
+		Post(fmt.Sprintf("/job/%v/api/json?pretty=true", defaultJobProvisionsFolder))
+	if err != nil {
+		return nil, errors.Wrap(err, "Obtaining Job Provisioners list failed!")
+	}
+
+	if resp.IsError() {
+		return nil, errors.New(fmt.Sprintf("Tech script %v failed! Status: - %s", defaultGetSlavesScript, resp.Status()))
+	}
+
+	err = json.Unmarshal([]byte(resp.String()), &raw)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Unable to obtain job provisions"))
+	}
+
+	if raw["_class"].(string) != "com.cloudbees.hudson.plugins.folder.Folder" {
+		return nil, errors.New(fmt.Sprintf("%v is not a Jenkins folder", defaultJobProvisionsFolder))
+	}
+
+	for _, p := range raw["jobs"].([]interface{}) {
+		pl = append(pl, p.(map[string]interface{})["name"].(string))
+	}
+
+	return pl, nil
 }
