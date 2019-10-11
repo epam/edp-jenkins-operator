@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"path/filepath"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -380,7 +381,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
 		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
 
-		path := fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name())
+		path := filepath.FromSlash(fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name()))
 		jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 		if err != nil {
 			return &instance, false, err
