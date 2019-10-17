@@ -89,7 +89,7 @@ if (BRANCH) {
     def type = "${TYPE}"
     def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
     def crKey = supBuildTool ? "Code-review-${type}" : "Code-review-default"
-    createCiPipeline("Code-review-${codebaseName}", codebaseName, stages.get(crKey), "code-review.groovy",
+    createCiPipeline("Code-review-${codebaseName}", codebaseName, stages[crKey], "code-review.groovy",
             repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
     def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
