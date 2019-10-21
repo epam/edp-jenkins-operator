@@ -1,38 +1,50 @@
-# EDP Jenkins operator
+# EDP Jenkins Operator
 
 ## Overview
-The Jenkins operator deploys and manages EDP Jenkins instance on Kubernetes/Openshift. Jenkins instance created by the Jenkins operator is equipped with necsessary plugins.
+The Jenkins operator creates, deploys and manages the EDP Jenkins instance on Kubernetes/OpenShift. The Jenkins instance is equipped with the necessary plugins. 
 
-## Jenkins Slaves
+There is an ability to customize the Jenkins instance and to check the changes during the application creation.
 
-* Firstly you have to add new template for Jenkins Slave, to reach it add new key/value to 'jenkins-slaves' config map
-under 'edp' namespace.
-![config-map](readme-resource/cm.png  "config-map")
+## Add Jenkins Slave
 
-* Once you made it, go to Jenkins to ensure everything is okay: Manage Jenkins -> Configure System 
-    and find 'Kubernetes Pod Template' with your data.
-![jenkins-slave](readme-resource/slave.png "jenkins-slave")
-    
-* After completing the above steps, you can use newly created Jenkins slaves during Codebase creation.
-![advanced-settings](readme-resource/advanced-settings.png "advanced-settings")
+Follow the steps below to add a new Jenkins slave:
+
+1. Add a new template for Jenkins Slave by navigating to the jenkins-slaves config map under the EDP namespace. Fill in the Key field and add a value:
+![config-map](readme-resource/edit_js_configmap.png  "config-map")
+
+2. Open Jenkins to ensure that everything is added correctly. Click the Manage Jenkins option, navigate to the Configure System menu, and scroll down to the Kubernetes Pod Template with the necessary data: 
+![jenkins-slave](readme-resource/jenkins_k8s_pod_template.png "jenkins-slave")
+
+3. As a result, the newly added Jenkins slave will be available in the Advanced Settings block of the Admin Console tool during the codebase creation:
+![advanced-settings](readme-resource/newly_added_jenkins_slave.png "advanced-settings")
+  
+---
+
+## Add Other Code Language
+
+There is an ability to extend the default code languages when creating a codebase with the clone strategy.  
+![other-language](readme-resource/ac_other_language.png "other-language")
+
+_**NOTE**: The create strategy does not allow to customize the default code language set._
+ 
+In order to customize the Build Tool list, perform the following:
+1. Navigate to OpenShift, and edit the edp-admin-console deployment config map by adding the necessary code language into the BUILD TOOLS field. 
+![build-tools](readme-resource/other_build_tool.png "build-tools")
+
+_**NOTE**: Use the comma sign to separate the code languages in order to make them available, e.g. maven, gradle._ 
 
 ---
 
-## 'Other' language
+## Add Job Provision
 
-* 'Other' language is used for creating Codebases using custom languages different from predefined default languages.
-_Note: 'Other' language is impossible for the 'Create' strategy._
-![other-language](readme-resource/other-language.png "other-language")
+Jenkins uses the job provisions pipelines to create the application folder, and the code-review, build and create-release pipelines for the application.
+These pipelines should be located in a special job-provisions folder in Jenkins. By default, the Jenkins operator creates the default pipeline that is used for Maven, Gradle, and DotNet applications.
 
-* 'Other' language has configurable list of 'Build Tools'. To configure it go to 'Deployment Config' for Admin Console
- in cluster and add 'BUILD_TOOLS' env variable with your custom 'Build tools'.
-_Note: 'Build Tools' should be separated by comma, e.g.: maven,gradle_
-![build-tools](readme-resource/build-tools.png "build-tools")
+Follow the steps below to add a new job provision:
+1. Open Jenkins and add an item into the job-provisions, scroll down to the _Copy from_ field and enter "default", type the name of a new job-provision and click ENTER:
+![build-tools](readme-resource/jenkins_job_provision.png "build-tools")
+2. The new job provision will be added with the following default template:  
 
-## Job provisions
-Jenkins uses job provisions pipelines to create application folder, code-review, build and create-release pipelines for application. These pipelines should be placed in Jenkins in special "job-provisions" folder. By default Jenkins operator creates default pipeline which is used for Maven, Gradle, NPM and .NET applications.
-
-Default template is the following:
 ```java
 import groovy.json.*
 import jenkins.model.Jenkins
@@ -208,22 +220,20 @@ def createListView(codebaseName, branchName) {
     }
 }
 ``` 
+The job-provisions pipeline consists of the following parameters:
 
-As you see job provision pipeline should have the following parameters:
-* NAME - application name
-* BUILD_TOOL - tool that should be used to build application
+* NAME - the application name;
+* TYPE - the codebase type (the application / library / autotest); 
+* BUILD_TOOL - a tool that is used to build the application;
+* BRANCH - a branch name;
 * GIT_SERVER_CR_NAME - the name of the application Git server custom resource 
-* GIT_SERVER_CR_VERSION - version of the application Git server custom resource
-* GIT_CREDENTIALS_ID - secret name where credentials to Git server are stored (default 'gerrit-ciuser-sshkey')
-* REPOSITORY_PATH - full repository path
-* TYPE - application type (application | library | autotests) 
+* GIT_SERVER_CR_VERSION - the version of the application Git server custom resource
+* GIT_CREDENTIALS_ID - the secret name where Git server credentials are stored (default 'gerrit-ciuser-sshkey');
+* REPOSITORY_PATH - the full repository path.
 
-And should implement logic for creation of the Code-review, Build and Create-release pipelines.
-Furthermore you should define 'stages' for all pipeline types
+_**NOTE**: The default template should be changed if there is another creation logic for the code-review, build and create-release pipelines.
+Furthermore, all pipeline types should have the necessary stages as well._
 
-To use custom job provision you should first create it in Jenkins:
+3.Check the availability of the job-provision in the Advanced Settings block during the codebase creation: 
 
- ![provisioner-jenkins](readme-resource/provisioner-jenkins.png "provisioner-jenkins")
- 
- And second, use it in AdminConsole during application creation:
- ![provisioner-ac](readme-resource/provisioner-ac.png "provisioner-ac")
+ ![provisioner-ac](readme-resource/as_job_provision.png "provisioner-ac")
