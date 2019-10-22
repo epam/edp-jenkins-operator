@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
@@ -186,6 +187,10 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 								{
 									Name:  "JENKINS_OPTS",
 									Value: "--requestHeaderSize=32768",
+								},
+								{
+									Name:  "PLATFORM_TYPE",
+									Value: helperController.GetPlatformTypeEnv(),
 								},
 							},
 							SecurityContext: nil,
