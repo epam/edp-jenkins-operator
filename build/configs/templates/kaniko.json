@@ -1,0 +1,73 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "kaniko"
+  },
+  "spec": {
+    "initContainers": [
+      {
+        "name": "init-kaniko",
+        "image": "busybox",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "while ! [[ -f /tmp/workspace/Dockerfile ]]; do echo \"Waiting for Dockerfile in workspace...\"; sleep 10;done"
+        ],
+        "volumeMounts": [
+          {
+            "name": "shared-volume",
+            "mountPath": "/tmp/workspace"
+          }
+        ]
+      },
+      {
+        "name": "init-repository",
+        "image": "mesosphere/aws-cli:1.14.5",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "aws ecr describe-repositories --repository-names ${REPO_NAME} || aws ecr create-repository --repository-name ${REPO_NAME}"
+        ],
+        "env": [
+          {
+            "name": "REPO_NAME",
+            "value": "REPLACE_REPO_VALUE"
+          }
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "name": "kaniko",
+        "image": "gcr.io/kaniko-project/executor:v0.13.0",
+        "args": [
+          "--destination=REPLACE_DESTINATION_IMAGE"
+        ],
+        "volumeMounts": [
+          {
+            "name": "shared-volume",
+            "mountPath": "/workspace"
+          },
+          {
+            "name": "docker-registry-config",
+            "mountPath": "/kaniko/.docker/"
+          }
+        ]
+      }
+    ],
+    "restartPolicy": "Never",
+    "volumes": [
+      {
+        "name": "shared-volume",
+        "emptyDir": {}
+      },
+      {
+        "name": "docker-registry-config",
+        "configMap": {
+          "name": "docker-config"
+        }
+      }
+    ]
+  }
+}

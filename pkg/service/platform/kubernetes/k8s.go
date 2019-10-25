@@ -326,7 +326,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 
 	jenkinsDeployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
-		reqLog.V(1).Info("Creating a new Deployment for Jenkins", jenkinsObject)
+		reqLog.V(1).Info(fmt.Sprintf("Creating a new Deployment %v for Jenkins", jenkinsObject.Name))
 
 		jenkinsDeployment, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jenkinsObject)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	gerritSpec "github.com/epmd-edp/gerrit-operator/v2/pkg/service/gerrit/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
+	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
@@ -36,10 +37,13 @@ const (
 	adminTokenSecretPostfix       = "admin-token"
 	defaultScriptsDirectory       = "scripts"
 	defaultSlavesDirectory        = "slaves"
+	defaultJobProvisionsDirectory = "job-provisions"
 	defaultTemplatesDirectory     = "templates"
 	slavesTemplateName            = "jenkins-slaves"
 	sharedLibrariesTemplateName   = "config-shared-libraries.tmpl"
 	keycloakConfigTemplateName    = "config-keycloak.tmpl"
+	kanikoTemplateName            = "kaniko.json"
+	dockerRegistryTemplateName    = "config.json"
 	defaultScriptConfigMapKey     = "context"
 	sshKeyDefaultMountPath        = "/tmp/ssh"
 	edpJenkinsRoleName            = "edp-jenkins-role"
@@ -396,16 +400,23 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
 
 		path := filepath.FromSlash(fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name()))
-		jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
+		err = j.createScript(instance, configMapName, configMapKey, path)
 		if err != nil {
 			return &instance, false, err
 		}
+	}
 
-		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, path, jenkinsScript)
-		if err != nil {
-			errMsg := fmt.Sprintf("Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
-			return &instance, false, errors.Wrap(err, errMsg)
-		}
+	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultJobProvisionsDirectory)
+	if err != nil {
+		return &instance, false, err
+	}
+
+	configMapName := fmt.Sprintf("%v-%v", instance.Name, "job-provisioner")
+	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
+	err = j.createScript(instance, configMapName, configMapKey, path)
+	if err != nil {
+		return &instance, false, err
 	}
 
 	slavesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultSlavesDirectory)
@@ -429,12 +440,12 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			slavesTemplateName, instance.Namespace)
 	}
 
-	sharedLibrariesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
+	templatesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
 	if err != nil {
 		return &instance, false, err
 	}
 
-	sharedLibrariesFilePath := fmt.Sprintf("%s/%s", sharedLibrariesDirectoryPath, sharedLibrariesTemplateName)
+	sharedLibrariesFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, sharedLibrariesTemplateName)
 
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 	jenkinsScriptData.JenkinsSharedLibraries = instance.Spec.SharedLibraries
@@ -445,7 +456,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 
 	jenkinsScriptName := "config-shared-libraries"
-	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+	configMapName = fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
 
 	_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 	if err != nil {
@@ -456,6 +467,20 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
 	if err != nil {
 		return &instance, false, err
+	}
+
+	kanikoConfigMapKey := kanikoTemplateName
+	kanikoFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, kanikoTemplateName)
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "kaniko-template", &kanikoConfigMapKey, kanikoFilePath, &instance)
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+	}
+
+	dockerRegistryConfigMapKey := dockerRegistryTemplateName
+	dockerRegistryConfigFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, dockerRegistryTemplateName)
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "docker-config", &dockerRegistryConfigMapKey, dockerRegistryConfigFilePath, &instance)
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
 	}
 
 	return &instance, true, nil
@@ -545,4 +570,16 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 // IsDeploymentConfigReady check if DC for Jenkins is ready
 func (j JenkinsServiceImpl) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 	return j.platformService.IsDeploymentReady(instance)
+}
+
+func (j JenkinsServiceImpl) createScript(instance v1alpha1.Jenkins, configMapName string, configMapKey string, contextPath string) error {
+	jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
+	if err != nil {
+		return err
+	}
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, contextPath, jenkinsScript)
+	if err != nil {
+		return errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
+	}
+	return nil
 }
