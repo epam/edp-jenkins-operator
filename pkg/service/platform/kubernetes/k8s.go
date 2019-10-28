@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
@@ -259,6 +260,10 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 								{
 									Name:  "JENKINS_OPTS",
 									Value: "--requestHeaderSize=32768",
+								},
+								{
+									Name:  "PLATFORM_TYPE",
+									Value: helperController.GetPlatformTypeEnv(),
 								},
 							},
 							SecurityContext: &coreV1Api.SecurityContext{
