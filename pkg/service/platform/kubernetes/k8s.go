@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	edpCompApi "github.com/epmd-edp/edp-component-operator/pkg/apis/v1/v1alpha1"
+	edpCompClient "github.com/epmd-edp/edp-component-operator/pkg/client"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
@@ -45,6 +47,7 @@ type K8SService struct {
 	k8sUnstructuredClient client.Client
 	authClient            authV1Client.RbacV1Client
 	extensionsV1Client    extensionsV1Client.ExtensionsV1beta1Client
+	edpCompClient         edpCompClient.EDPComponentV1Client
 }
 
 // Init initializes K8SService
@@ -76,6 +79,11 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	}
 	service.extensionsV1Client = *extensionsClient
 
+	compCl, err := edpCompClient.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "failed to init edp component client")
+	}
+	service.edpCompClient = *compCl
 	return nil
 }
 
@@ -675,6 +683,40 @@ func (service K8SService) CreateUserRoleBinding(instance v1alpha1.Jenkins, roleB
 	}
 
 	return nil
+}
+
+func (service K8SService) CreateEDPComponentIfNotExist(jen v1alpha1.Jenkins, url string, icon string) error {
+	comp, err := service.edpCompClient.
+		EDPComponents(jen.Namespace).
+		Get(jen.Name, metav1.GetOptions{})
+	if err == nil {
+		log.Info("edp component already exists", "name", comp.Name)
+		return nil
+	}
+	if k8sErrors.IsNotFound(err) {
+		return service.createEDPComponent(jen, url, icon)
+	}
+	return errors.Wrapf(err, "failed to get edp component: %v", jen.Name)
+}
+
+func (service K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, icon string) error {
+	obj := &edpCompApi.EDPComponent{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: jen.Name,
+		},
+		Spec: edpCompApi.EDPComponentSpec{
+			Type: "jenkins",
+			Url:  url,
+			Icon: icon,
+		},
+	}
+	if err := controllerutil.SetControllerReference(&jen, obj, service.Scheme); err != nil {
+		return err
+	}
+	_, err := service.edpCompClient.
+		EDPComponents(jen.Namespace).
+		Create(obj)
+	return err
 }
 
 func (service K8SService) fillConfigMapData(path string, configMapKey *string) (map[string]string, error) {

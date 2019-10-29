@@ -1,7 +1,9 @@
 package jenkins
 
 import (
+	"bufio"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/dchest/uniuri"
 	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis/v2/v1alpha1"
@@ -25,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -48,6 +51,9 @@ const (
 	sshKeyDefaultMountPath        = "/tmp/ssh"
 	edpJenkinsRoleName            = "edp-jenkins-role"
 	edpJenkinsClusterRoleName     = "edp-jenkins-cluster-role"
+
+	imgFolder = "img"
+	jenIcon   = "jenkins.svg"
 )
 
 var log = logf.Log.WithName("jenkins_service")
@@ -340,7 +346,49 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 		upd = true
 	}
 
-	return &instance, upd, nil
+	err = j.createEDPComponent(instance)
+
+	return &instance, upd, err
+}
+
+func (j JenkinsServiceImpl) createEDPComponent(jen v1alpha1.Jenkins) error {
+	url, err := j.getUrl(jen)
+	if err != nil {
+		return err
+	}
+	icon, err := j.getIcon()
+	if err != nil {
+		return err
+	}
+	return j.platformService.CreateEDPComponentIfNotExist(jen, *url, *icon)
+}
+
+func (j JenkinsServiceImpl) getUrl(jen v1alpha1.Jenkins) (*string, error) {
+	host, scheme, err := j.platformService.GetExternalEndpoint(jen.Namespace, jen.Name)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%v://%v", scheme, host)
+	return &url, nil
+}
+
+func (j JenkinsServiceImpl) getIcon() (*string, error) {
+	p, err := platformHelper.CreatePathToTemplateDirectory(imgFolder)
+	if err != nil {
+		return nil, err
+	}
+	fp := fmt.Sprintf("%v/%v", p, jenIcon)
+	f, err := os.Open(fp)
+	if err != nil {
+		return nil, err
+	}
+	reader := bufio.NewReader(f)
+	content, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	encoded := base64.StdEncoding.EncodeToString(content)
+	return &encoded, nil
 }
 
 // Configure performs self-configuration of Jenkins

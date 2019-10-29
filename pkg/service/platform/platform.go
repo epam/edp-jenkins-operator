@@ -38,6 +38,7 @@ type PlatformService interface {
 	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
 	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)
 	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error
+	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
 }
 
 // NewPlatformService returns platform service interface implementation
