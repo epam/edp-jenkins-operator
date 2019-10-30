@@ -565,8 +565,8 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	rules := []authV1Api.PolicyRule{
 		{
 			APIGroups: []string{"*"},
-			Resources: []string{"codebases", "codebasebranches", "cdpipelines", "stages", "gitservers", "adminconsoles"},
-			Verbs:     []string{"get", "create", "update"},
+			Resources: []string{"codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines", "stages", "gitservers", "adminconsoles"},
+			Verbs:     []string{"get", "create", "update", "patch"},
 		},
 	}
 
