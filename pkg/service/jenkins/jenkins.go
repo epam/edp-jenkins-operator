@@ -46,6 +46,7 @@ const (
 	sharedLibrariesTemplateName   = "config-shared-libraries.tmpl"
 	keycloakConfigTemplateName    = "config-keycloak.tmpl"
 	kanikoTemplateName            = "kaniko.json"
+	cbisTemplateName              = "cbis.json"
 	dockerRegistryTemplateName    = "config.json"
 	defaultScriptConfigMapKey     = "context"
 	sshKeyDefaultMountPath        = "/tmp/ssh"
@@ -527,6 +528,13 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	dockerRegistryConfigMapKey := dockerRegistryTemplateName
 	dockerRegistryConfigFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, dockerRegistryTemplateName)
 	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "docker-config", &dockerRegistryConfigMapKey, dockerRegistryConfigFilePath, &instance)
+	if err != nil {
+		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+	}
+
+	cbisConfigMapKey := cbisTemplateName
+	cbisFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, cbisTemplateName)
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "cbis-template", &cbisConfigMapKey, cbisFilePath, &instance)
 	if err != nil {
 		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
 	}
