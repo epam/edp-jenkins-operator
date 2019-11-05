@@ -566,7 +566,7 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		{
 			APIGroups: []string{"*"},
 			Resources: []string{"codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines",
-				"stages", "gitservers", "adminconsoles", "jenkins", "edpcomponents"},
+				"stages", "gitservers", "adminconsoles", "jenkinses", "edpcomponents"},
 			Verbs: []string{"get", "create", "update", "patch"},
 		},
 	}
