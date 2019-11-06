@@ -1,0 +1,46 @@
+node("master") {
+    println "[JENKINS][DEBUG] Webhook parameters:"
+    sh "printenv|sort|grep \"^gitlab\""
+    if(!env.gitlabActionType)
+        error "[JENKINS][DEBUG] Job was triggered manually. Skipping..."
+    try{
+        stage('Trigger CI Job') {
+            println "[JENKINS][DEBUG] Action type: ${gitlabActionType}";
+            println "[JENKINS][DEBUG] Commit ID: ${gitlabMergeRequestLastCommit}"
+            switch(gitlabActionType) {
+                case "MERGE":
+                    currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-${gitlabActionType}-${gitlabMergeRequestState}"
+                    if(gitlabMergeRequestState == "opened") {
+                        updateGitlabCommitStatus state: "running"
+                        build job: "${gitlabSourceRepoName}/MASTER-Code-review-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabSourceBranch)]
+                        updateGitlabCommitStatus state: "success"
+                    }
+                    else if(gitlabMergeRequestState == "merged") {
+                        build job: "${gitlabSourceRepoName}/${gitlabTargetBranch.toUpperCase()}-Build-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabTargetBranch)]
+                    }
+                    else {
+                        println "[JENKINS][DEBUG] Unsupportable MR state: \"${gitlabMergeRequestState}\". Skipping...";
+                    }
+                    break;
+                case "PUSH":
+                    if(gitlabSourceBranch == "master" && gitlabTargetBranch == "master") {
+                        currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-MERGE-merged"
+                        build job: "${gitlabSourceRepoName}/MASTER-Build-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: "master")]
+                        break;
+                    }
+                    currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-${gitlabActionType}"
+                    updateGitlabCommitStatus state: "running"
+                    build job: "${gitlabSourceRepoName}/MASTER-Code-review-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabSourceBranch)]
+                    updateGitlabCommitStatus state: "success"
+                    break;
+                default:
+                    println "[JENKINS][DEBUG] Unsupportable event type: \"${gitlabActionType}\". Skipping...";
+                    break;
+            }
+        }
+    }
+    catch (Exception e) {
+        updateGitlabCommitStatus state: "failed"
+        throw e
+    }
+}
