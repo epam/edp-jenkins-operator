@@ -137,12 +137,12 @@ func (service K8SService) CreateHelmRoleBinding(instance v1alpha1.Jenkins) error
 	labels := helper.GenerateLabels(instance.Name)
 	rbo := &authV1Api.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "jenkins-helm",
+			Name:      fmt.Sprintf("jenkins-helm-%s", instance.Namespace),
 			Namespace: "kube-system",
 			Labels:    labels,
 		},
 		RoleRef: authV1Api.RoleRef{
-			Kind: "ClusterRole",
+			Kind: "Role",
 			Name: "jenkins-helm",
 		},
 		Subjects: []authV1Api.Subject{
@@ -259,22 +259,21 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 // CreateDeployment performs creating Deployment in K8S
 func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	reqLog := log.WithValues("jenkins ", instance)
-
-	labels := platformHelper.GenerateLabels(instance.Name)
-
-	host, scheme, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
+	h, s, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
 	}
 
-	UserId := int64(0)
-	jenkinsUiUrl := fmt.Sprintf("%v://%v", scheme, host)
+	t := true
+	l := platformHelper.GenerateLabels(instance.Name)
+	id := int64(1001)
+	url := fmt.Sprintf("%v://%v", s, h)
 
-	jenkinsObject := &extensionsApi.Deployment{
+	jo := &extensionsApi.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
-			Labels:    labels,
+			Labels:    l,
 		},
 		Spec: extensionsApi.DeploymentSpec{
 			Replicas: &jenkinsDefaultSpec.Replicas,
@@ -282,14 +281,19 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 				Type: "Recreate",
 			},
 			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
+				MatchLabels: l,
 			},
 			Template: coreV1Api.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
+					Labels: l,
 				},
 				Spec: coreV1Api.PodSpec{
-					SecurityContext:               &coreV1Api.PodSecurityContext{},
+					SecurityContext: &coreV1Api.PodSecurityContext{
+						RunAsUser:    &id,
+						RunAsGroup:   &id,
+						RunAsNonRoot: &t,
+						FSGroup:      &id,
+					},
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,
 					DNSPolicy:                     coreV1Api.DNSClusterFirst,
@@ -353,7 +357,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 								},
 								{
 									Name:  "JENKINS_UI_URL",
-									Value: jenkinsUiUrl,
+									Value: url,
 								},
 								{
 									Name:  "JENKINS_OPTS",
@@ -363,9 +367,6 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 									Name:  "PLATFORM_TYPE",
 									Value: helperController.GetPlatformTypeEnv(),
 								},
-							},
-							SecurityContext: &coreV1Api.SecurityContext{
-								RunAsUser: &UserId,
 							},
 							Ports: []coreV1Api.ContainerPort{
 								{
@@ -423,21 +424,22 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(&instance, jenkinsObject, service.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(&instance, jo, service.Scheme); err != nil {
 		return err
 	}
 
-	jenkinsDeployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
-	if err != nil && k8sErrors.IsNotFound(err) {
-		reqLog.V(1).Info(fmt.Sprintf("Creating a new Deployment %v for Jenkins", jenkinsObject.Name))
-
-		jenkinsDeployment, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jenkinsObject)
-		if err != nil {
-			return err
-		}
-
-		reqLog.Info("Deployment %s/%s has been created", jenkinsDeployment.Namespace, jenkinsDeployment.Name)
+	d, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	if !k8sErrors.IsNotFound(err) {
+		return err
 	}
+
+	d, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jo)
+	if err != nil {
+		return err
+	}
+
+	reqLog.Info("Deployment has been created",
+		"Namespace", d.Namespace, "Name", d.Name, "JenkinsName", d.Name)
 
 	return err
 }
