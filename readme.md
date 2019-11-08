@@ -246,9 +246,14 @@ Furthermore, all pipeline types should have the necessary stages as well._
     * In the top-right corner, click your avatar and select **Settings**;
     * On the **User Settings** menu, select **Access Tokens**;
     * Choose a name and an optional expiry date for the token;
-    * Choose the desired scopes;
+    * In the Scopes block, select the *api* scope for the token;
+    
+        ![scopes](readme-resource/scopes.png "scopes")
+    
     * Click the **Create personal access token** button.
- 
+
+    *Note: Make sure to save the access token as there won`t be the ability to access it once again.*
+
 2. Install **GitLab plugin** by navigating to *Manage Jenkins* and switching to plugin manager, select the **GitLab Plugin** check box:
 
     ![gitlab-plugin](readme-resource/gitlab-plugin.png "gitlab-plugin")
@@ -621,3 +626,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         return secret != null ? secret['apiToken'] : null
     }
     ```
+7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.     
+
+   ![job-provision](readme-resource/AC_job-provisioner_field.png "job-provision")
+   
