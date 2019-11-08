@@ -239,49 +239,49 @@ Furthermore, all pipeline types should have the necessary stages as well._
  ![provisioner-ac](readme-resource/as_job_provision.png "provisioner-ac")
  
  
- ## Code review for GitLab
+ ## Code Review for GitLab
  
 1. Create access token in **Gitlab**:
-    * Log in to **GitLab**.
-    * In the upper-right corner, click your avatar and select **Settings**.
-    * On the **User Settings** menu, select **Access Tokens**.
-    * Choose a name and optional expiry date for the token.
-    * Choose the desired scopes.
+    * Log in to **GitLab**;
+    * In the top-right corner, click your avatar and select **Settings**;
+    * On the **User Settings** menu, select **Access Tokens**;
+    * Choose a name and an optional expiry date for the token;
+    * Choose the desired scopes;
     * Click the **Create personal access token** button.
  
-2. Install **GitLab plugin** by navigating to Manage *Jenkins -> Go to plugin manager and find **GitLab Plugin***
+2. Install **GitLab plugin** by navigating to *Manage Jenkins* and switching to plugin manager, select the **GitLab Plugin** check box:
 
     ![gitlab-plugin](readme-resource/gitlab-plugin.png "gitlab-plugin")
    
-3. Create Jenkins Credential Id by navigating to *Jenkins -> Credentials -> System -> Global credentials -> Add Credentials*
+3. Create Jenkins Credential ID by navigating to *Jenkins -> Credentials -> System -> Global Credentials -> Add Credentials*:
 
     * Select GitLab API token;
     * Select Global scope;
-    * API token - **Access Token** which you created early;
-    * ID - type **gitlab-access-token** id;
-    * Description - description of current Credential Id;
+    * API token - the **Access Token** that was created earlier;
+    * ID - the **gitlab-access-token** ID;
+    * Description - the description of the current Credential ID;
  
     ![jenkins-cred](readme-resource/jenkins-cred.png "jenkins-cred")
  
-4. Configure **Gitlab plugin** by navigating *Manage Jenkins -> Configure System* and find **GitLab plugin** settings
-
-    ![gitlab-plugin-configuration](readme-resource/gitlab-plugin-configuration.png "gitlab-plugin-configuration")
+4. Configure **Gitlab plugin** by navigating to *Manage Jenkins -> Configure System* and fill in the **GitLab plugin** settings:
 
     * Connection name - connection name;
-    * Gitlab host URL - host URL to GitLab;
+    * Gitlab host URL - a host URL to GitLab;
     * Credentials - credentials with **Access Token** to GitLab (**gitlab-access-token**);
+    
+    ![gitlab-plugin-configuration](readme-resource/gitlab-plugin-configuration.png "gitlab-plugin-configuration")
 
-5. Create WebHook job with name **Gitlab-webhook-listener** by navigating to *Jenkins -> New Item* and select **Pipeline**.
-Enter an item name - **Gitlab-webhook-listener** and click OK
+5. Create WebHook job with the following name **Gitlab-webhook-listener** by navigating to *Jenkins -> New Item* and click **Pipeline**.
+In the *Enter an item name field*, type the **Gitlab-webhook-listener** and click OK:
 
     ![webhook-job](readme-resource/webhook-job.png "webhook-job")
 
-    * In **Build Triggers** section check *Build when a change is pushed to GitLab. GitLab webhook URL* and check all options;
-    * In **Build Triggers** section open Advanced settings and generate secret token;
+    * In the **Build Triggers** section, select the *Build when a change is pushed to GitLab. GitLab webhook URL* check box and examine all options;
+    * In the **Build Triggers** section, open *Advanced settings* and generate a secret token;
 
     ![secret-token](readme-resource/secret-token.png "secret-token")
 
-    * Insert script into **Pipeline** section;
+    * Insert script into the **Pipeline** section;
 
     ``` 
     node("master") {
@@ -332,32 +332,32 @@ Enter an item name - **Gitlab-webhook-listener** and click OK
     }
     ``` 
 
-6. Create new **Job Provision** by navigating to **Jenkins** main page, open **job-provisions** folder
-    * Click **New Item**;
-    * Type name;
-    * Select **Freestyle project** and click OK;
-    * Check *This project is parameterized* option and add a few input parameters as strings:
-    * NAME;
-    * TYPE;
-    * BUILD_TOOL;
-    * BRANCH;
-    * GIT_SERVER_CR_NAME;
-    * GIT_SERVER_CR_VERSION;
-    * GIT_SERVER;
-    * GIT_SSH_PORT;
-    * GIT_USERNAME;
-    * GIT_CREDENTIALS_ID;
-    * REPOSITORY_PATH;
+6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions* folder:
+    * Click *New Item*;
+    * Type the name;
+    * Select *Freestyle project* and click OK;
+    * Select the *This project is parameterized* check box and add a few input parameters as the following strings:
+        * NAME;
+        * TYPE;
+        * BUILD_TOOL;
+        * BRANCH;
+        * GIT_SERVER_CR_NAME;
+        * GIT_SERVER_CR_VERSION;
+        * GIT_SERVER;
+        * GIT_SSH_PORT;
+        * GIT_USERNAME;
+        * GIT_CREDENTIALS_ID;
+        * REPOSITORY_PATH;
     
-    Check *Execute concurrent builds if necessary* option;
+    * Check the *Execute concurrent builds if necessary* option;
 
-    In the **Build** section:
-    * Select **DSL Script**;
-    * Check *Use the provided DSL script*;
+    * In the **Build** section, perform the following:
+        * Select *DSL Script*;
+        * Select the *Use the provided DSL script* check box:
 
     ![dsl-script](readme-resource/dsl-script.png "dsl-script")
     
-Then insert code:
+    * As soon as all the steps above are performed, insert the code:
 
     ```
     
