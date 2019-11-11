@@ -62,3 +62,12 @@ rules:
   - jenkinsserviceaccounts
   verbs:
   - '*'
+- apiGroups:
+  - '*'
+  resources:
+  - jenkins
+  verbs:
+  - get
+  - create
+  - update
+  - patch
