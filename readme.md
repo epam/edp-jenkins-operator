@@ -1,18 +1,35 @@
 # EDP Jenkins Operator
 
 ## Overview
+
 The Jenkins operator creates, deploys and manages the EDP Jenkins instance on Kubernetes/OpenShift. The Jenkins instance is equipped with the necessary plugins. 
 
 There is an ability to customize the Jenkins instance and to check the changes during the application creation.
+
+## How to Install Jenkins on a Cluster
+
+Before deploying the Jenkins Operator, pay attention to the prerequisites: 
+
+* Make sure that cluster contains edp service account with the edp-deploy role;
+* Check that cluster has definitions for the Jenkins, JenkinsScript and JenkinsServiceAccount CR's; 
+    
+_**Note**: If the security politics on your cluster is enabled, for consistency, check the security context before deploying the Jenkins Operator._ 
+    
+After the prerequisites are checked, follow the steps below to install the Jenkins Operator:    
+* Apply the deployment template that is placed in the *deploy/operator.yaml* file;
+* As soon as the Operator is deployed,  apply the Jenkins CR using the template in the *deploy/crds/v2_v1alpha1_jenkins_cr.yaml* file.
 
 ## Add Jenkins Slave
 
 Follow the steps below to add a new Jenkins slave:
 
-1. Add a new template for Jenkins Slave by navigating to the jenkins-slaves config map under the EDP namespace. Fill in the Key field and add a value:
-![config-map](readme-resource/edit_js_configmap.png  "config-map")
+* Add a new template for Jenkins Slave by navigating to the jenkins-slaves config map under the EDP namespace. Fill in the Key field and add a value:
 
-2. Open Jenkins to ensure that everything is added correctly. Click the Manage Jenkins option, navigate to the Configure System menu, and scroll down to the Kubernetes Pod Template with the necessary data: 
+    ![config-map](readme-resource/edit_js_configmap.png  "config-map")
+
+_**Note:** To copy an example of template for Jenkins Slave, navigate to examples/jenkins-slave/maven and replace it with your values. The name and label properties should be unique;_
+    
+* Open Jenkins to ensure that everything is added correctly. Click the Manage Jenkins option, navigate to the Configure System menu, and scroll down to the Kubernetes Pod Template with the necessary data: 
 ![jenkins-slave](readme-resource/jenkins_k8s_pod_template.png "jenkins-slave")
 
 3. As a result, the newly added Jenkins slave will be available in the Advanced Settings block of the Admin Console tool during the codebase creation:
@@ -22,16 +39,7 @@ Follow the steps below to add a new Jenkins slave:
 
 ## Add Other Code Language
 
-There is an ability to extend the default code languages when creating a codebase with the clone strategy.  
-![other-language](readme-resource/ac_other_language.png "other-language")
-
-_**NOTE**: The create strategy does not allow to customize the default code language set._
- 
-In order to customize the Build Tool list, perform the following:
-1. Navigate to OpenShift, and edit the edp-admin-console deployment config map by adding the necessary code language into the BUILD TOOLS field. 
-![build-tools](readme-resource/other_build_tool.png "build-tools")
-
-_**NOTE**: Use the comma sign to separate the code languages in order to make them available, e.g. maven, gradle._ 
+There is an ability to extend the default code languages when creating a codebase. To get more information on how to extend the default code languages, please refer to the [edp-admin-console readme](https://github.com/epmd-edp/edp-admin-console/blob/master/readme.md#add-other-code-language) chapter.
 
 ---
 
@@ -234,12 +242,9 @@ The job-provisions pipeline consists of the following parameters:
 _**NOTE**: The default template should be changed if there is another creation logic for the code-review, build and create-release pipelines.
 Furthermore, all pipeline types should have the necessary stages as well._
 
-3.Check the availability of the job-provision in the Advanced Settings block during the codebase creation: 
-
- ![provisioner-ac](readme-resource/as_job_provision.png "provisioner-ac")
+3.Check the availability of the job-provision, for details, please refer to the [edp-admin-console readme](https://github.com/epmd-edp/edp-admin-console/blob/master/readme.md#how-to-check-the-availability-of-the-job-provision-in-admin-console) chapter.
  
- 
- ## Code Review for GitLab
+## Code Review for GitLab
  
 1. Create access token in **Gitlab**:
     * Log in to **GitLab**;
@@ -629,4 +634,3 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.     
 
    ![job-provision](readme-resource/AC_job-provisioner_field.png "job-provision")
-   
