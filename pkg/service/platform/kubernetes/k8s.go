@@ -266,7 +266,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 
 	t := true
 	l := platformHelper.GenerateLabels(instance.Name)
-	id := int64(1001)
+	var uid int64 = 999
+	var gid int64 = 998
+	var fid int64 = 0
 	url := fmt.Sprintf("%v://%v", s, h)
 
 	jo := &extensionsApi.Deployment{
@@ -288,11 +290,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 					Labels: l,
 				},
 				Spec: coreV1Api.PodSpec{
-					SecurityContext: &coreV1Api.PodSecurityContext{
-						RunAsUser:    &id,
-						RunAsGroup:   &id,
-						RunAsNonRoot: &t,
-						FSGroup:      &id,
+					SecurityContext:&coreV1Api.PodSecurityContext{
+						RunAsNonRoot:       &t,
+						FSGroup:            &fid,
 					},
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,
@@ -301,6 +301,10 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 					SchedulerName:                 coreV1Api.DefaultSchedulerName,
 					InitContainers: []coreV1Api.Container{
 						{
+							SecurityContext:&coreV1Api.SecurityContext{
+								RunAsUser:                &uid,
+								RunAsGroup:               &gid,
+							},
 							Image:                    "busybox",
 							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
 							Name:                     "grant-permissions",
@@ -323,6 +327,10 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 							Name:            instance.Name,
 							Image:           instance.Spec.Image + ":" + instance.Spec.Version,
 							ImagePullPolicy: coreV1Api.PullAlways,
+							SecurityContext:&coreV1Api.SecurityContext{
+								RunAsUser:                &uid,
+								RunAsGroup:               &gid,
+							},
 							Env: []coreV1Api.EnvVar{
 								{
 									Name:  "OPENSHIFT_ENABLE_OAUTH",
