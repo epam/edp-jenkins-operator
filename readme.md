@@ -24,6 +24,5 @@ After the prerequisites are checked, follow the steps below to install the Jenki
 In order to apply the necessary customization, get acquainted with the following sections:
 
 * [Add Jenkins Slave](documentation/add-jenkins-slave.md) 
-* [Add Other Code Language](documentation/add-other-code-language.md) 
 * [Add Job Provision](documentation/add-job-provision.md)
 * [Code Review for GitLab](documentation/code-review-for-gitlab.md) 
