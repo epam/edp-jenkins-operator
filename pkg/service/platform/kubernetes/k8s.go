@@ -290,9 +290,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 					Labels: l,
 				},
 				Spec: coreV1Api.PodSpec{
-					SecurityContext:&coreV1Api.PodSecurityContext{
-						RunAsNonRoot:       &t,
-						FSGroup:            &fid,
+					SecurityContext: &coreV1Api.PodSecurityContext{
+						RunAsNonRoot: &t,
+						FSGroup:      &fid,
 					},
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,
@@ -301,9 +301,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 					SchedulerName:                 coreV1Api.DefaultSchedulerName,
 					InitContainers: []coreV1Api.Container{
 						{
-							SecurityContext:&coreV1Api.SecurityContext{
-								RunAsUser:                &uid,
-								RunAsGroup:               &gid,
+							SecurityContext: &coreV1Api.SecurityContext{
+								RunAsUser:  &uid,
+								RunAsGroup: &gid,
 							},
 							Image:                    "busybox",
 							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
@@ -327,9 +327,9 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 							Name:            instance.Name,
 							Image:           instance.Spec.Image + ":" + instance.Spec.Version,
 							ImagePullPolicy: coreV1Api.PullAlways,
-							SecurityContext:&coreV1Api.SecurityContext{
-								RunAsUser:                &uid,
-								RunAsGroup:               &gid,
+							SecurityContext: &coreV1Api.SecurityContext{
+								RunAsUser:  &uid,
+								RunAsGroup: &gid,
 							},
 							Env: []coreV1Api.EnvVar{
 								{
@@ -721,13 +721,18 @@ func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRo
 	return nil
 }
 
-// CreateSCCPolicyRule
-func (service K8SService) CreateSCCPolicyRule() []authV1Api.PolicyRule {
+// CreateClusterRolePolicyRules
+func (service K8SService) CreateClusterRolePolicyRules() []authV1Api.PolicyRule {
 	return []authV1Api.PolicyRule{
 		{
 			APIGroups: []string{"*"},
 			Resources: []string{"podsecuritypolicies"},
 			Verbs:     []string{"get", "list", "update"},
+		},
+		{
+			APIGroups: []string{"*"},
+			Resources: []string{"namespaces"},
+			Verbs:     []string{"create"},
 		},
 	}
 }

@@ -330,13 +330,18 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 	return nil
 }
 
-// CreateSCCPolicyRule
-func (service OpenshiftService) CreateSCCPolicyRule() []authV1Api.PolicyRule {
+// CreateClusterRolePolicyRules
+func (service OpenshiftService) CreateClusterRolePolicyRules() []authV1Api.PolicyRule {
 	return []authV1Api.PolicyRule{
 		{
 			APIGroups: []string{"*"},
 			Resources: []string{"securitycontextconstraints"},
 			Verbs:     []string{"get", "list", "update"},
+		},
+		{
+			APIGroups: []string{"", "project.openshift.io"},
+			Resources: []string{"projectrequests"},
+			Verbs:     []string{"create"},
 		},
 	}
 }

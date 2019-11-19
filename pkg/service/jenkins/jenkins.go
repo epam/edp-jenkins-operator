@@ -576,7 +576,7 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrapf(err, "Failed to create Role %v", edpJenkinsRoleName)
 	}
 
-	rules = j.platformService.CreateSCCPolicyRule()
+	rules = j.platformService.CreateClusterRolePolicyRules()
 
 	err = j.platformService.CreateClusterRole(instance, edpJenkinsClusterRoleName, rules)
 	if err != nil {

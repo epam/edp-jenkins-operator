@@ -25,7 +25,7 @@ type PlatformService interface {
 	CreateExternalEndpoint(instance v1alpha1.Jenkins) error
 	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
-	CreateSCCPolicyRule() []authV1Api.PolicyRule
+	CreateClusterRolePolicyRules() []authV1Api.PolicyRule
 	CreateClusterRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	GetExternalEndpoint(namespace string, name string) (string, string, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
