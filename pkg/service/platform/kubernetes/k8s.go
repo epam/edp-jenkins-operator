@@ -333,6 +333,14 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 							},
 							Env: []coreV1Api.EnvVar{
 								{
+									Name: "CI_NAMESPACE",
+									ValueFrom: &coreV1Api.EnvVarSource{
+										FieldRef: &coreV1Api.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
+								},
+								{
 									Name:  "OPENSHIFT_ENABLE_OAUTH",
 									Value: "false",
 								},

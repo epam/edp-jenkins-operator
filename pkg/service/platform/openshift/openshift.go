@@ -62,11 +62,11 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	return nil
 }
 
-func (service OpenshiftService)CreateHelmRole(instance v1alpha1.Jenkins) error {
+func (service OpenshiftService) CreateHelmRole(instance v1alpha1.Jenkins) error {
 	return nil
 }
 
-func (service OpenshiftService)CreateHelmRoleBinding(instance v1alpha1.Jenkins) error {
+func (service OpenshiftService) CreateHelmRoleBinding(instance v1alpha1.Jenkins) error {
 	return nil
 }
 
@@ -157,6 +157,14 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 							Image:           instance.Spec.Image + ":" + instance.Spec.Version,
 							ImagePullPolicy: coreV1Api.PullAlways,
 							Env: []coreV1Api.EnvVar{
+								{
+									Name: "CI_NAMESPACE",
+									ValueFrom: &coreV1Api.EnvVarSource{
+										FieldRef: &coreV1Api.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
+								},
 								{
 									Name:  "OPENSHIFT_ENABLE_OAUTH",
 									Value: "false",
