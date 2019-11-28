@@ -63,7 +63,7 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet"]
+def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none"]
 def defaultBuild = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
@@ -81,6 +81,10 @@ if (codebaseFolder == null) {
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
         repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+
+if (buildTool.toString().equalsIgnoreCase('none')) {
+    return true
+}
 
 if (BRANCH) {
     def branch = "${BRANCH}"
