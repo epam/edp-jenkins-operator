@@ -740,7 +740,7 @@ func (service K8SService) CreateClusterRolePolicyRules() []authV1Api.PolicyRule 
 		{
 			APIGroups: []string{"*"},
 			Resources: []string{"namespaces"},
-			Verbs:     []string{"create"},
+			Verbs:     []string{"create", "get"},
 		},
 	}
 }
