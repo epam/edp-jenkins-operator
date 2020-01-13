@@ -1,5 +1,7 @@
-## Code Review for GitLab
+# GitLab Integration
  
+Discover the steps below to apply the GitLab integration correctly:
+
 1. Create access token in **Gitlab**:
     * Log in to **GitLab**;
     * In the top-right corner, click your avatar and select **Settings**;

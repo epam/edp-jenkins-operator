@@ -37,5 +37,6 @@ In order to apply the necessary customization, get acquainted with the following
 
 * [Add Jenkins Slave](documentation/add-jenkins-slave.md) 
 * [Add Job Provision](documentation/add-job-provision.md)
-* [Code Review for GitLab](documentation/code-review-for-gitlab.md)
+* [GitLab Integration](documentation/gitlab-integration.md)
+* [GitHub Integration](documentation/github-integration.md)
 * [Customize CD Pipeline](documentation/customize-deploy-pipeline.md) 
