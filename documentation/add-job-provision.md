@@ -197,4 +197,6 @@ The job-provisions pipeline consists of the following parameters:
 _**NOTE**: The default template should be changed if there is another creation logic for the code-review, build and create-release pipelines.
 Furthermore, all pipeline types should have the necessary stages as well._
 
-3.Check the availability of the job-provision, for details, please refer to the [edp-admin-console readme](https://github.com/epmd-edp/admin-console/blob/master/readme.md#how-to-check-the-availability-of-the-job-provision-in-admin-console) chapter.
+3.Check the availability of the job-provision in Admin Console. Simply navigate to the **Advanced Settings** block during the codebase creation: 
+  
+   ![as_job_provision](../readme-resource/as_job_provision.png "as_job_provision") 
