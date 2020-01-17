@@ -5,8 +5,8 @@
 package v1alpha1
 
 import (
-	spec "github.com/go-openapi/spec"
-	common "k8s.io/kube-openapi/pkg/common"
+	"github.com/go-openapi/spec"
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
@@ -18,6 +18,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec":   schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountSpec(ref),
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus": schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountStatus(ref),
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
+		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolder":               schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref),
+		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus":         schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref),
 	}
 }
 
@@ -306,5 +308,79 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref common.ReferenceCallback) com
 		},
 		Dependencies: []string{
 			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Slave"},
+	}
+}
+
+func schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "JenkinsFolder is the Schema for the jenkins folder API",
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "JenkinsFolderStatus defines the observed state of JenkinsFolder",
+				Properties: map[string]spec.Schema{
+					"available": {
+						SchemaProps: spec.SchemaProps{
+							Description: "INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run \"operator-sdk generate k8s\" to regenerate code after modifying this file Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"lastTimeUpdated": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "date-time",
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
