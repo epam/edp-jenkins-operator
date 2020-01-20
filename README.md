@@ -7,8 +7,8 @@ Jenkins operator creates, deploys and manages the EDP Jenkins instance, which is
 There is an ability to customize the Jenkins instance and to check changes during the application creation.
 
 ### Prerequisites
-1. Machine with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed with an authorized access to the cluster;
-2. Admin space is deployed by following the repository instruction: [edp-install](https://github.com/epmd-edp/edp-install#admin-space).
+1. Linux machine or Windows Subsystem for Linux instance with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed with an authorized access to the cluster;
+2. Admin space is deployed by following one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install.md#admin-space) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install.md#admin-space).
 
 ### Installation
 * Go to the [releases](https://github.com/epmd-edp/jenkins-operator/releases) page of this repository, choose a version, download an archive, and unzip it;
@@ -16,16 +16,18 @@ There is an ability to customize the Jenkins instance and to check changes durin
 _**NOTE:** It is highly recommended to use the latest released version._
 
 * Go to the unzipped directory and apply all files with the Custom Resource Definitions resource:
-
-`for file in $(ls crds/*_crd.yaml); do kubectl apply -f $file; done`
+```bash
+for file in $(ls deploy/crds/*_crd.yaml); do kubectl apply -f $file; done
+```
 
 * Deploy operator:
-
-`kubectl patch -n <edp_cicd_project> -f deploy/operator.yaml --local=true --patch='{"spec":{"template":{"spec":{"containers":[{"image":"epamedp/jenkins-operator:<operator_version>", "name":"jenkins-operator-v2", "env": [{"name":"WATCH_NAMESPACE", "value":"<edp_cicd_project>"}, {"name":"PLATFORM_TYPE","value":"<platform>"}]}]}}}}' -o yaml | kubectl -n <edp_cicd_project> apply -f -`
+```bash
+kubectl patch -n <edp_cicd_project> -f deploy/operator.yaml --local=true --patch='{"spec":{"template":{"spec":{"containers":[{"image":"epamedp/jenkins-operator:<operator_version>", "name":"jenkins-operator-v2", "env": [{"name":"WATCH_NAMESPACE", "value":"<edp_cicd_project>"}, {"name":"PLATFORM_TYPE","value":"<platform>"}]}]}}}}' -o yaml | kubectl -n <edp_cicd_project> apply -f -
+```
 
 - _<operator_version> - a selected release version;_
 
-- _<edp_cicd_project> - a namespace or a project name (in case of OpenSift) that is created by following the [edp-install](https://github.com/epmd-edp/edp-install#install-edp) instructions;_
+- _<edp_cicd_project> - a namespace or a project name (in case of OpenSift) that is created by one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install.md#install-edp) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install.md#install-edp);_
 
 - _<platform_type> - a platform type that can be "kubernetes" or "openshift"_.
 
