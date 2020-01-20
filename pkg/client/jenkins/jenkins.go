@@ -3,6 +3,7 @@ package jenkins
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bndr/gojenkins"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
@@ -10,7 +11,10 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
 	"io/ioutil"
+	"net/http"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"strconv"
+	"time"
 )
 
 const (
@@ -26,6 +30,7 @@ type JenkinsClient struct {
 	instance        *v1alpha1.Jenkins
 	PlatformService platform.PlatformService
 	resty           resty.Client
+	GoJenkins       *gojenkins.Jenkins
 }
 
 // InitNewRestClient performs initialization of Jenkins connection
@@ -50,6 +55,28 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 		resty:           *resty.SetHostURL(apiUrl).SetBasicAuth(string(adminSecret["username"]), string(adminSecret["password"])),
 	}
 	return jc, nil
+}
+
+func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
+	host, scheme, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
+	}
+
+	s, err := platformService.GetSecretData(instance.Namespace, instance.Status.AdminSecretName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to get admin secret for %v", instance.Name)
+	}
+	url := fmt.Sprintf("%v://%v", scheme, host)
+	log.V(2).Info("initializing new Jenkins client", "url", url, "username", string(s["username"]))
+	jenkins, err := gojenkins.CreateJenkins(&http.Client{}, url, string(s["username"]), string(s["password"])).Init()
+	if err != nil {
+		return nil, err
+	}
+	log.Info("Jenkins client is initialized", "url", url)
+	return &JenkinsClient{
+		GoJenkins: jenkins,
+	}, nil
 }
 
 // InitNewRestClient performs initialization of Jenkins connection
@@ -254,4 +281,72 @@ func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
 	}
 
 	return pl, nil
+}
+
+func (jc JenkinsClient) IsBuildSuccessful(jobName string, buildNumber int64) (bool, error) {
+	log.V(2).Info("start checking build", "job name", jobName, "build number", buildNumber)
+	job, err := jc.GoJenkins.GetJob(jobName)
+	if err != nil {
+		return false, errors.Wrapf(err, "could't get job %v", jobName)
+	}
+
+	b, err := getBuild(jobName, job, buildNumber)
+	if err != nil {
+		if err.Error() == "404" {
+			log.Info("couldn't find build", "build number", buildNumber)
+			return false, nil
+		}
+		return false, err
+	}
+	return b.GetResult() == "SUCCESS", nil
+}
+
+func getBuild(jp string, job *gojenkins.Job, id int64) (*gojenkins.Build, error) {
+	endpoint := "/job/" + jp
+	build := gojenkins.Build{Jenkins: job.Jenkins, Job: job, Raw: new(gojenkins.BuildResponse), Depth: 1, Base: endpoint + "/" + strconv.FormatInt(id, 10)}
+	status, err := build.Poll()
+	if err != nil {
+		return nil, err
+	}
+	if status == 200 {
+		return &build, nil
+	}
+	return nil, errors.New(strconv.Itoa(status))
+}
+
+func (jc JenkinsClient) BuildJob(jobName string, parameters map[string]string) (*int64, error) {
+	log.V(2).Info("start triggering job provision", "name", jobName, "codebase name", parameters["NAME"])
+	qn, err := jc.GoJenkins.BuildJob(jobName, parameters)
+	if qn != 0 || err != nil {
+		log.V(2).Info("end triggering job provision", "name", jobName, "codebase name", parameters["NAME"])
+		return jc.getBuildNumber(qn)
+	}
+	return nil, errors.Errorf("couldn't finish triggering job provision for %v codebase", parameters["NAME"])
+}
+
+func (jc JenkinsClient) getBuildNumber(queueNumber int64) (*int64, error) {
+	log.V(2).Info("start getting build number", "queueNumber", queueNumber)
+	for i := 0; i < 3; i++ {
+		t, err := jc.GoJenkins.GetQueueItem(queueNumber)
+		if err != nil {
+			return nil, err
+		}
+		n := t.Raw.Executable.Number
+		if n != 0 {
+			log.Info("build number has been received", "number", n)
+			return &n, nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return nil, fmt.Errorf("couldn't get build number by queue number %v", queueNumber)
+}
+
+func (jc JenkinsClient) CreateFolder(name string) error {
+	log.V(2).Info("start creating jenkins folder", "name", name)
+	_, err := jc.GoJenkins.CreateFolder(name)
+	if err != nil {
+		return err
+	}
+	log.V(2).Info("end creating jenkins folder", "name", name)
+	return nil
 }

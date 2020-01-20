@@ -31,9 +31,18 @@ spec:
         spec:
           properties:
             codebaseName:
-              type: string
+              description: 'Property indicates which codebase cr should be taken to trigger job build with correct parameters.'
+              anyOf:
+                - type: null
+                - type: string
             ownerName:
-              type: string
+              description: 'Property indicates which jenkins car should be taken to initialize correct client.'
+              anyOf:
+                - type: null
+                - type: string
             jobName:
-              type: string
+              description: 'Property indicates which job provision should be triggered.'
+              anyOf:
+                - type: null
+                - type: string
           type: object
