@@ -149,6 +149,10 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 			return reconcile.Result{}, err
 		}
 		log.Info("folder has been created in Jenkins", "name", c.Name)
+
+		if err := r.setStatus(i, true, consts.StatusFinished); err != nil {
+			return reconcile.Result{}, errors.Wrapf(err, "an error has been occurred while updating %v JobFolder status", i.Name)
+		}
 		reqLogger.V(2).Info("Reconciling JenkinsFolder has been finished")
 		return reconcile.Result{}, nil
 	}

@@ -3,9 +3,9 @@ kind: JenkinsFolder
 metadata:
   name: example-jenkins-folder
 spec:
-  codebaseName: ""
-  ownerName: ""
-  jobName: ""
+  codebaseName: null
+  ownerName: "example-jenkins"
+  jobName: null
 status:
   status: "initialized"
   jenkinsJobProvisionBuildNumber: 0
