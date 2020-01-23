@@ -6,6 +6,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/job_provision"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/finalizer"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -88,6 +89,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			if !reflect.DeepEqual(oo.Spec, no.Spec) {
 				return true
 			}
+			if no.DeletionTimestamp != nil {
+				return true
+			}
 			return false
 		},
 	}
@@ -103,6 +107,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // blank assignment to verify that ReconcileJenkins implements reconcile.Reconciler
 var _ reconcile.Reconciler = &ReconcileJenkinsFolder{}
+
+const JenkinsFolderJenkinsFinalizerName = "jenkinsfolder.jenkins.finalizer.name"
 
 // ReconcileJenkinsFolder reconciles a Jenkins object
 type ReconcileJenkinsFolder struct {
@@ -126,11 +132,10 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{}, err
 	}
 
-	j, err := r.getJenkinsInstanceOwner(*i)
+	jc, err := r.initGoJenkinsClient(*i)
 	if err != nil {
-		return reconcile.Result{}, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", i.Name)
+		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
-	log.Info("Jenkins instance has been received", "name", j.Name)
 
 	c, err := r.getCodebaseInstanceOwner(*i)
 	if err != nil {
@@ -138,9 +143,9 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 	}
 	log.Info("codebase instance has been received", "name", c.Name)
 
-	jc, err := jenkinsClient.InitGoJenkinsClient(j, r.Platform)
-	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
+	result, err := r.tryToDeleteJenkinsFolder(*jc, i, c.Name)
+	if err != nil || result != nil {
+		return *result, err
 	}
 
 	if i.Spec.JobName == nil {
@@ -169,6 +174,15 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 	}
 	reqLogger.V(2).Info("Reconciling JenkinsFolder has been finished")
 	return reconcile.Result{}, nil
+}
+
+func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf v2v1alpha1.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
+	j, err := r.getJenkinsInstanceOwner(jf)
+	if err != nil {
+		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", jf.Name)
+	}
+	log.Info("Jenkins instance has been received", "name", j.Name)
+	return jenkinsClient.InitGoJenkinsClient(j, r.Platform)
 }
 
 func (r ReconcileJenkinsFolder) getCodebaseInstanceOwner(jf v2v1alpha1.JenkinsFolder) (*edpv1alpha1.Codebase, error) {
@@ -270,4 +284,26 @@ func (r ReconcileJenkinsFolder) updateStatus(jf *v2v1alpha1.JenkinsFolder) error
 		}
 	}
 	return nil
+}
+
+func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.JenkinsClient, jf *v2v1alpha1.JenkinsFolder,
+	folderName string) (*reconcile.Result, error) {
+	if jf.GetDeletionTimestamp().IsZero() {
+		if !finalizer.ContainsString(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName) {
+			jf.ObjectMeta.Finalizers = append(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName)
+			if err := r.client.Update(context.TODO(), jf); err != nil {
+				return &reconcile.Result{}, err
+			}
+		}
+		return nil, nil
+	}
+	if _, err := jc.GoJenkins.DeleteJob(folderName); err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	jf.ObjectMeta.Finalizers = finalizer.RemoveString(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName)
+	if err := r.client.Update(context.TODO(), jf); err != nil {
+		return &reconcile.Result{}, err
+	}
+	return &reconcile.Result{}, nil
 }
