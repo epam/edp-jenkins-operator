@@ -10,4 +10,13 @@ const (
 
 	JenkinsKind  = "Jenkins"
 	CodebaseKind = "Codebase"
+	StageKind    = "Stage"
+
+	AuthorizationApiGroup = "rbac.authorization.k8s.io"
+	ClusterRoleKind       = "ClusterRole"
+
+	JenkinsServiceAccount         = "jenkins"
+	EdpAdminConsoleServiceAccount = "edp-admin-console"
+
+	LibraryCodebase = "library"
 )

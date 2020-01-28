@@ -19,6 +19,7 @@ import (
 	"github.com/epmd-edp/codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -177,7 +178,7 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 }
 
 func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf v2v1alpha1.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
-	j, err := r.getJenkinsInstanceOwner(jf)
+	j, err := plutil.GetJenkinsInstanceOwner(r.client, jf.Name, jf.Namespace, jf.Spec.OwnerName, jf.GetOwnerReferences())
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", jf.Name)
 	}
@@ -187,7 +188,7 @@ func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf v2v1alpha1.JenkinsFolder)
 
 func (r ReconcileJenkinsFolder) getCodebaseInstanceOwner(jf v2v1alpha1.JenkinsFolder) (*edpv1alpha1.Codebase, error) {
 	log.V(2).Info("start getting codebase owner name", "jenkins folder", jf.Name)
-	if ow := r.getOwnerReference(consts.CodebaseKind, jf); ow != nil {
+	if ow := plutil.GetOwnerReference(consts.CodebaseKind, jf.GetOwnerReferences()); ow != nil {
 		log.V(2).Info("trying to fetch codebase owner from reference", "codebase name", ow.Name)
 		return r.getCodebaseInstance(ow.Name, jf.Namespace)
 	}
@@ -196,38 +197,6 @@ func (r ReconcileJenkinsFolder) getCodebaseInstanceOwner(jf v2v1alpha1.JenkinsFo
 		return r.getCodebaseInstance(*jf.Spec.CodebaseName, jf.Namespace)
 	}
 	return nil, fmt.Errorf("couldn't find codebase owner for jenkins folder %v", jf.Name)
-}
-
-func (r ReconcileJenkinsFolder) getJenkinsInstanceOwner(jf v2v1alpha1.JenkinsFolder) (*v2v1alpha1.Jenkins, error) {
-	log.V(2).Info("start getting jenkins owner name", "jenkins folder", jf.Name)
-	if ow := r.getOwnerReference(consts.JenkinsKind, jf); ow != nil {
-		log.V(2).Info("trying to fetch jenkins owner from reference", "jenkins name", ow.Name)
-		return r.getJenkinsInstance(ow.Name, jf.Namespace)
-	}
-	if jf.Spec.OwnerName != nil {
-		log.Info("trying to fetch jenkins owner from spec", "jenkins name", jf.Spec.OwnerName)
-		return r.getJenkinsInstance(*jf.Spec.OwnerName, jf.Namespace)
-	}
-	log.V(2).Info("trying to fetch first jenkins instance", "namespace", jf.Namespace)
-	j, err := r.getFirstJenkinsInstance(jf.Namespace)
-	if err != nil {
-		return nil, err
-	}
-	return j, nil
-}
-
-func (r ReconcileJenkinsFolder) getOwnerReference(ownerKind string, jf v2v1alpha1.JenkinsFolder) *metav1.OwnerReference {
-	log.Info("finding owner for jenkins folder", "kind", ownerKind)
-	ors := jf.GetOwnerReferences()
-	if len(ors) == 0 {
-		return nil
-	}
-	for _, o := range ors {
-		if o.Kind == ownerKind {
-			return &o
-		}
-	}
-	return nil
 }
 
 func (r ReconcileJenkinsFolder) getCodebaseInstance(name, namespace string) (*edpv1alpha1.Codebase, error) {
@@ -240,31 +209,6 @@ func (r ReconcileJenkinsFolder) getCodebaseInstance(name, namespace string) (*ed
 		return nil, errors.Wrapf(err, "failed to get instance by owner %v", name)
 	}
 	return instance, nil
-}
-
-func (r ReconcileJenkinsFolder) getJenkinsInstance(name, namespace string) (*v2v1alpha1.Jenkins, error) {
-	nsn := types.NamespacedName{
-		Namespace: namespace,
-		Name:      name,
-	}
-	instance := &v2v1alpha1.Jenkins{}
-	if err := r.client.Get(context.TODO(), nsn, instance); err != nil {
-		return nil, errors.Wrapf(err, "failed to get instance by owner %v", name)
-	}
-	return instance, nil
-}
-
-func (r ReconcileJenkinsFolder) getFirstJenkinsInstance(namespace string) (*v2v1alpha1.Jenkins, error) {
-	list := &v2v1alpha1.JenkinsList{}
-	err := r.client.List(context.TODO(), &client.ListOptions{Namespace: namespace}, list)
-	if err != nil {
-		return nil, errors.Wrapf(err, "couldn't get Jenkins instances in namespace %v", namespace)
-	}
-	if len(list.Items) == 0 {
-		return nil, fmt.Errorf("at least one Jenkins instance should be accessible")
-	}
-	j := list.Items[0]
-	return r.getJenkinsInstance(j.Name, j.Namespace)
 }
 
 func (r ReconcileJenkinsFolder) setStatus(jf *v2v1alpha1.JenkinsFolder, available bool, status string) error {

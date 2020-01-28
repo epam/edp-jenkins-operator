@@ -20,6 +20,9 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolder":               schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref),
 		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus":         schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref),
+		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJob":                  schema_pkg_apis_v2_v1alpha1_JenkinsJob(ref),
+		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec":              schema_pkg_apis_v2_v1alpha1_JenkinsJobSpec(ref),
+		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus":            schema_pkg_apis_v2_v1alpha1_JenkinsJobStatus(ref),
 	}
 }
 
@@ -382,5 +385,72 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref common.ReferenceCallbac
 				},
 			},
 		},
+	}
+}
+
+func schema_pkg_apis_v2_v1alpha1_JenkinsJob(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "JenkinsJob is the Schema for the jenkinsjob API",
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"},
+	}
+}
+
+func schema_pkg_apis_v2_v1alpha1_JenkinsJobSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "JenkinsJobSpec defines the desired state of jenkins job",
+				Properties:  map[string]spec.Schema{},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_v2_v1alpha1_JenkinsJobStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "JenkinsJobStatus defines the desired state of jenkins job",
+				Properties:  map[string]spec.Schema{},
+			},
+		},
+		Dependencies: []string{},
 	}
 }

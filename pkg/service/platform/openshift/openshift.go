@@ -3,9 +3,11 @@ package openshift
 import (
 	"encoding/json"
 	"fmt"
+	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
@@ -474,4 +476,29 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 		}
 	}
 	return coreV1Api.Volume{}, false
+}
+
+func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
+	j := []model.PipelineStage{
+		{
+			Name:     "deploy",
+			StepName: "deploy",
+		},
+	}
+
+	for _, ps := range cr.Spec.QualityGates {
+		i := model.PipelineStage{
+			Name:     ps.QualityGateType,
+			StepName: ps.StepName,
+		}
+
+		j = append(j, i)
+	}
+	j = append(j, model.PipelineStage{Name: "promote-images", StepName: "promote-images"})
+
+	o, err := json.Marshal(j)
+	if err != nil {
+		return "", err
+	}
+	return string(o), err
 }

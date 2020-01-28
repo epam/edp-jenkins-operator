@@ -1,6 +1,7 @@
 package platform
 
 import (
+	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
@@ -8,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	authV1Api "k8s.io/api/rbac/v1"
+	rbacV1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
@@ -41,6 +43,9 @@ type PlatformService interface {
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
 	CreateHelmRole(instance v1alpha1.Jenkins) error
 	CreateHelmRoleBinding(instance v1alpha1.Jenkins) error
+	CreateProject(name string, or []metav1.OwnerReference) error
+	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
+	CreateStageJSON(cr edpv1alpha1.Stage) (string, error)
 }
 
 // NewPlatformService returns platform service interface implementation

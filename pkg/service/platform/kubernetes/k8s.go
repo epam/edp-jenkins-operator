@@ -2,23 +2,28 @@ package kubernetes
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	edpCompApi "github.com/epmd-edp/edp-component-operator/pkg/apis/v1/v1alpha1"
 	edpCompClient "github.com/epmd-edp/edp-component-operator/pkg/client"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	coreV1 "k8s.io/api/core/v1"
 	coreV1Api "k8s.io/api/core/v1"
 	extensionsApi "k8s.io/api/extensions/v1beta1"
 	authV1Api "k8s.io/api/rbac/v1"
+	rbacV1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,6 +34,7 @@ import (
 	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
+	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -1096,4 +1102,58 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 		}
 	}
 	return coreV1Api.Volume{}, false
+}
+
+func (s K8SService) CreateProject(name string, or []metav1.OwnerReference) error {
+	log.V(2).Info("start sending request to create project...", "name", name)
+	_, err := s.coreClient.Namespaces().Create(
+		&coreV1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            name,
+				OwnerReferences: or,
+			},
+		},
+	)
+	return err
+}
+
+// CreateRoleBinding creates RoleBinding
+func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error {
+	log.V(2).Info("start creating role binding", "edp name", edpName, "namespace", namespace, "role name", roleRef)
+	randPostfix, err := rand.Int(rand.Reader, big.NewInt(10000))
+	_, err = s.authClient.RoleBindings(namespace).Create(
+		&rbacV1.RoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: fmt.Sprintf("%s-%s-%d", edpName, roleRef.Name, randPostfix),
+			},
+			RoleRef:  roleRef,
+			Subjects: subjects,
+		},
+	)
+	return err
+}
+
+func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
+	j := []model.PipelineStage{
+		{
+			Name:     "deploy-helm",
+			StepName: "deploy-helm",
+		},
+	}
+
+	for _, ps := range cr.Spec.QualityGates {
+		i := model.PipelineStage{
+			Name:     ps.QualityGateType,
+			StepName: ps.StepName,
+		}
+
+		j = append(j, i)
+	}
+	j = append(j, model.PipelineStage{Name: "promote-images-ecr", StepName: "promote-images-ecr"})
+
+	o, err := json.Marshal(j)
+	if err != nil {
+		return "", err
+	}
+	return string(o), err
 }
