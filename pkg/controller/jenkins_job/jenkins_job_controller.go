@@ -2,9 +2,15 @@ package jenkins
 
 import (
 	"context"
+	"fmt"
 	pipev1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/finalizer"
+	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,9 +47,12 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	scheme := mgr.GetScheme()
 	addKnownTypes(scheme)
 	client := mgr.GetClient()
+	pt := helper.GetPlatformTypeEnv()
+	ps, _ := platform.NewPlatformService(pt, scheme, &client)
 	return &ReconcileJenkinsJob{
 		client: client,
 		scheme: scheme,
+		ps:     ps,
 	}
 }
 
@@ -90,10 +99,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 // blank assignment to verify that ReconcileJenkins implements reconcile.Reconciler
 var _ reconcile.Reconciler = &ReconcileJenkinsJob{}
 
+const JenkinsJobFinalizerName = "jenkinsjob.finalizer.name"
+
 // ReconcileJenkinsJob reconciles a Jenkins object
 type ReconcileJenkinsJob struct {
 	client client.Client
 	scheme *runtime.Scheme
+	ps     platform.PlatformService
 }
 
 func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -108,6 +120,10 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	if result, err := r.tryToDeleteJob(i); result != nil || err != nil {
+		return *result, err
+	}
+
 	ch, err := chain.CreateDefChain(r.scheme, &r.client)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
@@ -119,4 +135,45 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 
 	reqLogger.V(2).Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
+}
+
+func (r ReconcileJenkinsJob) initGoJenkinsClient(jj v2v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {
+	j, err := plutil.GetJenkinsInstanceOwner(r.client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
+	if err != nil {
+		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", jj.Name)
+	}
+	log.Info("Jenkins instance has been received", "name", j.Name)
+	return jenkinsClient.InitGoJenkinsClient(j, r.ps)
+}
+
+func (r ReconcileJenkinsJob) tryToDeleteJob(jj *v2v1alpha1.JenkinsJob) (*reconcile.Result, error) {
+	if jj.GetDeletionTimestamp().IsZero() {
+		if !finalizer.ContainsString(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName) {
+			jj.ObjectMeta.Finalizers = append(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName)
+			if err := r.client.Update(context.TODO(), jj); err != nil {
+				return &reconcile.Result{}, err
+			}
+		}
+		return nil, nil
+	}
+
+	jc, err := r.initGoJenkinsClient(*jj)
+	if err != nil {
+		return &reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
+	}
+	s, err := plutil.GetStageInstanceOwner(r.client, *jj)
+	if err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	j := fmt.Sprintf("%v-cd-pipeline/job/%v", s.Spec.CdPipeline, jj.Spec.Job.Name)
+	if _, err := jc.GoJenkins.DeleteJob(j); err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	jj.ObjectMeta.Finalizers = finalizer.RemoveString(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName)
+	if err := r.client.Update(context.TODO(), jj); err != nil {
+		return &reconcile.Result{}, err
+	}
+	return &reconcile.Result{}, nil
 }
