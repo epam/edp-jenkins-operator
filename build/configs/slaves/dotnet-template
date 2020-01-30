@@ -20,7 +20,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>registry.centos.org/dotnet/dotnet-20-jenkins-slave-centos7:latest</image>
+      <image>epamedp/jenkins-agent-dotnet20-openshift:java11</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
@@ -31,7 +31,12 @@
       <resourceRequestMemory></resourceRequestMemory>
       <resourceLimitCpu></resourceLimitCpu>
       <resourceLimitMemory></resourceLimitMemory>
-      <envVars/>
+      <envVars>
+        <org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+          <key>JAVA_TOOL_OPTIONS</key>
+          <value>-XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true</value>
+        </org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+      </envVars>
       <ports/>
     </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
   </containers>
