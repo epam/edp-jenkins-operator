@@ -29,6 +29,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+
+	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+
+	projectV1 "github.com/openshift/api/project/v1"
 )
 
 var log = logf.Log.WithName("platform")
@@ -37,8 +41,9 @@ var log = logf.Log.WithName("platform")
 type OpenshiftService struct {
 	kubernetes.K8SService
 
-	appClient   appsV1client.AppsV1Client
-	routeClient routeV1Client.RouteV1Client
+	appClient     appsV1client.AppsV1Client
+	routeClient   routeV1Client.RouteV1Client
+	projectClient projectV1Client.ProjectV1Client
 }
 
 // Init initializes OpenshiftService
@@ -58,8 +63,14 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 		return errors.Wrap(err, "Failed to init route V1 client for Openshift")
 	}
 
+	pc, err := projectV1Client.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to init project client for Openshift")
+	}
+
 	service.appClient = *appClient
 	service.routeClient = *routeClient
+	service.projectClient = *pc
 
 	return nil
 }
@@ -501,4 +512,18 @@ func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) 
 		return "", err
 	}
 	return string(o), err
+}
+
+func (s OpenshiftService) CreateProject(name string, or []metav1.OwnerReference) error {
+	log.V(2).Info("start sending request to create project...", "name", name)
+	_, err := s.projectClient.ProjectRequests().Create(
+		&projectV1.ProjectRequest{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            name,
+				OwnerReferences: or,
+			},
+			Description: "deploy project for stage",
+		},
+	)
+	return err
 }
