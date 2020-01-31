@@ -25,7 +25,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>openshift/jenkins-agent-maven-35-centos7:v3.10</image>
+      <image>epamedp/jenkins-agent-maven-openshift:java11</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
@@ -36,6 +36,12 @@
       <resourceRequestMemory></resourceRequestMemory>
       <resourceLimitCpu></resourceLimitCpu>
       <resourceLimitMemory></resourceLimitMemory>
+      <envVars>
+        <org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+          <key>JAVA_TOOL_OPTIONS</key>
+          <value>-XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true</value>
+        </org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+      </envVars>
       <ports/>
     </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
   </containers>
