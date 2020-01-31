@@ -1157,3 +1157,7 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 	}
 	return string(o), err
 }
+
+func (s K8SService) DeleteProject(name string) error {
+	return s.coreClient.Namespaces().Delete(name, metav1.NewDeleteOptions(0))
+}

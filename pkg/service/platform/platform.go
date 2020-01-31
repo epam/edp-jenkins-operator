@@ -46,6 +46,7 @@ type PlatformService interface {
 	CreateProject(name string, or []metav1.OwnerReference) error
 	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
 	CreateStageJSON(cr edpv1alpha1.Stage) (string, error)
+	DeleteProject(name string) error
 }
 
 // NewPlatformService returns platform service interface implementation

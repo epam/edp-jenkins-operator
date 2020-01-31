@@ -527,3 +527,7 @@ func (s OpenshiftService) CreateProject(name string, or []metav1.OwnerReference)
 	)
 	return err
 }
+
+func (s OpenshiftService) DeleteProject(name string) error {
+	return s.projectClient.Projects().Delete(name, metav1.NewDeleteOptions(0))
+}

@@ -166,8 +166,11 @@ func (r ReconcileJenkinsJob) tryToDeleteJob(jj *v2v1alpha1.JenkinsJob) (*reconci
 		return &reconcile.Result{}, err
 	}
 
-	j := fmt.Sprintf("%v-cd-pipeline/job/%v", s.Spec.CdPipeline, jj.Spec.Job.Name)
-	if _, err := jc.GoJenkins.DeleteJob(j); err != nil {
+	if err := deleteJob(jc, s.Spec.CdPipeline, jj.Spec.Job.Name); err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	if err := r.deleteProject(jj, s); err != nil {
 		return &reconcile.Result{}, err
 	}
 
@@ -176,4 +179,33 @@ func (r ReconcileJenkinsJob) tryToDeleteJob(jj *v2v1alpha1.JenkinsJob) (*reconci
 		return &reconcile.Result{}, err
 	}
 	return &reconcile.Result{}, nil
+}
+
+func deleteJob(jc *jenkinsClient.JenkinsClient, pipeName, jobName string) error {
+	j := fmt.Sprintf("%v-cd-pipeline/job/%v", pipeName, jobName)
+	if _, err := jc.GoJenkins.DeleteJob(j); err != nil {
+		if err.Error() == "404" {
+			log.V(2).Info("job doesn't exist. skip deleting", "name", j)
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob, s *pipev1alpha1.Stage) error {
+	d, err := r.ps.GetConfigMapData(jj.Namespace, "edp-config")
+	if err != nil {
+		return err
+	}
+
+	pn := fmt.Sprintf("%v-%v", d["edp_name"], s.Name)
+	if err := r.ps.DeleteProject(pn); err != nil {
+		if k8serrors.IsNotFound(err) {
+			log.V(2).Info("project doesn't exist. skip deleting", "name", pn)
+			return nil
+		}
+		return errors.Wrapf(err, "couldn't delete project %v", pn)
+	}
+	return nil
 }
