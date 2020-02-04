@@ -20,7 +20,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>openshift/jenkins-agent-nodejs-8-centos7:v3.10</image>
+      <image>epamedp/jenkins-agent-nidejs8-openshift:java11</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
@@ -31,7 +31,12 @@
       <resourceRequestMemory></resourceRequestMemory>
       <resourceLimitCpu></resourceLimitCpu>
       <resourceLimitMemory></resourceLimitMemory>
-      <envVars/>
+      <envVars>
+        <org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+          <key>JAVA_TOOL_OPTIONS</key>
+          <value>-XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true</value>
+        </org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+      </envVars>
       <ports/>
     </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
   </containers>

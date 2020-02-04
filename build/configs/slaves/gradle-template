@@ -20,7 +20,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/jenkins-slave-gradle-openshift:1.10.0</image>
+      <image>epamedp/jenkins-agent-gradle-openshift:java11</image>
       <privileged>false</privileged>
       <alwaysPullImage>true</alwaysPullImage>
       <workingDir>/tmp</workingDir>
@@ -31,7 +31,12 @@
       <resourceRequestMemory></resourceRequestMemory>
       <resourceLimitCpu></resourceLimitCpu>
       <resourceLimitMemory></resourceLimitMemory>
-      <envVars/>
+      <envVars>
+        <org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+          <key>JAVA_TOOL_OPTIONS</key>
+          <value>-XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true</value>
+        </org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+      </envVars>
       <ports/>
     </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
   </containers>
