@@ -10,8 +10,8 @@ RUN apk add --no-cache ca-certificates openssh-client
 # install operator binary
 COPY jenkins-operator ${OPERATOR}
 
-COPY bin /usr/local/bin
-COPY configs /usr/local/configs
+COPY build/bin /usr/local/bin
+COPY build/configs /usr/local/configs
 
 RUN chmod u+x /usr/local/bin/user_setup && \
     chmod ugo+x /usr/local/bin/entrypoint && \
