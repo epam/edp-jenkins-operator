@@ -13,7 +13,7 @@ require (
 	github.com/epmd-edp/gerrit-operator/v2 v2.1.0-52
 	github.com/epmd-edp/keycloak-operator v1.0.31-alpha-56
 	github.com/go-openapi/spec v0.19.3
-	github.com/openshift/api v3.9.0+incompatible
+	github.com/openshift/api v0.0.0-20180801171038-322a19404e37 // indirect
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/operator-framework/operator-sdk v0.0.0-20190530173525-d6f9cdf2f52e
 	github.com/pkg/errors v0.8.1
