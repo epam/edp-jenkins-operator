@@ -1,0 +1,163 @@
+@startuml
+
+package com.epam.edp.jenkins {
+  class Jenkins {
+  -- metadata --
+    String name
+  -- spec --
+    String image
+    String version
+    JenkinsVolumeStruct[] volumes
+    JenkinsSharedLibraryStruct[] sharedLibraries
+    JenkinsKeycloakStruct keycloakSpec
+    JenkinsEdpSpecStruct: edpSpec
+  -- status --
+    boolean available
+    JenkinsAdminSecret adminSecretName
+    JenkinsSlaveStruct[] slaves
+    JenkinsJobProvisionStruct jobProvisions
+  }
+  EdpComponent <.u. Jenkins : "owner reference"
+
+  class JenkinsVolumeStruct <internal Struct> {
+      String name
+      String storageClass
+      String capacity
+  }
+  JenkinsVolumeStruct <-- Jenkins : "internal structure"
+
+  class JenkinsSharedLibraryStruct <internal Struct> {
+      String name
+      String id
+      String repository
+      String version
+  }
+  JenkinsSharedLibraryStruct <-- Jenkins : "internal structure"
+
+  class JenkinsKeycloakStruct <internal Struct> {
+      boolean enabled
+      String url
+  }
+  JenkinsKeycloakStruct <-- Jenkins : "internal structure \r(need to be revised)"
+
+  class JenkinsEdpSpecStruct <internal Struct> {
+      String dnsWildcard
+  }
+  JenkinsEdpSpecStruct <-- Jenkins : "internal structure \r(need to be revised)"
+
+
+  class JenkinsAdminSecret <extends Secret> {
+  -- metadata --
+    String name
+  -- data --
+    String username
+    String password
+  }
+  JenkinsAdminSecret <-- Jenkins : "reference by adminSecretName"
+
+  class JenkinsSlaveStruct <internal Struct> {
+      String name
+  }
+  JenkinsSlaveStruct <-- Jenkins : "internal structure"
+
+  class JenkinsJobProvisionStruct <internal Struct> {
+      String name
+  }
+  JenkinsJobProvisionStruct <-- Jenkins : "internal structure"
+
+
+  class JenkinsScript {
+  -- metadata --
+    String name
+  -- spec --
+    String sourceConfigMapName
+    String ownerName
+  -- status --
+    + Bool available
+    + Bool executed
+  }
+  JenkinsScript .u.> Jenkins : "owner reference"
+
+  class JenkinsScriptSourceConfigMap <extends ConfigMap> {
+  -- metadata --
+    String name
+  -- data --
+    String context
+  }
+  JenkinsScriptSourceConfigMap <-d- JenkinsScript : "reference by sourceConfigMapName"
+
+
+  class JenkinsInstaller <<tbd>> {
+  -- metadata --
+  -- spec --
+    String version
+  -- status --
+  }
+  JenkinsInstaller <-r- Jenkins : created if type of component is internal
+
+  class JenkinsServiceAccount {
+  -- metadata --
+    String name
+  -- spec --
+    String type
+    JenkinsServiceAccountSecret credentials
+    String ownerName
+  -- status --
+    + Bool available
+    + Bool created
+  }
+  JenkinsServiceAccount .u.> Jenkins : "owner reference"
+
+  class JenkinsServiceAccountSecret <extends Secret> {
+  -- metadata --
+    String name
+  -- data --
+    String username
+    String password
+  }
+  JenkinsServiceAccountSecret <-d- JenkinsServiceAccount : "reference by credentials"
+
+  class JenkinsFolder <<tbd>> {
+  -- metadata --
+  creates folder with \n create release pipeline
+  -- spec --
+    String name
+  -- status --
+  }
+  JenkinsFolder .u.> Jenkins : "owner reference"
+
+  class JenkinsJob <<tbd>> {
+  -- metadata --
+  -- spec --
+    String name
+    Trigger trigger
+    Map[] parameters
+    JobSource jobSource
+  -- status --
+  }
+  JenkinsJob .u.> JenkinsFolder : "owner reference"
+
+  class JenkinsJobBuild <<tbd>> {
+  -- metadata --
+  -- spec --
+  -- status --
+  }
+  JenkinsJobBuild .u.> JenkinsJob : "owner ref"
+}
+
+
+legend
+|= arrow   |= meaning|
+|  ..>     |   owner references  |
+|  -->     |   creates     |
+|<back:LightGoldenRodYellow>    </back>| Work In Progress |
+|<back:LightGreen>    </back>| Implemented |
+|<back:Khaki>    </back>| TBD |
+endlegend
+
+skinparam class {
+	backgroundColor<<impl>> LightGoldenRodYellow
+	backgroundColor<<wip>> LightGreen
+	backgroundColor<<tbd>> Khaki
+}
+@enduml
