@@ -45,5 +45,5 @@ var (
 	Command = []string{"sh", "-c", fmt.Sprintf(
 		"JENKINS_HOME=\"/var/lib/jenkins\"; mkdir -p $JENKINS_HOME/.ssh; if [ -d /tmp/ssh ];" +
 			"then chmod 777 -R $JENKINS_HOME/.ssh; cat /tmp/ssh/id_rsa >> $JENKINS_HOME/.ssh/id_rsa;" +
-			"chmod 400 $JENKINS_HOME/.ssh/id_rsa; fi")}
+			"chmod 400 $JENKINS_HOME/.ssh/id_rsa; chmod 400 -fR $JENKINS_HOME/.ssh/config; fi")}
 )
