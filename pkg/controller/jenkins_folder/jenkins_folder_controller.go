@@ -9,6 +9,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/finalizer"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
@@ -133,6 +134,10 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{}, err
 	}
 
+	if err := r.tryToSetJenkinsOwnerRef(i); err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while setting owner reference")
+	}
+
 	jc, err := r.initGoJenkinsClient(*i)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
@@ -250,4 +255,26 @@ func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.Jenkin
 		return &reconcile.Result{}, err
 	}
 	return &reconcile.Result{}, nil
+}
+
+func (r *ReconcileJenkinsFolder) tryToSetJenkinsOwnerRef(jf *v2v1alpha1.JenkinsFolder) error {
+	ow := plutil.GetOwnerReference(consts.JenkinsKind, jf.GetOwnerReferences())
+	if ow != nil {
+		log.V(2).Info("jenkins owner ref already exists", "jenkins folder", jf.Name)
+		return nil
+	}
+
+	j, err := plutil.GetFirstJenkinsInstance(r.client, jf.Namespace)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(j, jf, r.scheme); err != nil {
+		return errors.Wrap(err, "couldn't set jenkins owner ref")
+	}
+
+	if err := r.client.Update(context.TODO(), jf); err != nil {
+		return errors.Wrapf(err, "an error has been occurred while updating jenkins job %v", jf.Name)
+	}
+	return nil
 }

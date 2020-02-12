@@ -72,21 +72,21 @@ func GetJenkinsInstanceOwner(c client.Client, name, namespace string, ownerName 
 	plog.V(2).Info("start getting jenkins owner", "owner name", name)
 	if ow := GetOwnerReference(consts.JenkinsKind, ors); ow != nil {
 		plog.V(2).Info("trying to fetch jenkins owner from reference", "jenkins name", ow.Name)
-		return getJenkinsInstance(c, ow.Name, namespace)
+		return GetJenkinsInstance(c, ow.Name, namespace)
 	}
 	if ownerName != nil {
 		log.Info("trying to fetch jenkins owner from spec", "jenkins name", ownerName)
-		return getJenkinsInstance(c, *ownerName, namespace)
+		return GetJenkinsInstance(c, *ownerName, namespace)
 	}
 	plog.V(2).Info("trying to fetch first jenkins instance", "namespace", namespace)
-	j, err := getFirstJenkinsInstance(c, namespace)
+	j, err := GetFirstJenkinsInstance(c, namespace)
 	if err != nil {
 		return nil, err
 	}
 	return j, nil
 }
 
-func getJenkinsInstance(c client.Client, name, namespace string) (*v2v1alpha1.Jenkins, error) {
+func GetJenkinsInstance(c client.Client, name, namespace string) (*v2v1alpha1.Jenkins, error) {
 	nsn := types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,
@@ -98,7 +98,7 @@ func getJenkinsInstance(c client.Client, name, namespace string) (*v2v1alpha1.Je
 	return instance, nil
 }
 
-func getFirstJenkinsInstance(c client.Client, namespace string) (*v2v1alpha1.Jenkins, error) {
+func GetFirstJenkinsInstance(c client.Client, namespace string) (*v2v1alpha1.Jenkins, error) {
 	list := &v2v1alpha1.JenkinsList{}
 	if err := c.List(context.TODO(), &client.ListOptions{Namespace: namespace}, list); err != nil {
 		return nil, errors.Wrapf(err, "couldn't get Jenkins instances in namespace %v", namespace)
@@ -107,5 +107,5 @@ func getFirstJenkinsInstance(c client.Client, namespace string) (*v2v1alpha1.Jen
 		return nil, fmt.Errorf("at least one Jenkins instance should be accessible")
 	}
 	j := list.Items[0]
-	return getJenkinsInstance(c, j.Name, j.Namespace)
+	return GetJenkinsInstance(c, j.Name, j.Namespace)
 }

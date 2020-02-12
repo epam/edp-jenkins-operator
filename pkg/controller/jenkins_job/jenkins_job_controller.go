@@ -9,6 +9,7 @@ import (
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/finalizer"
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
@@ -19,6 +20,7 @@ import (
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -120,6 +122,10 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	if err := r.tryToSetJenkinsOwnerRef(i); err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while setting owner reference")
+	}
+
 	if result, err := r.tryToDeleteJob(i); result != nil || err != nil {
 		return *result, err
 	}
@@ -206,6 +212,28 @@ func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob, s *pipev1a
 			return nil
 		}
 		return errors.Wrapf(err, "couldn't delete project %v", pn)
+	}
+	return nil
+}
+
+func (r *ReconcileJenkinsJob) tryToSetJenkinsOwnerRef(jj *v2v1alpha1.JenkinsJob) error {
+	ow := plutil.GetOwnerReference(consts.JenkinsKind, jj.GetOwnerReferences())
+	if ow != nil {
+		log.V(2).Info("jenkins owner ref already exists", "jenkins folder", jj.Name)
+		return nil
+	}
+
+	j, err := plutil.GetFirstJenkinsInstance(r.client, jj.Namespace)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(j, jj, r.scheme); err != nil {
+		return errors.Wrap(err, "couldn't set jenkins owner ref")
+	}
+
+	if err := r.client.Update(context.TODO(), jj); err != nil {
+		return errors.Wrapf(err, "an error has been occurred while updating jenkins job %v", jj.Name)
 	}
 	return nil
 }
