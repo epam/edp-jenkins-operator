@@ -40,6 +40,11 @@ spec:
               anyOf:
                 - type: null
                 - type: string
+            jenkinsFolder:
+              description: 'Property indicates name of folder for current stage.'
+              anyOf:
+                - type: null
+                - type: string
             job:
               properties:
                 name:

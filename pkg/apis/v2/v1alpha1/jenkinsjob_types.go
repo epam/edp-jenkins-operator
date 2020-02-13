@@ -15,9 +15,10 @@ type JenkinsJobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	OwnerName *string `json:"ownerName"`
-	StageName *string `json:"stageName"`
-	Job       Job     `json:"job"`
+	OwnerName     *string `json:"ownerName,omitempty"`
+	StageName     *string `json:"stageName,omitempty"`
+	JenkinsFolder *string `json:"jenkinsFolder,omitempty"`
+	Job           Job     `json:"job"`
 }
 
 type Job struct {

@@ -3,6 +3,7 @@ kind: JenkinsJob
 metadata:
   name: example-jenkins-job
 spec:
+  jenkinsFolder: "example-folder-name"
   ownerName: "example-jenkins"
   stageName: null
   job:
