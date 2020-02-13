@@ -8,9 +8,11 @@ const (
 	StatusFinished   = "created"
 	StatusInProgress = "in progress"
 
-	JenkinsKind  = "Jenkins"
-	CodebaseKind = "Codebase"
-	StageKind    = "Stage"
+	JenkinsKind       = "Jenkins"
+	CodebaseKind      = "Codebase"
+	StageKind         = "Stage"
+	JenkinsFolderKind = "JenkinsFolder"
+	CDPipelineKind    = "CDPipeline"
 
 	AuthorizationApiGroup = "rbac.authorization.k8s.io"
 	ClusterRoleKind       = "ClusterRole"

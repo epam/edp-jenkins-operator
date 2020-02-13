@@ -44,18 +44,12 @@ func (h PutJenkinsPipeline) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 }
 
 func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
-	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
-	if err != nil {
-		return err
-	}
-
 	jc, err := h.initGoJenkinsClient(jj)
 	if err != nil {
 		return err
 	}
 
-	pfn := s.Spec.CdPipeline + "-cd-pipeline"
-	jp := fmt.Sprintf("%v/job/%v", pfn, jj.Spec.Job.Name)
+	jp := h.getJobName(jj)
 	job, err := h.getJob(jc, jp)
 	if err != nil {
 		return err
@@ -63,6 +57,11 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 	if job != nil {
 		log.V(2).Info("job already exists. skip creating", "name", jp)
 		return nil
+	}
+
+	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
+	if err != nil {
+		return err
 	}
 
 	json, err := h.ps.CreateStageJSON(*s)
@@ -75,11 +74,36 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 		return err
 	}
 
-	_, err = jc.GoJenkins.CreateJobInFolder(*conf, jj.Spec.Job.Name, pfn)
-	if err != nil {
+	if err := h.createJob(jc, conf, jj); err != nil {
+		return errors.Wrap(err, "couldn't create jenkins job")
+	}
+
+	log.Info("job has been created", "name", jp)
+	return nil
+}
+
+func (h PutJenkinsPipeline) getJobName(jj *v1alpha1.JenkinsJob) string {
+	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
+		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jj.Spec.Job.Name)
+	}
+	return jj.Spec.Job.Name
+}
+
+func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *string, jj *v1alpha1.JenkinsJob) error {
+	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
+		pfn := fmt.Sprintf("%v-%v", *jj.Spec.JenkinsFolder, "cd-pipeline")
+		_, err := jc.GoJenkins.CreateJobInFolder(*conf, jj.Spec.Job.Name, pfn)
+		if err != nil {
+			return err
+		}
+		log.V(2).Info("job has been created",
+			"name", fmt.Sprintf("%v/%v", pfn, jj.Spec.Job.Name))
+		return nil
+	}
+	if _, err := jc.GoJenkins.CreateJob(*conf, jj.Spec.Job.Name); err != nil {
 		return err
 	}
-	log.Info("job has been created", "name", jp)
+	log.V(2).Info("job has been created", "name", jj.Spec.Job.Name)
 	return nil
 }
 

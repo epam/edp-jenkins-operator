@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"time"
 )
 
 var log = logf.Log.WithName("controller_jenkins_job")
@@ -101,7 +102,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 // blank assignment to verify that ReconcileJenkins implements reconcile.Reconciler
 var _ reconcile.Reconciler = &ReconcileJenkinsJob{}
 
-const JenkinsJobFinalizerName = "jenkinsjob.finalizer.name"
+const jenkinsJobFinalizerName = "jenkinsjob.finalizer.name"
 
 // ReconcileJenkinsJob reconciles a Jenkins object
 type ReconcileJenkinsJob struct {
@@ -111,8 +112,8 @@ type ReconcileJenkinsJob struct {
 }
 
 func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.V(2).Info("reconciling JenkinsJob has been started")
+	rlog := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	rlog.V(2).Info("reconciling JenkinsJob has been started")
 
 	i := &v2v1alpha1.JenkinsJob{}
 	if err := r.client.Get(context.TODO(), request.NamespacedName, i); err != nil {
@@ -122,8 +123,17 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
-	if err := r.tryToSetJenkinsOwnerRef(i); err != nil {
+	if err := r.setOwners(i); err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while setting owner reference")
+	}
+
+	c, err := r.jenkinsFolderIsCreated(i)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while checking availability of creating jenkins job")
+	}
+	if !c {
+		rlog.V(2).Info("jenkins folder for stages is not ready yet")
+		return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	if result, err := r.tryToDeleteJob(i); result != nil || err != nil {
@@ -139,7 +149,7 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
-	reqLogger.V(2).Info("reconciling JenkinsJob has been finished")
+	rlog.V(2).Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
 }
 
@@ -154,8 +164,8 @@ func (r ReconcileJenkinsJob) initGoJenkinsClient(jj v2v1alpha1.JenkinsJob) (*jen
 
 func (r ReconcileJenkinsJob) tryToDeleteJob(jj *v2v1alpha1.JenkinsJob) (*reconcile.Result, error) {
 	if jj.GetDeletionTimestamp().IsZero() {
-		if !finalizer.ContainsString(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName) {
-			jj.ObjectMeta.Finalizers = append(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName)
+		if !finalizer.ContainsString(jj.ObjectMeta.Finalizers, jenkinsJobFinalizerName) {
+			jj.ObjectMeta.Finalizers = append(jj.ObjectMeta.Finalizers, jenkinsJobFinalizerName)
 			if err := r.client.Update(context.TODO(), jj); err != nil {
 				return &reconcile.Result{}, err
 			}
@@ -163,35 +173,31 @@ func (r ReconcileJenkinsJob) tryToDeleteJob(jj *v2v1alpha1.JenkinsJob) (*reconci
 		return nil, nil
 	}
 
-	jc, err := r.initGoJenkinsClient(*jj)
-	if err != nil {
-		return &reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
-	}
-	s, err := plutil.GetStageInstanceOwner(r.client, *jj)
-	if err != nil {
+	if err := r.deleteJob(jj); err != nil {
 		return &reconcile.Result{}, err
 	}
 
-	if err := deleteJob(jc, s.Spec.CdPipeline, jj.Spec.Job.Name); err != nil {
+	if err := r.deleteProject(jj); err != nil {
 		return &reconcile.Result{}, err
 	}
 
-	if err := r.deleteProject(jj, s); err != nil {
-		return &reconcile.Result{}, err
-	}
-
-	jj.ObjectMeta.Finalizers = finalizer.RemoveString(jj.ObjectMeta.Finalizers, JenkinsJobFinalizerName)
+	jj.ObjectMeta.Finalizers = finalizer.RemoveString(jj.ObjectMeta.Finalizers, jenkinsJobFinalizerName)
 	if err := r.client.Update(context.TODO(), jj); err != nil {
 		return &reconcile.Result{}, err
 	}
 	return &reconcile.Result{}, nil
 }
 
-func deleteJob(jc *jenkinsClient.JenkinsClient, pipeName, jobName string) error {
-	j := fmt.Sprintf("%v-cd-pipeline/job/%v", pipeName, jobName)
+func (r ReconcileJenkinsJob) deleteJob(jj *v2v1alpha1.JenkinsJob) error {
+	jc, err := r.initGoJenkinsClient(*jj)
+	if err != nil {
+		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
+	}
+
+	j := r.getJobName(jj)
 	if _, err := jc.GoJenkins.DeleteJob(j); err != nil {
 		if err.Error() == "404" {
-			log.V(2).Info("job doesn't exist. skip deleting", "name", j)
+			log.V(2).Info("job/folder doesn't exist. skip deleting", "name", j)
 			return nil
 		}
 		return err
@@ -199,8 +205,20 @@ func deleteJob(jc *jenkinsClient.JenkinsClient, pipeName, jobName string) error 
 	return nil
 }
 
-func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob, s *pipev1alpha1.Stage) error {
+func (r ReconcileJenkinsJob) getJobName(jj *v2v1alpha1.JenkinsJob) string {
+	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
+		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jj.Spec.Job.Name)
+	}
+	return jj.Spec.Job.Name
+}
+
+func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob) error {
 	d, err := r.ps.GetConfigMapData(jj.Namespace, "edp-config")
+	if err != nil {
+		return err
+	}
+
+	s, err := plutil.GetStageInstanceOwner(r.client, *jj)
 	if err != nil {
 		return err
 	}
@@ -216,10 +234,19 @@ func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob, s *pipev1a
 	return nil
 }
 
+func (r *ReconcileJenkinsJob) setOwners(jj *v2v1alpha1.JenkinsJob) error {
+	if err := r.tryToSetStageOwnerRef(jj); err != nil {
+		return err
+	}
+	if err := r.client.Update(context.TODO(), jj); err != nil {
+		return errors.Wrapf(err, "an error has been occurred while updating jenkins job %v", jj.Name)
+	}
+	return nil
+}
+
 func (r *ReconcileJenkinsJob) tryToSetJenkinsOwnerRef(jj *v2v1alpha1.JenkinsJob) error {
-	ow := plutil.GetOwnerReference(consts.JenkinsKind, jj.GetOwnerReferences())
-	if ow != nil {
-		log.V(2).Info("jenkins owner ref already exists", "jenkins folder", jj.Name)
+	if ow := plutil.GetOwnerReference(consts.JenkinsKind, jj.GetOwnerReferences()); ow != nil {
+		log.V(2).Info("jenkins owner ref already exists", "jenkins job", jj.Name)
 		return nil
 	}
 
@@ -228,12 +255,61 @@ func (r *ReconcileJenkinsJob) tryToSetJenkinsOwnerRef(jj *v2v1alpha1.JenkinsJob)
 		return err
 	}
 
-	if err := controllerutil.SetControllerReference(j, jj, r.scheme); err != nil {
+	if err := plutil.SetControllerReference(j, jj, r.scheme, false); err != nil {
 		return errors.Wrap(err, "couldn't set jenkins owner ref")
 	}
+	return nil
+}
 
-	if err := r.client.Update(context.TODO(), jj); err != nil {
-		return errors.Wrapf(err, "an error has been occurred while updating jenkins job %v", jj.Name)
+func (r *ReconcileJenkinsJob) tryToSetStageOwnerRef(jj *v2v1alpha1.JenkinsJob) error {
+	if ow := plutil.GetOwnerReference(consts.StageKind, jj.GetOwnerReferences()); ow != nil {
+		log.V(2).Info("stage ref already exists", "jenkins job", jj.Name)
+		return nil
+	}
+
+	s, err := plutil.GetStageInstance(r.client, *jj.Spec.StageName, jj.Namespace)
+	if err != nil {
+		return err
+	}
+
+	if err := controllerutil.SetControllerReference(s, jj, r.scheme); err != nil {
+		return errors.Wrap(err, "couldn't set stage owner ref")
 	}
 	return nil
+}
+
+func (r *ReconcileJenkinsJob) tryToSetJenkinsFolderOwnerRef(jj *v2v1alpha1.JenkinsJob) error {
+	if jj.Spec.JenkinsFolder == nil || *jj.Spec.JenkinsFolder == "" {
+		log.V(2).Info("skip setting jenkins folder reference", "jenkins job", jj.Name)
+		return nil
+	}
+
+	if ow := plutil.GetOwnerReference(consts.JenkinsFolderKind, jj.GetOwnerReferences()); ow != nil {
+		log.V(2).Info("jenkins folder ref already exists", "jenkins job", jj.Name)
+		return nil
+	}
+
+	jf, err := plutil.GetJenkinsFolderInstance(r.client, *jj.Spec.JenkinsFolder, jj.Namespace)
+	if err != nil {
+		return err
+	}
+
+	if err := plutil.SetControllerReference(jf, jj, r.scheme, false); err != nil {
+		return errors.Wrap(err, "couldn't set jenkins folder owner ref")
+	}
+	return nil
+}
+
+func (r *ReconcileJenkinsJob) jenkinsFolderIsCreated(jj *v2v1alpha1.JenkinsJob) (bool, error) {
+	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
+		jfn := fmt.Sprintf("%v-%v", *jj.Spec.JenkinsFolder, "cd-pipeline")
+		jf, err := plutil.GetJenkinsFolderInstance(r.client, jfn, jj.Namespace)
+		if err != nil {
+			return false, err
+		}
+		log.V(2).Info("create job in Jenkins folder", "name", jfn, "status folder", jf.Status.Available)
+		return jf.Status.Available, nil
+	}
+	log.V(2).Info("create job in Jenkins root folder", "name", jj.Name)
+	return true, nil
 }
