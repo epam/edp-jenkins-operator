@@ -98,8 +98,15 @@ if (BRANCH) {
 
     def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
+        def jobExists = false
+        if("${branch.toUpperCase()}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
+            jobExists = true
+
         createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultBuild), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
+
+        if(!jobExists)
+          queue("${codebaseName}/${branch.toUpperCase()}-Build-${codebaseName}")
     }
 }
 
