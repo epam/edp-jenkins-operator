@@ -110,7 +110,7 @@ func GetJenkinsFolderInstance(c client.Client, name, namespace string) (*v2v1alp
 	}
 	i := &v2v1alpha1.JenkinsFolder{}
 	if err := c.Get(context.TODO(), nsn, i); err != nil {
-		return nil, errors.Wrapf(err, "failed to get instance by name %v", name)
+		return nil, err
 	}
 	return i, nil
 }

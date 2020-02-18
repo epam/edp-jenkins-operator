@@ -123,21 +123,21 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	if result, err := r.tryToDeleteJob(i); result != nil || err != nil {
+		return *result, err
+	}
+
 	if err := r.setOwners(i); err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while setting owner reference")
 	}
 
-	c, err := r.jenkinsFolderIsCreated(i)
+	c, err := r.canJenkinsJobBeHandled(i)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while checking availability of creating jenkins job")
 	}
 	if !c {
 		rlog.V(2).Info("jenkins folder for stages is not ready yet")
 		return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
-	}
-
-	if result, err := r.tryToDeleteJob(i); result != nil || err != nil {
-		return *result, err
 	}
 
 	ch, err := chain.CreateDefChain(r.scheme, &r.client)
@@ -300,7 +300,7 @@ func (r *ReconcileJenkinsJob) tryToSetJenkinsFolderOwnerRef(jj *v2v1alpha1.Jenki
 	return nil
 }
 
-func (r *ReconcileJenkinsJob) jenkinsFolderIsCreated(jj *v2v1alpha1.JenkinsJob) (bool, error) {
+func (r *ReconcileJenkinsJob) canJenkinsJobBeHandled(jj *v2v1alpha1.JenkinsJob) (bool, error) {
 	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
 		jfn := fmt.Sprintf("%v-%v", *jj.Spec.JenkinsFolder, "cd-pipeline")
 		jf, err := plutil.GetJenkinsFolderInstance(r.client, jfn, jj.Namespace)
