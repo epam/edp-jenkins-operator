@@ -50,6 +50,12 @@ If you use one of these names for annotation in your own class, it will lead to 
 Find below a sample of the possible flow of the redefining deploy stage:
 - Clone the repository with the added library;
 - Create a "stages" directory in the root;
+- Create a Jenkinsfile with default content:
+```
+@Library(['edp-library-stages', 'edp-library-pipelines']) _
+
+Deploy()
+```
 - Create a groovy file with a meaningful name, e.g. CustomDeployStage.groovy;
 - Put the required construction and your own logic into the file:
 ```
