@@ -41,4 +41,5 @@ In order to apply the necessary customization, get acquainted with the following
 * [Add Job Provision](documentation/add-job-provision.md)
 * [GitLab Integration](documentation/gitlab-integration.md)
 * [GitHub Integration](documentation/github-integration.md)
-* [Customize CD Pipeline](documentation/customize-deploy-pipeline.md) 
+* [Customize CD Pipeline](documentation/customize-deploy-pipeline.md)
+* [Local Development](documentation/local-development.md)
