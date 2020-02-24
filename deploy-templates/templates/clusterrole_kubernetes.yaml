@@ -1,0 +1,76 @@
+{{ if eq .Values.platform "kubernetes" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    annotations:
+        kubernetes.io/description: Role for {{ .Values.name }}-edp service account
+        kubernetes.io/reconcile-protect: "false"
+    name: edp-{{ .Values.name }}-clusterrole-{{ .Values.namespace }}
+rules:
+- apiGroups:
+  - 'rbac.authorization.k8s.io'
+  attributeRestrictions: null
+  resources:
+  - clusterroles
+  verbs:
+  - get
+- apiGroups:
+  - '*'
+  attributeRestrictions: null
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups:
+  - '*'
+  attributeRestrictions: null
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - create
+- apiGroups:
+    - '*'
+  attributeRestrictions: null
+  resources:
+    - clusterrolebindings
+  verbs:
+    - get
+    - create
+    - delete
+- apiGroups:
+    - '*'
+  attributeRestrictions: null
+  resources:
+    - keycloaks
+    - gerrits
+    - keycloaks/status
+    - keycloakclients
+    - keycloakclients/finalizers
+    - keycloakclients/status
+    - keycloakrealms
+    - keycloakrealms/status
+    - jenkins
+    - jenkins/finalizers
+    - jenkins/status
+    - jenkinses
+    - jenkinses/finalizers
+    - jenkinses/status
+    - jenkinsserviceaccounts
+    - jenkinsserviceaccounts/finalizers
+    - jenkinsserviceaccounts/status
+    - jenkinsscripts
+    - jenkinsscripts/finalizers
+    - jenkinsscripts/status
+    - jenkinsjobs
+    - jenkinsjobs/finalizers
+    - jenkinsjobs/status
+    - jenkinsfolders
+    - jenkinsfolders/finalizers
+    - jenkinsfolders/status
+    - edpcomponents
+  verbs:
+    - '*'
+{{ end }}

@@ -1,0 +1,69 @@
+{{ if eq .Values.platform "openshift" }}
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRole
+metadata:
+    annotations:
+        openshift.io/description: Role for {{ .Values.name }}-edp service account
+        openshift.io/reconcile-protect: "false"
+    name: edp-{{ .Values.name }}-clusterrole-{{ .Values.namespace }}
+rules:
+- apiGroups:
+  - '*'
+  attributeRestrictions: null
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups:
+  - ""
+  - project.openshift.io
+  attributeRestrictions: null
+  resources:
+  - projectrequests
+  verbs:
+  - create
+- apiGroups:
+    - '*'
+  attributeRestrictions: null
+  resources:
+    - clusterrolebindings
+  verbs:
+    - get
+    - create
+    - delete
+- apiGroups:
+    - '*'
+  attributeRestrictions: null
+  resources:
+    - keycloaks
+    - gerrits
+    - keycloaks/status
+    - keycloakclients
+    - keycloakclients/finalizers
+    - keycloakclients/status
+    - keycloakrealms
+    - keycloakrealms/status
+    - jenkins
+    - jenkins/finalizers
+    - jenkins/status
+    - jenkinses
+    - jenkinses/finalizers
+    - jenkinses/status
+    - jenkinsserviceaccounts
+    - jenkinsserviceaccounts/finalizers
+    - jenkinsserviceaccounts/status
+    - jenkinsscripts
+    - jenkinsscripts/finalizers
+    - jenkinsscripts/status
+    - jenkinsjobs
+    - jenkinsjobs/finalizers
+    - jenkinsjobs/status
+    - jenkinsfolders
+    - jenkinsfolders/finalizers
+    - jenkinsfolders/status
+    - edpcomponents
+  verbs:
+    - '*'
+{{ end }}
