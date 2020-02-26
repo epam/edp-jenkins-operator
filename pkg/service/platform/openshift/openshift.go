@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/rest"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -339,13 +338,6 @@ func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins
 		log.Info(fmt.Sprintf("Route %s/%s has been created", route.Namespace, route.Name))
 	} else if err != nil {
 		return err
-	} else if !reflect.DeepEqual(routeObject.Spec, route.Spec) {
-
-		route.Spec = routeObject.Spec
-		_, err = service.routeClient.Routes(routeObject.Namespace).Update(route)
-		if err != nil {
-			return errors.Wrapf(err, "Failed to update Route %v !", routeObject.Name)
-		}
 	}
 
 	return nil
