@@ -31,7 +31,6 @@ import (
 	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -561,13 +560,6 @@ func (service K8SService) CreateService(instance v1alpha1.Jenkins) error {
 		reqLogger.Info(fmt.Sprintf("Service %v has been created", svc.Name))
 	} else if err != nil {
 		return errors.Wrapf(err, "Couldn't get Service %v object", serviceObject.Name)
-	} else if !reflect.DeepEqual(svc.Spec.Ports, serviceObject.Spec.Ports) {
-		svc.Spec.Ports = serviceObject.Spec.Ports
-		_, err := service.coreClient.Services(instance.Namespace).Update(svc)
-		if err != nil {
-			return errors.Wrapf(err, fmt.Sprintf("Couldn't update Service %v object", svc.Name))
-		}
-		reqLogger.Info(fmt.Sprintf("Service %v has been updated", svc.Name))
 	}
 
 	return nil
@@ -1009,16 +1001,6 @@ func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) erro
 			log.Info(fmt.Sprintf("Ingress %s/%s has been created", ingress.Namespace, ingress.Name))
 		}
 		return err
-	}
-
-	if reflect.DeepEqual(ingressObject.Spec, ingress.Spec) {
-		return nil
-	}
-
-	ingress.Spec = ingressObject.Spec
-	_, err = service.extensionsV1Client.Ingresses(ingressObject.Namespace).Update(ingress)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to update Ingress %v !", ingressObject.Name)
 	}
 
 	return nil
