@@ -83,29 +83,29 @@ func (service OpenshiftService) CreateHelmRoleBinding(instance v1alpha1.Jenkins)
 }
 
 // // GetExternalEndpoint returns hostname and protocol for Route
-func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
+func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
-		return "", "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
+		return "", "", "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
 	} else if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	var routeScheme = jenkinsDefaultSpec.RouteHTTPScheme
 	if route.Spec.TLS.Termination != "" {
 		routeScheme = jenkinsDefaultSpec.RouteHTTPSScheme
 	}
-	return route.Spec.Host, routeScheme, nil
+	return route.Spec.Host, routeScheme, route.Spec.Path, nil
 }
 
 // CreateDeployment - creates deployment configs for Jenkins instance
 func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) error {
-	routeHost, routeScheme, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
+	routeHost, routeScheme, routePath, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
 	}
 
-	jenkinsUiUrl := fmt.Sprintf("%v://%v", routeScheme, routeHost)
+	jenkinsUiUrl := fmt.Sprintf("%v://%v%v", routeScheme, routeHost, routePath)
 
 	// Can't assign pointer to constant, that is why — create an intermediate var.
 	timeout := jenkinsDefaultSpec.JenkinsRecreateTimeout
@@ -301,7 +301,6 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 
 // CreateExternalEndpoint creates Openshift route
 func (service OpenshiftService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
-
 	labels := helper.GenerateLabels(instance.Name)
 
 	routeObject := &routeV1Api.Route{

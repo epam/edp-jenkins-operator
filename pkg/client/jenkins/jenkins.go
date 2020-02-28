@@ -35,11 +35,11 @@ type JenkinsClient struct {
 
 // InitNewRestClient performs initialization of Jenkins connection
 func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
-	host, scheme, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+	h, s, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
 	}
-	apiUrl := fmt.Sprintf("%v://%v", scheme, host)
+	apiUrl := fmt.Sprintf("%v://%v%v", s, h, p)
 	if instance.Status.AdminSecretName == "" {
 		log.V(1).Info("Admin secret is not created yet")
 		return nil, nil
@@ -58,7 +58,7 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 }
 
 func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
-	host, scheme, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+	h, shm, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
 	}
@@ -67,7 +67,7 @@ func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Pl
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get admin secret for %v", instance.Name)
 	}
-	url := fmt.Sprintf("%v://%v", scheme, host)
+	url := fmt.Sprintf("%v://%v%v", shm, h, p)
 	log.V(2).Info("initializing new Jenkins client", "url", url, "username", string(s["username"]))
 	jenkins, err := gojenkins.CreateJenkins(&http.Client{}, url, string(s["username"]), string(s["password"])).Init()
 	if err != nil {

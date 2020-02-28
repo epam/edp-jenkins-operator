@@ -136,12 +136,8 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 
 	err := j.k8sClient.List(context.TODO(), &options, list)
 	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			log.Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
-			return nil
-		} else {
-			return errors.Wrapf(err, fmt.Sprintf("Unable to get Gerrit CRs in namespace %v", instance.Namespace))
-		}
+		log.Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
+		return nil
 	}
 
 	if len(list.Items) == 0 {
@@ -222,12 +218,12 @@ func (j JenkinsServiceImpl) setAnnotation(instance *v1alpha1.Jenkins, key string
 func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
 	if instance.Spec.KeycloakSpec.Enabled {
 
-		host, scheme, err := j.platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+		h, s, p, err := j.platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 		if err != nil {
 			return &instance, false, errors.Wrap(err, "Failed to get route from cluster!")
 		}
 
-		webUrl := fmt.Sprintf("%s://%s", scheme, host)
+		webUrl := fmt.Sprintf("%v://%v%v", s, h, p)
 		keycloakClient := keycloakV1Api.KeycloakClient{}
 		keycloakClient.Name = instance.Name
 		keycloakClient.Namespace = instance.Namespace
@@ -365,11 +361,11 @@ func (j JenkinsServiceImpl) createEDPComponent(jen v1alpha1.Jenkins) error {
 }
 
 func (j JenkinsServiceImpl) getUrl(jen v1alpha1.Jenkins) (*string, error) {
-	host, scheme, err := j.platformService.GetExternalEndpoint(jen.Namespace, jen.Name)
+	h, s, p, err := j.platformService.GetExternalEndpoint(jen.Namespace, jen.Name)
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%v://%v", scheme, host)
+	url := fmt.Sprintf("%v://%v%v", s, h, p)
 	return &url, nil
 }
 

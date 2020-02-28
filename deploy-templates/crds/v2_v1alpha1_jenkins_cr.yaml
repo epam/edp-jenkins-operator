@@ -5,6 +5,7 @@ metadata:
 spec:
   version: "2.2.0"
   image: "epamedp/edp-jenkins"
+  basePath: ""
   volumes:
     - name: "data"
       storageClass: "gp2"

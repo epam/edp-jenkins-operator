@@ -214,7 +214,7 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	if instance.Status.Status == StatusIntegrationStart {
-		reqLogger.Info("Configuration of %v/%v object has been finished", instance.Namespace, instance.Name)
+		reqLogger.Info("Configuration has been finished", instance.Namespace, instance.Name)
 		err = r.updateStatus(instance, StatusReady)
 		if err != nil {
 			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
