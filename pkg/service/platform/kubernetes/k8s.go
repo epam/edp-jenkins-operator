@@ -208,15 +208,15 @@ func (service K8SService) CreateServiceAccount(instance v1alpha1.Jenkins) error 
 }
 
 // GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
-func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, error) {
+func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
 	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
-		return "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
+		return "", "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
 	} else if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
-	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme, nil
+	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme, ingress.Spec.Rules[0].HTTP.Paths[0].Path, nil
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
@@ -258,7 +258,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 // CreateDeployment performs creating Deployment in K8S
 func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	reqLog := log.WithValues("jenkins ", instance)
-	h, s, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
+	h, s, p, err := service.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,14 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 	var uid int64 = 999
 	var gid int64 = 998
 	var fid int64 = 0
-	url := fmt.Sprintf("%v://%v", s, h)
+	url := fmt.Sprintf("%v://%v%v", s, h, p)
+
+	jenkinsOptsEnv := "--requestHeaderSize=32768"
+	rpPath := "/login"
+	if len(instance.Spec.BasePath) != 0 {
+		jenkinsOptsEnv = fmt.Sprintf("%v --prefix=/%v", jenkinsOptsEnv, instance.Spec.BasePath)
+		rpPath = fmt.Sprintf("%v/login", instance.Spec.BasePath)
+	}
 
 	jo := &extensionsApi.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -376,7 +383,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 								},
 								{
 									Name:  "JENKINS_OPTS",
-									Value: "--requestHeaderSize=32768",
+									Value: jenkinsOptsEnv,
 								},
 								{
 									Name:  "PLATFORM_TYPE",
@@ -398,7 +405,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 								FailureThreshold:    3,
 								Handler: coreV1Api.Handler{
 									HTTPGet: &coreV1Api.HTTPGetAction{
-										Path:   "/login",
+										Path:   rpPath,
 										Port:   intstr.FromInt(jenkinsDefaultSpec.JenkinsDefaultUiPort),
 										Scheme: coreV1Api.URISchemeHTTP,
 									},
@@ -959,6 +966,13 @@ func (service K8SService) CreateJenkinsScript(namespace string, configMap string
 func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) error {
 	labels := helper.GenerateLabels(instance.Name)
 
+	hostname := fmt.Sprintf("%v-%v.%v", instance.Name, instance.Namespace, instance.Spec.EdpSpec.DnsWildcard)
+	path := "/"
+	if len(instance.Spec.BasePath) != 0 {
+		hostname = instance.Spec.EdpSpec.DnsWildcard
+		path = fmt.Sprintf("/%v", instance.Spec.BasePath)
+	}
+
 	ingressObject := &extensionsApi.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
@@ -968,12 +982,12 @@ func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) erro
 		Spec: extensionsApi.IngressSpec{
 			Rules: []extensionsApi.IngressRule{
 				{
-					Host: fmt.Sprintf("%v-%v.%v", instance.Name, instance.Namespace, instance.Spec.EdpSpec.DnsWildcard),
+					Host: hostname,
 					IngressRuleValue: extensionsApi.IngressRuleValue{
 						HTTP: &extensionsApi.HTTPIngressRuleValue{
 							Paths: []extensionsApi.HTTPIngressPath{
 								{
-									Path: "/",
+									Path: path,
 									Backend: extensionsApi.IngressBackend{
 										ServiceName: instance.Name,
 										ServicePort: intstr.IntOrString{IntVal: jenkinsDefaultSpec.JenkinsDefaultUiPort},

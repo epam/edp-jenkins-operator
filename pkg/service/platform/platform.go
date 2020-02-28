@@ -27,7 +27,7 @@ type PlatformService interface {
 	CreateRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
 	CreateClusterRolePolicyRules() []authV1Api.PolicyRule
 	CreateClusterRole(ac v1alpha1.Jenkins, roleName string, rules []authV1Api.PolicyRule) error
-	GetExternalEndpoint(namespace string, name string) (string, string, error)
+	GetExternalEndpoint(namespace string, name string) (string, string, string, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	CreateUserRoleBinding(instance v1alpha1.Jenkins, name string, binding string, kind string) error

@@ -17,6 +17,7 @@ type JenkinsSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Image           string                   `json:"image"`
 	Version         string                   `json:"version"`
+	BasePath        string                   `json:"basePath, omitempty"`
 	Volumes         []JenkinsVolumes         `json:"volumes, omitempty"`
 	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries, omitempty"`
 	KeycloakSpec    KeycloakSpec             `json:"keycloakSpec"`
