@@ -16,16 +16,16 @@ Discover the steps below to apply the GitHub integration correctly:
  
 3.	Navigate to Jenkins -> Credentials -> System -> Global credentials -> Add credentials, and create new credentials with the *Secret text* kind. In the Secret field, provide your GitHub API token, fill in the *ID* field with the *github-access-token* value:
 
-        ![jenkins_github_cred](../readme-resource/jenkins_github_cred.png "jenkins_github_cred") 
+    ![jenkins_github_cred](../readme-resource/jenkins_github_cred.png "jenkins_github_cred") 
     
 4.	Navigate to Jenkins -> Manage Jenkins -> Configure system -> GitHub part, and configure the GitHub server:
 
-        ![github_plugin_config](../readme-resource/github_plugin_config.png "github_plugin_config") 
+    ![github_plugin_config](../readme-resource/github_plugin_config.png "github_plugin_config") 
  
 5.	Configure the GitHub Pull Request Builder plugin:
  _**NOTE**: The **Secret** field is optional, for details, please refer to the official [GitHub pull request builder plugin documentation](https://wiki.jenkins.io/display/JENKINS/GitHub+pull+request+builder+plugin)._
 
-        ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config") 
+    ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config") 
  
 6.	Create a new *Job Provision* by navigating to the Jenkins main page and opening the **job-provisions** folder:
         *	Click New Item;
