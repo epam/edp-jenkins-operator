@@ -99,6 +99,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     ``` 
 
 6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions* folder:
+
     * Click *New Item*;
     * Type the name;
     * Select *Freestyle project* and click OK;
@@ -121,7 +122,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         * Select *DSL Script*;
         * Select the *Use the provided DSL script* check box:
 
-    ![dsl-script](../readme-resource/dsl-script.png "dsl-script")
+   ![dsl_script](../readme-resource/dsl_script.png "dsl_script")
     
     * As soon as all the steps above are performed, insert the code:
 
