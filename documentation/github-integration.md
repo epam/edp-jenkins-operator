@@ -23,24 +23,26 @@ Discover the steps below to apply the GitHub integration correctly:
  _**NOTE**: The **Secret** field is optional, for details, please refer to the official [GitHub pull request builder plugin documentation](https://wiki.jenkins.io/display/JENKINS/GitHub+pull+request+builder+plugin)._
     ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config") 
  
-6.	Create a new *Job Provision* by navigating to the Jenkins main page and opening the **job-provisions** folder:
+6. Create a new *Job Provision* by navigating to the Jenkins main page and opening the **job-provisions** folder:
 
-        *	Click New Item;
-        *	Type the name;
-        *	Select the *Freestyle project* option and click OK;
-        *	Select the *This project is parameterized* check box and add a few input parameters:
-             - NAME;
-	         - TYPE;
-	         - BUILD_TOOL;
-	         - BRANCH;
-	         - GIT_SERVER_CR_NAME;
-	         - GIT_SERVER_CR_VERSION;
-	         - GIT_CREDENTIALS_ID;
-	         - REPOSITORY_PATH;
-        *	Check the *Execute concurrent builds if necessary* option;
-        *	In the *Build* section, perform the following:
-	            *	Select *DSL Script*;
-	            *	Select the *Use the provided DSL script* check box:
+    * Click New Item;
+    * Type the name;
+    * Select the *Freestyle project* option and click OK;
+    * Select the *This project is parameterized* check box and add a few input parameters:
+        * NAME;
+	    * TYPE;
+	    * BUILD_TOOL;
+	    * BRANCH;
+	    * GIT_SERVER_CR_NAME;
+	    * GIT_SERVER_CR_VERSION;
+	    * GIT_CREDENTIALS_ID;
+	    * REPOSITORY_PATH;
+	        
+    * Check the *Execute concurrent builds if necessary* option;
+        
+    * In the *Build* section, perform the following:
+	    * Select *DSL Script*;
+	    * Select the *Use the provided DSL script* check box:
 
   ![dsl_script](../readme-resource/dsl_script.png "dsl_script")
  
