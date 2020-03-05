@@ -12,6 +12,7 @@ package jenkins-operator {
         String image
         String version
         String basePath
+        []coreV1.LocalObjectReference ImagePullSecrets
         []JenkinsVolumes volumes
         []JenkinsSharedLibraries sharedLibraries
         KeycloakSpec keycloakSpec

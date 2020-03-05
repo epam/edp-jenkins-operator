@@ -302,6 +302,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 					Labels: l,
 				},
 				Spec: coreV1Api.PodSpec{
+					ImagePullSecrets: instance.Spec.ImagePullSecrets,
 					SecurityContext: &coreV1Api.PodSecurityContext{
 						RunAsNonRoot: &t,
 						FSGroup:      &fid,
