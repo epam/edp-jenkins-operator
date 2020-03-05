@@ -1,0 +1,11 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsJob
+metadata:
+  name: example-jenkins-job
+spec:
+  jenkinsFolder: "example-folder-name"
+  ownerName: "example-jenkins"
+  stageName: null
+  job:
+    name: "example-job"
+    config: "example-config"

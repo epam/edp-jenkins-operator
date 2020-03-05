@@ -1,0 +1,13 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsFolder
+metadata:
+  name: example-jenkins-folder
+spec:
+  codebaseName: null
+  ownerName: "example-jenkins"
+  jobName: null
+status:
+  status: "initialized"
+  jenkinsJobProvisionBuildNumber: 0
+  available: false
+  LastTimeUpdated: 0001-01-01T00:00:00Z
