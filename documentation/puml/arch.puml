@@ -12,7 +12,7 @@ package jenkins-operator {
         String image
         String version
         String basePath
-        []coreV1.LocalObjectReference ImagePullSecrets
+        []LocalObjectReference imagePullSecrets
         []JenkinsVolumes volumes
         []JenkinsSharedLibraries sharedLibraries
         KeycloakSpec keycloakSpec
@@ -154,6 +154,10 @@ package jenkins-operator {
 
 }
 
+class LocalObjectReference {
+    String name
+}
+Jenkins -l-> LocalObjectReference : imagePullSecrets
 EdpComponent <-- Jenkins : creates, owns
 KeycloakClient <-- Jenkins : creates
 JenkinsFolder "1" -u-> "0..1" Codebase : owner ref (if jobName != nil) || codebaseName
