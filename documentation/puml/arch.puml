@@ -1,0 +1,179 @@
+@startuml
+
+skinparam class {
+	backgroundColor<<impl>> LightGoldenRodYellow
+	backgroundColor<<wip>> LightGreen
+	backgroundColor<<tbd>> Khaki
+}
+
+package jenkins-operator {
+    class Jenkins {
+        -- spec --
+        String image
+        String version
+        String basePath
+        []LocalObjectReference imagePullSecrets
+        []JenkinsVolumes volumes
+        []JenkinsSharedLibraries sharedLibraries
+        KeycloakSpec keycloakSpec
+        EdpSpec edpSpec
+        -- status --
+        Boolean available
+        Date lastTimeUpdated
+        String status
+        String adminSecretName
+        []Slave slaves
+        []JobProvision jobProvisions
+    }
+
+    JenkinsVolumes "0..*" *-- "1" Jenkins
+    class JenkinsVolumes <internal> {
+        String name
+        String storageClass
+        String capacity
+    }
+
+    JenkinsSharedLibraries "0..*" *-- "1" Jenkins
+    class JenkinsSharedLibraries <internal> {
+        String name
+        String id
+        String repository
+        String version
+    }
+
+    KeycloakSpec "1" *-- "1" Jenkins
+    class KeycloakSpec <internal> {
+        Boolean enabled
+        String --url--
+        String realm
+    }
+
+    EdpSpec "1" *-- "1" Jenkins
+    class EdpSpec <internal> {
+        String dnsWildcard
+    }
+
+    Slave "0..*"  *-- "1" Jenkins
+    class Slave <internal> {
+         String name
+    }
+
+    JobProvision "0..*" *-- "1" Jenkins
+    class JobProvision <internal> {
+        String name
+     }
+
+    Jenkins "1" --* "1" AdminSecret : adminSecretName
+    class AdminSecret <Secret> {
+        -- data --
+        String username
+        String password
+    }
+
+    JenkinsFolder "0..*" *-u- "1" Jenkins : ownerName
+    class JenkinsFolder {
+        -- spec --
+        String codebaseName
+        String ownerName
+        String jobName
+        -- status --
+        Boolean available
+        Date lastTimeUpdated
+        String status
+        Integer jenkinsJobProvisionBuildNumber
+  }
+
+    JenkinsFolder "1" -u-* "0..*" JenkinsJob : owns, jenkinsFolder
+    Jenkins "1" -u-* "0..*" JenkinsJob : ownerName
+    class JenkinsJob {
+        -- spec --
+        String ownerName
+        String stageName
+        String jenkinsFolder
+        Job job
+        -- status --
+        Boolean available
+        Date lastTimeUpdated
+        String status
+        String username
+        ActionType action
+        Result result
+        String detailedMessage
+        String value
+    }
+
+    JenkinsJob -r-> Job
+    class Job <internal> {
+        String name
+        String config
+    }
+
+    Jenkins "1" --* "0..*" JenkinsScript : owns, ownerName
+    class JenkinsScript {
+        -- spec --
+        String sourceConfigMapName
+        String ownerName
+    -- status --
+        Boolean available
+        Boolean executed
+        Date lastTimeUpdated
+  }
+
+    SourceConfigMap "1" <-d- "1" JenkinsScript : sourceConfigMapName
+    class SourceConfigMap <ConfigMap> {
+        -- data --
+        String context
+    }
+
+    Jenkins "1" --* "0..*" JenkinsServiceAccount : owns, ownerName
+    class JenkinsServiceAccount {
+        -- spec --
+        String type
+        String credentials
+        String ownerName
+        -- status --
+        Boolean available
+        Boolean created
+        Date lastTimeUpdated
+    }
+
+    Credentials <-d- JenkinsServiceAccount : "reference by credentials"
+    class Credentials <Secret> {
+        -- data --
+        String username
+        String password
+        String secret *for token type
+    }
+
+    JenkinsServiceAccount --> ServiceAccountType : type
+    enum ServiceAccountType {
+        SSH
+        PASSWORD
+        TOKEN
+    }
+
+}
+
+class LocalObjectReference {
+    String name
+}
+Jenkins -l-> LocalObjectReference : imagePullSecrets
+EdpComponent <-- Jenkins : creates, owns
+KeycloakClient <-- Jenkins : creates
+JenkinsFolder "1" -u-> "0..1" Codebase : owner ref (if jobName != nil) || codebaseName
+JenkinsFolder "1" -l-> "0..1" CdPipeline : owner ref (if jobName == nil), <jobName>-cd-pipeline
+JenkinsJob "1" -l-> "1" Stage : owner ref,  stageName
+
+legend
+|<back:LightGoldenRodYellow>    </back>| Work In Progress |
+|<back:White>    </back>| Implemented |
+|<back:Khaki>    </back>| TBD |
+endlegend
+
+skinparam class {
+    BackgroundColor #white
+	BackgroundColor<<wip>> LightGoldenRodYellow
+	BackgroundColor<<tbd>> Khaki
+}
+
+@enduml
