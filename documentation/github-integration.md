@@ -58,12 +58,10 @@ Jenkins jenkins = Jenkins.instance
 def stages = [:]
 
 
-stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+stages['Code-review-application'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
+stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
-stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
-stages['Code-review-default'] = '[{"name": "gerrit-checkout"}]'
+stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"},{"name": "git-tag"}]'
@@ -82,6 +80,9 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
         '{"name": "push"},{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
+def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none"]
+def defaultStages = '[{"name": "checkout"}]'
+
 def codebaseName = "${NAME}"
 def buildTool = "${BUILD_TOOL}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
@@ -99,20 +100,34 @@ createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
         repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
 
+if (buildTool.toString().equalsIgnoreCase('none')) {
+    return true
+}
+
 if (BRANCH) {
     def branch = "${BRANCH}"
     createListView(codebaseName, "${branch.toUpperCase()}")
 
     def type = "${TYPE}"
-    createCodeReviewPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
+	def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
+    def crKey = "Code-review-${type}".toString()
+    createCodeReviewPipeline("Code-review-${codebaseName}", codebaseName, stages.get(crKey, defaultStages), "code-review.groovy",
             repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion, githubRepository)
     registerWebHook(repositoryPath)
 
 
+	def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
+	
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
-        createBuildPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
+		def jobExists = false
+		if("${branch.toUpperCase()}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
+            jobExists = true
+        createBuildPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultStages), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion, githubRepository)
         registerWebHook(repositoryPath, 'build')
+		
+		if(!jobExists)
+          queue("${codebaseName}/${branch.toUpperCase()}-Build-${codebaseName}")
     }
 }
 
@@ -176,10 +191,6 @@ def createCodeReviewPipeline(pipelineName, codebaseName, codebaseStages, pipelin
 }
 
 def createBuildPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion, githubRepository) {
-    def jobExists = false
-    if("${watchBranch.toUpperCase()}-${pipelineName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
-        jobExists = true
-
     pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
         logRotator {
             numToKeep(10)
@@ -215,9 +226,6 @@ def createBuildPipeline(pipelineName, codebaseName, codebaseStages, pipelineScri
             }
         }
     }
-
-    if(!jobExists)
-        queue("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}")
 }
 
 
