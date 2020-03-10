@@ -130,6 +130,7 @@ func (service OpenshiftService) CreateDeployConf(instance v1alpha1.Jenkins) erro
 					Labels: labels,
 				},
 				Spec: coreV1Api.PodSpec{
+					ImagePullSecrets: instance.Spec.ImagePullSecrets,
 					SecurityContext:               &coreV1Api.PodSecurityContext{},
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,

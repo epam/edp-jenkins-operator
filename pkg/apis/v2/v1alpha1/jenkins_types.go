@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	coreV1Api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -15,11 +16,12 @@ type JenkinsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Image           string                   `json:"image"`
-	Version         string                   `json:"version"`
-	Volumes         []JenkinsVolumes         `json:"volumes, omitempty"`
-	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries, omitempty"`
-	KeycloakSpec    KeycloakSpec             `json:"keycloakSpec"`
+	Image            string                           `json:"image"`
+	Version          string                           `json:"version"`
+	ImagePullSecrets []coreV1Api.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	Volumes          []JenkinsVolumes                 `json:"volumes,omitempty"`
+	SharedLibraries  []JenkinsSharedLibraries         `json:"sharedLibraries,omitempty"`
+	KeycloakSpec     KeycloakSpec                     `json:"keycloakSpec"`
 }
 
 type JenkinsVolumes struct {
@@ -41,16 +43,16 @@ type JenkinsStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool      `json:"available, omitempty"`
-	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
-	Status          string    `json:"status, omitempty"`
-	AdminSecretName string    `json:"adminSecretName, omitempty"`
+	Available       bool      `json:"available,omitempty"`
+	LastTimeUpdated time.Time `json:"lastTimeUpdated,omitempty"`
+	Status          string    `json:"status,omitempty"`
+	AdminSecretName string    `json:"adminSecretName,omitempty"`
 }
 
 type KeycloakSpec struct {
 	Enabled bool   `json:"enabled"`
-	Url     string `json:"url, omitempty"`
-	Realm   string `json:"realm, omitempty"`
+	Url     string `json:"url,omitempty"`
+	Realm   string `json:"realm,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
