@@ -1,0 +1,47 @@
+<org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+  <inheritFrom></inheritFrom>
+  <name>gradle-java8</name>
+  <namespace></namespace>
+  <privileged>false</privileged>
+  <alwaysPullImage>false</alwaysPullImage>
+  <instanceCap>2147483647</instanceCap>
+  <slaveConnectTimeout>100</slaveConnectTimeout>
+  <idleMinutes>5</idleMinutes>
+  <activeDeadlineSeconds>0</activeDeadlineSeconds>
+  <label>gradle-java8</label>
+  <serviceAccount>jenkins</serviceAccount>
+  <nodeSelector></nodeSelector>
+  <nodeUsageMode>NORMAL</nodeUsageMode>
+  <customWorkspaceVolumeEnabled>false</customWorkspaceVolumeEnabled>
+  <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
+    <memory>false</memory>
+  </workspaceVolume>
+  <volumes/>
+  <containers>
+    <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+      <name>jnlp</name>
+      <image>epamedp/jenkins-slave-gradle-openshift:1.10.0</image>
+      <privileged>false</privileged>
+      <alwaysPullImage>false</alwaysPullImage>
+      <workingDir>/tmp</workingDir>
+      <command></command>
+      <args>${computer.jnlpmac} ${computer.name}</args>
+      <ttyEnabled>false</ttyEnabled>
+      <resourceRequestCpu></resourceRequestCpu>
+      <resourceRequestMemory></resourceRequestMemory>
+      <resourceLimitCpu></resourceLimitCpu>
+      <resourceLimitMemory></resourceLimitMemory>
+      <envVars>
+        <org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+          <key>JAVA_TOOL_OPTIONS</key>
+          <value>-XX:+UnlockExperimentalVMOptions -Dsun.zip.disableMemoryMapping=true</value>
+        </org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar>
+      </envVars>
+      <ports/>
+    </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+  </containers>
+  <envVars/>
+  <annotations/>
+  <imagePullSecrets/>
+  <podRetention class="org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"/>
+</org.csanchez.jenkins.plugins.kubernetes.PodTemplate>

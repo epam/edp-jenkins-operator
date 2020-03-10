@@ -53,7 +53,7 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"},{"name": "git-tag"}]'
 stages['Build-application-npm'] = stages['Build-application-maven']
 stages['Build-application-gradle'] = stages['Build-application-maven']

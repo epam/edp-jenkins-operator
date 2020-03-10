@@ -1,14 +1,14 @@
 <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
   <inheritFrom></inheritFrom>
-  <name>gradle</name>
+  <name>gradle-java11</name>
   <namespace></namespace>
   <privileged>false</privileged>
-  <alwaysPullImage>true</alwaysPullImage>
+  <alwaysPullImage>false</alwaysPullImage>
   <instanceCap>2147483647</instanceCap>
   <slaveConnectTimeout>100</slaveConnectTimeout>
   <idleMinutes>5</idleMinutes>
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
-  <label>gradle</label>
+  <label>gradle-java11</label>
   <serviceAccount>jenkins</serviceAccount>
   <nodeSelector></nodeSelector>
   <nodeUsageMode>NORMAL</nodeUsageMode>
@@ -22,7 +22,7 @@
       <name>jnlp</name>
       <image>epamedp/jenkins-agent-gradle-openshift:java11</image>
       <privileged>false</privileged>
-      <alwaysPullImage>true</alwaysPullImage>
+      <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
       <command></command>
       <args>${computer.jnlpmac} ${computer.name}</args>

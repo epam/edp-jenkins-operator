@@ -1,6 +1,6 @@
 <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
   <inheritFrom></inheritFrom>
-  <name>maven</name>
+  <name>maven-java8</name>
   <namespace></namespace>
   <privileged>false</privileged>
   <alwaysPullImage>false</alwaysPullImage>
@@ -8,7 +8,7 @@
   <slaveConnectTimeout>100</slaveConnectTimeout>
   <idleMinutes>5</idleMinutes>
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
-  <label>maven</label>
+  <label>maven-java8</label>
   <serviceAccount>jenkins</serviceAccount>
   <nodeSelector></nodeSelector>
   <nodeUsageMode>NORMAL</nodeUsageMode>
@@ -25,7 +25,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/jenkins-agent-maven-openshift:java11</image>
+      <image>openshift/jenkins-agent-maven-35-centos7:v3.10</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
