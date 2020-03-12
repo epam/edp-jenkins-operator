@@ -68,6 +68,10 @@ rules:
     - stages
     - stages/finalizers
     - stages/status
+    - cdpipelines
+    - cdpipelines/finalizers
+    - cdpipelines/status
+    - projectrequests
   verbs:
     - '*'
 {{ end }}
