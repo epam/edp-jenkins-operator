@@ -32,6 +32,7 @@ import (
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"strings"
 )
 
 const (
@@ -44,6 +45,7 @@ const (
 	defaultTemplatesDirectory     = "templates"
 	slavesTemplateName            = "jenkins-slaves"
 	sharedLibrariesTemplateName   = "config-shared-libraries.tmpl"
+	kubernetesPluginTemplateName  = "config-kubernetes-plugin.tmpl"
 	keycloakConfigTemplateName    = "config-keycloak.tmpl"
 	kanikoTemplateName            = "kaniko.json"
 	cbisTemplateName              = "cbis.json"
@@ -490,28 +492,37 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		return &instance, false, err
 	}
 
-	sharedLibrariesFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, sharedLibrariesTemplateName)
+	var templatesList []string
+	templatesList = append(
+		templatesList,
+		sharedLibrariesTemplateName,
+		kubernetesPluginTemplateName,
+	)
 
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 	jenkinsScriptData.JenkinsSharedLibraries = instance.Spec.SharedLibraries
+	jenkinsScriptData.JenkinsUrl = fmt.Sprintf("http://%v:%v/%v", instance.Name, jenkinsDefaultSpec.JenkinsDefaultUiPort, instance.Spec.BasePath)
 
-	sharedLibrariesContext, err := platformHelper.ParseTemplate(jenkinsScriptData, sharedLibrariesFilePath, sharedLibrariesTemplateName)
-	if err != nil {
-		return &instance, false, nil
-	}
+	for _, template := range templatesList {
+		templateFilePath := fmt.Sprintf("%v/%v", templatesDirectoryPath, template)
+		context, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
+		if err != nil {
+			return &instance, false, nil
+		}
 
-	jenkinsScriptName := "config-shared-libraries"
-	configMapName = fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+		jenkinsScriptName := strings.Split(template, ".")[0]
+		configMapName = fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
 
-	_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
-	if err != nil {
-		return &instance, false, err
-	}
+		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
+		if err != nil {
+			return &instance, false, err
+		}
 
-	configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: sharedLibrariesContext.String()}
-	err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
-	if err != nil {
-		return &instance, false, err
+		configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: context.String()}
+		err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
+		if err != nil {
+			return &instance, false, err
+		}
 	}
 
 	kanikoConfigMapKey := kanikoTemplateName
