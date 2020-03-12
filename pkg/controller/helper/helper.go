@@ -136,7 +136,9 @@ func GetPlatformTypeEnv() string {
 
 func GetSlavesList(slaves string) []string {
 	re := regexp.MustCompile(`\[(.*)\]`)
-	s := re.FindStringSubmatch(slaves)[1]
+	if len(re.FindStringSubmatch(slaves)) > 0 {
+		return strings.Split(re.FindStringSubmatch(slaves)[1], ", ")
+	}
 
-	return strings.Split(s, ", ")
+	return nil
 }

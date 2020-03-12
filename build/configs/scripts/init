@@ -31,7 +31,6 @@ if (file.exists()) {
 
 
 def JENKINS_URL = System.getenv().get('JENKINS_UI_URL')
-def cloudPluginName = 'openshift'
 
 //Set Jenkins URL
 urlConfig = JenkinsLocationConfiguration.get()
@@ -47,14 +46,6 @@ instance.save()
 // Security disabling for DSl plugin
 GlobalConfiguration.all().get(GlobalJobDslSecurityConfiguration.class).useScriptSecurity = false
 GlobalConfiguration.all().get(GlobalJobDslSecurityConfiguration.class).save()
-
-// Configuring k8s plugin
-KubernetesCloud openshift = instance.getCloud(cloudPluginName) ?: new KubernetesCloud(cloudPluginName)
-openshift.setContainerCapStr("0")
-if (!instance.getCloud(cloudPluginName)) {
-    instance.clouds.add(openshift)
-}
-instance.save()
 
 // Configure Markup Formatter for Safe HTML
 if (Jenkins.instance.markupFormatter.class != RawHtmlMarkupFormatter) {
