@@ -65,6 +65,9 @@ rules:
     - jenkinsfolders/finalizers
     - jenkinsfolders/status
     - edpcomponents
+    - stages
+    - stages/finalizers
+    - stages/status
   verbs:
     - '*'
 {{ end }}
