@@ -2,7 +2,7 @@
 apiVersion: authorization.openshift.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ .Values.name }}-{{ .Values.namespace }}
+  name: jenkins-operator-{{ .Values.namespace }}
 roleRef:
   name: edp-{{ .Values.name }}-clusterrole-{{ .Values.namespace }}
 subjects:
