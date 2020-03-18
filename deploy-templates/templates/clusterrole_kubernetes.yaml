@@ -46,6 +46,7 @@ rules:
   resources:
     - keycloaks
     - gerrits
+    - nexuses
     - keycloaks/status
     - keycloakclients
     - keycloakclients/finalizers
