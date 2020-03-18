@@ -74,15 +74,7 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	return nil
 }
 
-func (service OpenshiftService) CreateHelmRole(instance v1alpha1.Jenkins) error {
-	return nil
-}
-
-func (service OpenshiftService) CreateHelmRoleBinding(instance v1alpha1.Jenkins) error {
-	return nil
-}
-
-// // GetExternalEndpoint returns hostname and protocol for Route
+// GetExternalEndpoint returns hostname and protocol for Route
 func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
 	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
@@ -138,7 +130,7 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 					Labels: labels,
 				},
 				Spec: coreV1Api.PodSpec{
-					ImagePullSecrets: instance.Spec.ImagePullSecrets,
+					ImagePullSecrets:              instance.Spec.ImagePullSecrets,
 					SecurityContext:               &coreV1Api.PodSecurityContext{},
 					RestartPolicy:                 coreV1Api.RestartPolicyAlways,
 					DeprecatedServiceAccount:      instance.Name,

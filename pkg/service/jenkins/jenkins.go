@@ -608,16 +608,6 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 		return &instance, errors.Wrapf(err, "Failed to create Cluster Role Binding %v", instance.Name)
 	}
 
-	err = j.platformService.CreateHelmRole(instance)
-	if err != nil {
-		return &instance, err
-	}
-
-	err = j.platformService.CreateHelmRoleBinding(instance)
-	if err != nil {
-		return &instance, err
-	}
-
 	err = j.platformService.CreatePersistentVolumeClaim(instance)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Volume for %v", instance.Name)

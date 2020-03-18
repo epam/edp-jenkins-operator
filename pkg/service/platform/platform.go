@@ -41,8 +41,6 @@ type PlatformService interface {
 	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)
 	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
-	CreateHelmRole(instance v1alpha1.Jenkins) error
-	CreateHelmRoleBinding(instance v1alpha1.Jenkins) error
 	CreateProject(name string, or []metav1.OwnerReference) error
 	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
 	CreateStageJSON(cr edpv1alpha1.Stage) (string, error)
