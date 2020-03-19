@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"strings"
 )
 
 var log = logf.Log.WithName("platform")
@@ -216,7 +217,8 @@ func (service K8SService) GetExternalEndpoint(namespace string, name string) (st
 		return "", "", "", err
 	}
 
-	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme, ingress.Spec.Rules[0].HTTP.Paths[0].Path, nil
+	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme,
+		strings.TrimRight(ingress.Spec.Rules[0].HTTP.Paths[0].Path, "/"), nil
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
