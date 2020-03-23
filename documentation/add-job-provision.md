@@ -30,9 +30,11 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"},{"name": "git-tag"}]'
-stages['Build-application-npm'] = stages['Build-application-maven']
+stages['Build-application-npm'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
+        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+        '{"name": "push"},{"name": "git-tag"}]
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build-image"},' +
@@ -183,6 +185,8 @@ def createListView(codebaseName, branchName) {
     }
 }
 ``` 
+_**NOTE**: If you install the job provisioner in EKS, pay attention to change the indicated stage value {"name": "build-image"} to {"name" "build-image-kaniko"}._
+
 The job-provisions pipeline consists of the following parameters:
 
 * NAME - the application name;
