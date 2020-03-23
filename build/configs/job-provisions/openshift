@@ -113,7 +113,7 @@ if (BRANCH) {
 }
 
 def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
-    pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
+    pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\//, "-")}-${pipelineName}") {
         logRotator {
             numToKeep(10)
             daysToKeep(7)
