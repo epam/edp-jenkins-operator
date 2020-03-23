@@ -138,12 +138,12 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 
 	err := j.k8sClient.List(context.TODO(), &options, list)
 	if err != nil {
-		log.Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
+		log.V(1).Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
 		return nil
 	}
 
 	if len(list.Items) == 0 {
-		log.Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
+		log.V(1).Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
 		return nil
 	}
 
