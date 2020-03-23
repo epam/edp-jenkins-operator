@@ -805,7 +805,7 @@ func (service K8SService) CreateEDPComponentIfNotExist(jen v1alpha1.Jenkins, url
 		EDPComponents(jen.Namespace).
 		Get(jen.Name, metav1.GetOptions{})
 	if err == nil {
-		log.Info("edp component already exists", "name", comp.Name)
+		log.V(1).Info("edp component already exists", "name", comp.Name)
 		return nil
 	}
 	if k8sErrors.IsNotFound(err) {
