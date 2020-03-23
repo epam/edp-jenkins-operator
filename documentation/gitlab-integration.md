@@ -1,5 +1,5 @@
 # GitLab Integration
- 
+
 Discover the steps below to apply the GitLab integration correctly:
 
 1. Create access token in **Gitlab**:
@@ -8,9 +8,9 @@ Discover the steps below to apply the GitLab integration correctly:
     * On the **User Settings** menu, select **Access Tokens**;
     * Choose a name and an optional expiry date for the token;
     * In the Scopes block, select the *api* scope for the token;
-    
+
         ![scopes](../readme-resource/scopes.png "scopes")
-    
+
     * Click the **Create personal access token** button.
 
     *Note: Make sure to save the access token as there won`t be the ability to access it once again.*
@@ -18,7 +18,7 @@ Discover the steps below to apply the GitLab integration correctly:
 2. Install **GitLab plugin** by navigating to *Manage Jenkins* and switching to plugin manager, select the **GitLab Plugin** check box:
 
     ![gitlab-plugin](../readme-resource/gitlab-plugin.png "gitlab-plugin")
-   
+
 3. Create Jenkins Credential ID by navigating to *Jenkins -> Credentials -> System -> Global Credentials -> Add Credentials*:
 
     * Select GitLab API token;
@@ -26,15 +26,15 @@ Discover the steps below to apply the GitLab integration correctly:
     * API token - the **Access Token** that was created earlier;
     * ID - the **gitlab-access-token** ID;
     * Description - the description of the current Credential ID;
- 
+
     ![jenkins-cred](../readme-resource/jenkins-cred.png "jenkins-cred")
- 
+
 4. Configure **Gitlab plugin** by navigating to *Manage Jenkins -> Configure System* and fill in the **GitLab plugin** settings:
 
     * Connection name - connection name;
     * Gitlab host URL - a host URL to GitLab;
     * Credentials - credentials with **Access Token** to GitLab (**gitlab-access-token**);
-    
+
     ![gitlab-plugin-configuration](../readme-resource/gitlab-plugin-configuration.png "gitlab-plugin-configuration")
 
 5. Create WebHook job with the following name **Gitlab-webhook-listener** by navigating to *Jenkins -> New Item* and click **Pipeline**.
@@ -49,7 +49,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     * Insert script into the **Pipeline** section;
 
-    ``` 
+    ```
     node("master") {
         println "[JENKINS][DEBUG] Webhook parameters:"
         sh "printenv|sort|grep \"^gitlab\""
@@ -96,7 +96,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
             throw e
         }
     }
-    ``` 
+    ```
 
 6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions* folder:
 
@@ -115,7 +115,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         * GIT_USERNAME;
         * GIT_CREDENTIALS_ID;
         * REPOSITORY_PATH;
-    
+
     * Check the *Execute concurrent builds if necessary* option;
 
     * In the **Build** section, perform the following:
@@ -123,17 +123,17 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         * Select the *Use the provided DSL script* check box:
 
    ![dsl_script](../readme-resource/dsl_script.png "dsl_script")
-    
+
     * As soon as all the steps above are performed, insert the code:
 
     ```
-    
+
     import groovy.json.*
     import jenkins.model.Jenkins
-    
+
     Jenkins jenkins = Jenkins.instance
     def stages = [:]
-    
+
     stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
             '{"name": "tests"}, {"name": "sonar"}]'
     stages['Code-review-application-npm'] = stages['Code-review-application-maven']
@@ -164,7 +164,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     stages['Build-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Build-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
-    
+
     def codebaseName = "${NAME}"
     def buildTool = "${BUILD_TOOL}"
     def gitServerCrName = "${GIT_SERVER_CR_NAME}"
@@ -175,24 +175,24 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"
     def defaultRepoPath = "ssh://${gitUsername}@${gitServer}:${gitSshPort}/${codebaseName}"
     def repositoryPath = "${REPOSITORY_PATH ? REPOSITORY_PATH : defaultRepoPath}"
-    
+
     def codebaseFolder = jenkins.getItem(codebaseName)
     if (codebaseFolder == null) {
         folder(codebaseName)
     }
-    
+
     createListView(codebaseName, "Releases")
     createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
             repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
-    
+
     if (BRANCH == "master" && gitServerCrName != "gerrit") {
         def branch = "${BRANCH}"
         createListView(codebaseName, "${branch.toUpperCase()}")
-    
+
         def type = "${TYPE}"
         createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
-    
+
         if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
             createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
                     repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
@@ -200,22 +200,22 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         registerWebHook(repositoryPath)
         return
     }
-    
+
     if (BRANCH) {
         def branch = "${BRANCH}"
         createListView(codebaseName, "${branch.toUpperCase()}")
-    
+
         def type = "${TYPE}"
         createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
-    
+
         if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
             createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
                     repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
         }
     }
-    
-    
+
+
     def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
         pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
             logRotator {
@@ -255,13 +255,14 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                         stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                         stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
                         stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
-                        stringParam("BRANCH", "", "Branch to run from")
+                        if (pipelineName.contains("Build"))
+                            stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
                     }
                 }
             }
         }
     }
-    
+
     def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, gitServerCrName, gitServerCrVersion) {
         pipelineJob("${codebaseName}/${pipelineName}") {
             logRotator {
@@ -295,7 +296,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
             }
         }
     }
-    
+
     def createListView(codebaseName, branchName) {
         listView("${codebaseName}/${branchName}") {
             if (branchName.toLowerCase() == "releases") {
@@ -326,22 +327,22 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
             }
         }
     }
-    
+
     def registerWebHook(repositoryPath) {
         if(!Jenkins.getInstance().getItemByFullName("Gitlab-webhook-listener")) {
             println("Job \"Gitlab-webhook-listener\" doesn't exist. Webhook is not configured.")
             return
         }
-        
+
         def apiUrl = 'https://' + repositoryPath.split('@')[1].replaceAll('/',"%2F").replace(':22%2F', '/api/v4/projects/') + '/hooks'
         def webhookListenerJob = Jenkins.getInstance().getItemByFullName("Gitlab-webhook-listener")
         def jobUrl = webhookListenerJob.getAbsoluteUrl().replace('/job/','/project/')
         def triggersMap = webhookListenerJob.getTriggers()
-    
+
         triggersMap.each { key, value ->
             webhookSecretToken = value.getSecretToken()
         }
-    
+
         def webhookConfig = [:]
         webhookConfig["url"]                        = jobUrl
         webhookConfig["push_events"]                = "true"
@@ -366,16 +367,16 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         http.outputStream.write(requestBody.getBytes("UTF-8"))
         http.connect()
         println(http.responseCode)
-      
+
         if (http.responseCode == 201) {
             response = new JsonSlurper().parseText(http.inputStream.getText('UTF-8'))
         } else {
             response = new JsonSlurper().parseText(http.errorStream.getText('UTF-8'))
         }
-    
+
         println "response: ${response}"
     }
-    
+
     def getSecretValue(name) {
         def creds = com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(
                 com.cloudbees.plugins.credentials.common.StandardCredentials.class,
@@ -383,11 +384,11 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                 null,
                 null
         )
-        
+
         def secret = creds.find {it.properties['id'] == name}
         return secret != null ? secret['apiToken'] : null
     }
     ```
-7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.     
+7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.
 
    ![job-provision](../readme-resource/AC_job-provisioner_field.png "job-provision")
