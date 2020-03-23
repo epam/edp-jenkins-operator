@@ -90,7 +90,8 @@ if (buildTool.toString().equalsIgnoreCase('none')) {
 
 if (BRANCH) {
     def branch = "${BRANCH}"
-    createListView(codebaseName, "${branch.toUpperCase()}")
+    def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
+    createListView(codebaseName, formattedBranch)
 
     def type = "${TYPE}"
     def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
@@ -101,14 +102,14 @@ if (BRANCH) {
     def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
         def jobExists = false
-        if("${branch.toUpperCase()}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
+        if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
             jobExists = true
 
         createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultBuild), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
         if(!jobExists)
-          queue("${codebaseName}/${branch.toUpperCase()}-Build-${codebaseName}")
+          queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
     }
 }
 
