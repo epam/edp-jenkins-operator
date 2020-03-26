@@ -631,6 +631,10 @@ func (service K8SService) CreateClusterRole(instance v1alpha1.Jenkins, clusterRo
 		Rules: rules,
 	}
 
+	if err := controllerutil.SetControllerReference(&instance, clusterRoleObject, service.Scheme); err != nil {
+		return err
+	}
+
 	clusterRole, err := service.authClient.ClusterRoles().Get(clusterRoleObject.Name, metav1.GetOptions{})
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
