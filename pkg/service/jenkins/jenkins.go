@@ -53,7 +53,6 @@ const (
 	defaultScriptConfigMapKey     = "context"
 	sshKeyDefaultMountPath        = "/tmp/ssh"
 	edpJenkinsRoleName            = "edp-jenkins-role"
-	edpJenkinsClusterRoleName     = "edp-jenkins-cluster-role"
 
 	imgFolder = "img"
 	jenIcon   = "jenkins.svg"
@@ -585,9 +584,10 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 
 	rules = j.platformService.CreateClusterRolePolicyRules()
 
-	err = j.platformService.CreateClusterRole(instance, edpJenkinsClusterRoleName, rules)
+	clusterRoleName := fmt.Sprintf("%v-%v-cluster-role", instance.Name, instance.Namespace)
+	err = j.platformService.CreateClusterRole(instance, clusterRoleName, rules)
 	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create ClusterRole %v", edpJenkinsClusterRoleName)
+		return &instance, errors.Wrapf(err, "Failed to create ClusterRole %v", clusterRoleName)
 	}
 
 	roleBindingName := fmt.Sprintf("%v-edp-resources-permissions", instance.Name)
@@ -603,7 +603,7 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 	}
 
 	clusterRoleBindingName := fmt.Sprintf("%v-%v-cluster-permissions", instance.Name, instance.Namespace)
-	err = j.platformService.CreateUserClusterRoleBinding(instance, clusterRoleBindingName, edpJenkinsClusterRoleName)
+	err = j.platformService.CreateUserClusterRoleBinding(instance, clusterRoleBindingName, clusterRoleName)
 	if err != nil {
 		return &instance, errors.Wrapf(err, "Failed to create Cluster Role Binding %v", instance.Name)
 	}
