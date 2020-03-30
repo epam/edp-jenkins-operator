@@ -8,6 +8,14 @@ metadata:
     name: edp-{{ .Values.name }}-clusterrole-{{ .Values.namespace }}
 rules:
 - apiGroups:
+  - rbac.authorization.k8s.io
+  attributeRestrictions: null
+  resources:
+  - clusterroles
+  verbs:
+  - create
+  - delete
+- apiGroups:
   - '*'
   attributeRestrictions: null
   resources:

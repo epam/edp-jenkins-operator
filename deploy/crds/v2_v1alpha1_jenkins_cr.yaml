@@ -22,4 +22,4 @@ spec:
     enabled: false
     url: ""
   edpSpec:
-    dnsWildcard: "core-platform.aws.main.edp.projects.epam.com"
+    dnsWildcard: "delivery.aws.main.edp.projects.epam.com"
