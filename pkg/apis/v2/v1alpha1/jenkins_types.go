@@ -67,7 +67,6 @@ type JobProvision struct {
 
 type KeycloakSpec struct {
 	Enabled bool   `json:"enabled"`
-	Url     string `json:"url,omitempty"`
 	Realm   string `json:"realm,omitempty"`
 }
 
