@@ -12,7 +12,6 @@
   <serviceAccount>jenkins</serviceAccount>
   <nodeSelector></nodeSelector>
   <nodeUsageMode>NORMAL</nodeUsageMode>
-  <customWorkspaceVolumeEnabled>false</customWorkspaceVolumeEnabled>
   <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
     <memory>false</memory>
   </workspaceVolume>
