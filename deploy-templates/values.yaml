@@ -1,12 +1,7 @@
 name: jenkins-operator
 namespace: ""
-platform: ""
-cdPipelineName: ""
+platform: "openshift"
 dnsWildcard: ""
-database:
-  required: false
-ingress:
-  required: false
 image:
-  name: ""
-  version: ""
+  name: epamedp/jenkins-operator
+  version: v2.3.0

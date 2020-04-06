@@ -7,31 +7,29 @@ Jenkins operator creates, deploys and manages the EDP Jenkins instance, which is
 There is an ability to customize the Jenkins instance and to check changes during the application creation.
 
 ### Prerequisites
-1. Linux machine or Windows Subsystem for Linux instance with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed with an authorized access to the cluster;
-2. Admin space is deployed by following one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install.md#admin-space) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install.md#admin-space).
+1. Linux machine or Windows Subsystem for Linux instance with [Helm 3](https://helm.sh/docs/intro/install/) installed;
+2. Cluster admin access to the cluster;
+3. EDP project/namespace is deployed by following one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install_edp.md#edp-project) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install_edp.md#edp-namespace).
 
 ### Installation
 * Go to the [releases](https://github.com/epmd-edp/jenkins-operator/releases) page of this repository, choose a version, download an archive, and unzip it;
 
 _**NOTE:** It is highly recommended to use the latest released version._
 
-* Go to the unzipped directory and apply all files with the Custom Resource Definitions resource:
+* Go to the unzipped directory/deploy-templates/ and deploy operator:
 ```bash
-for file in $(ls deploy/crds/*_crd.yaml); do kubectl apply -f $file; done
+helm install jenkins-operator --namespace <edp_cicd_project> --set name=jenkins-operator --set namespace=<edp_cicd_project> --set platform=<platform_type> --set image.name=epamedp/jenkins-operator --set image.version=<operator_version> --set dnsWildcard=<dns_wildcard>
 ```
 
-* Deploy operator:
-```bash
-kubectl patch -n <edp_cicd_project> -f deploy/operator.yaml --local=true --patch='{"spec":{"template":{"spec":{"containers":[{"image":"epamedp/jenkins-operator:<operator_version>", "name":"jenkins-operator-v2", "env": [{"name":"WATCH_NAMESPACE", "value":"<edp_cicd_project>"}, {"name":"PLATFORM_TYPE","value":"<platform>"}]}]}}}}' -o yaml | kubectl -n <edp_cicd_project> apply -f -
-```
+- _<edp_cicd_project> - a namespace or a project name (in case of OpenShift) that is created by one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install_edp.md#install-edp) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install_edp.md#install-edp);_ 
+
+- _<platform_type> - a platform type that can be "kubernetes" or "openshift";_
 
 - _<operator_version> - a selected release version;_
 
-- _<edp_cicd_project> - a namespace or a project name (in case of OpenSift) that is created by one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install.md#install-edp) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install.md#install-edp);_
+- _<dns_wildcard> - a cluster DNS wildcard name_.
 
-- _<platform_type> - a platform type that can be "kubernetes" or "openshift"_.
-
-* Check the <edp_cicd_project> namespace that should contain Deployment with your operator in a running status.
+* Check the <edp_cicd_project> namespace that should contain Deployment with your operator in a running status
 
 ---
 
