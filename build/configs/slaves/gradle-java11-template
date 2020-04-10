@@ -19,7 +19,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/jenkins-agent-gradle-openshift:java11</image>
+      <image>epamedp/edp-jenkins-gradle-java11-agent:v1.0</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>

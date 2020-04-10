@@ -1,7 +1,6 @@
 name: jenkins-operator
 namespace: ""
 platform: "openshift"
-dnsWildcard: ""
 image:
   name: epamedp/jenkins-operator
   version: v2.3.0
