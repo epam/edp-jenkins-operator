@@ -106,7 +106,8 @@ if (buildTool.toString().equalsIgnoreCase('none')) {
 
 if (BRANCH) {
     def branch = "${BRANCH}"
-    createListView(codebaseName, "${branch.toUpperCase()}")
+    def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
+    createListView(codebaseName, formattedBranch)
 
     def type = "${TYPE}"
 	def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
@@ -120,19 +121,19 @@ if (BRANCH) {
 	
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
 		def jobExists = false
-		if("${branch.toUpperCase()}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
+		if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
             jobExists = true
         createBuildPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultStages), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion, githubRepository)
         registerWebHook(repositoryPath, 'build')
 		
 		if(!jobExists)
-          queue("${codebaseName}/${branch.toUpperCase()}-Build-${codebaseName}")
+          queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
     }
 }
 
 def createCodeReviewPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion, githubRepository) {
-    pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
+    pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
         logRotator {
             numToKeep(10)
             daysToKeep(7)
@@ -192,7 +193,7 @@ def createCodeReviewPipeline(pipelineName, codebaseName, codebaseStages, pipelin
 }
 
 def createBuildPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion, githubRepository) {
-    pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
+    pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
         logRotator {
             numToKeep(10)
             daysToKeep(7)
