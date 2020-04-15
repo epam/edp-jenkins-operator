@@ -152,7 +152,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
     stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-            '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+            '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
             '{"name": "push"},{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']
@@ -187,15 +187,23 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     if (BRANCH == "master" && gitServerCrName != "gerrit") {
         def branch = "${BRANCH}"
-        createListView(codebaseName, "${branch.toUpperCase()}")
+        def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
+        createListView(codebaseName, formattedBranch)
 
         def type = "${TYPE}"
         createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
         if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
+            def jobExists = false
+            if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name}) {
+               jobExists = true
+            }
             createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
                     repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
+            if(!jobExists) {
+                queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
+            }
         }
         registerWebHook(repositoryPath)
         return
@@ -203,21 +211,29 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     if (BRANCH) {
         def branch = "${BRANCH}"
-        createListView(codebaseName, "${branch.toUpperCase()}")
+        def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
+        createListView(codebaseName, formattedBranch)
 
         def type = "${TYPE}"
         createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
         if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
+            def jobExists = false
+            if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name}) {
+               jobExists = true
+            }
             createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
                     repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
+           if(!jobExists) {
+             queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
+           }
         }
     }
 
 
     def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
-        pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
+        pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
             logRotator {
                 numToKeep(10)
                 daysToKeep(7)
