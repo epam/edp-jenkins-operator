@@ -25,4 +25,12 @@ rules:
   - list
   - patch
   - update
+- apiGroups:
+  - '*'
+  attributeRestrictions: null
+  resources:
+  - codebases
+  - gitservers
+  verbs:
+  - watch
 {{ end}}
