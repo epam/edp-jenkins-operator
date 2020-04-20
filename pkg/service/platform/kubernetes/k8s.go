@@ -218,7 +218,7 @@ func (service K8SService) GetExternalEndpoint(namespace string, name string) (st
 	}
 
 	return ingress.Spec.Rules[0].Host, jenkinsDefaultSpec.RouteHTTPSScheme,
-		strings.TrimRight(ingress.Spec.Rules[0].HTTP.Paths[0].Path, "/"), nil
+		strings.TrimRight(ingress.Spec.Rules[0].HTTP.Paths[0].Path, platformHelper.UrlCutset), nil
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
@@ -977,7 +977,7 @@ func (service K8SService) CreateExternalEndpoint(instance v1alpha1.Jenkins) erro
 	path := "/"
 	if len(instance.Spec.BasePath) != 0 {
 		hostname = instance.Spec.EdpSpec.DnsWildcard
-		path = fmt.Sprintf("/%v", instance.Spec.BasePath)
+		path = fmt.Sprintf("/%v(/|$)(.*)", instance.Spec.BasePath)
 	}
 
 	ingressObject := &extensionsApi.Ingress{

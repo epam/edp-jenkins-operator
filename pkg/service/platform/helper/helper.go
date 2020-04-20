@@ -17,6 +17,7 @@ const (
 	Role                       string = "role"
 	defaultConfigsAbsolutePath        = "/usr/local/configs/"
 	localConfigsRelativePath          = "configs"
+	UrlCutset                         = "!\"#$%&'()*+,-./@:;<=>[\\]^_`{|}~"
 )
 
 type JenkinsScriptData struct {
