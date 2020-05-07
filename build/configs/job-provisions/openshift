@@ -38,11 +38,11 @@ import jenkins.model.Jenkins
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
 
-stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
-stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
+stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
