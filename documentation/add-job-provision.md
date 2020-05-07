@@ -16,7 +16,7 @@ Jenkins jenkins = Jenkins.instance
 def stages = [:]
 
 stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
+        '{"name": "sonar"},{"name": "sonar-cleanup"}]'
 stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
 stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
