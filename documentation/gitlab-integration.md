@@ -134,17 +134,17 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     Jenkins jenkins = Jenkins.instance
     def stages = [:]
 
-    stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
+    stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},' +
             '{"name": "tests"}, {"name": "sonar"}]'
     stages['Code-review-application-npm'] = stages['Code-review-application-maven']
     stages['Code-review-application-gradle'] = stages['Code-review-application-maven']
     stages['Code-review-application-dotnet'] = stages['Code-review-application-maven']
-    stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},{"name": "lint"}]'
-    stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
-    stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
-    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
+    stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tool-init"},{"name": "lint"}]'
+    stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
+    stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
+    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
             '{"name": "sonar"}]'
-    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
     stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"},{"name": "git-tag"}]'
     stages['Build-library-npm'] = stages['Build-library-maven']
