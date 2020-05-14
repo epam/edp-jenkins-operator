@@ -229,13 +229,18 @@ def createListView(codebaseName, branchName) {
 }'''
 def jobName = "default"
 def folderName = "job-provisions"
+def ciFolderName = "ci"
 def folder = Jenkins.instance.getItem(folderName)
 if (folder == null) {
   folder = Jenkins.instance.createProject(Folder.class, folderName)
 }
-def project = folder.getItem(jobName)
+def ciFolder = folder.getItem(ciFolderName)
+if (ciFolder == null) {
+  ciFolder = folder.createProject(Folder.class, ciFolderName)
+}
+def project = ciFolder.getItem(jobName)
 if (project == null) {
-  project = folder.createProject(FreeStyleProject, jobName)
+  project = ciFolder.createProject(FreeStyleProject, jobName)
 }
 project.getBuildersList().clear()
 executeDslScripts = new ExecuteDslScripts()

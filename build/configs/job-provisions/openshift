@@ -235,7 +235,10 @@ def folder = Jenkins.instance.getItem(folderName)
 if (folder == null) {
   folder = Jenkins.instance.createProject(Folder.class, folderName)
 }
-project = folder.createProject(FreeStyleProject, jobName)
+def project = folder.getItem(jobName)
+if (project == null) {
+  project = folder.createProject(FreeStyleProject, jobName)
+}
 project.getBuildersList().clear()
 executeDslScripts = new ExecuteDslScripts()
 executeDslScripts.setScriptText(scriptText)

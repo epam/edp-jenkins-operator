@@ -556,6 +556,11 @@ func (in *JenkinsStatus) DeepCopyInto(out *JenkinsStatus) {
 		*out = make([]JobProvision, len(*in))
 		copy(*out, *in)
 	}
+	if in.CiJobProvisions != nil {
+		in, out := &in.CiJobProvisions, &out.CiJobProvisions
+		*out = make([]JobProvision, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

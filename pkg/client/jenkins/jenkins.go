@@ -3,6 +3,11 @@ package jenkins
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/bndr/gojenkins"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
@@ -10,11 +15,7 @@ import (
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
-	"io/ioutil"
-	"net/http"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"strconv"
-	"time"
 )
 
 const (
@@ -243,7 +244,7 @@ func (jc JenkinsClient) GetAdminToken() (*string, error) {
 }
 
 // GetJobProvisioners returns a list of Job provisioners configured in Jenkins
-func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
+func (jc JenkinsClient) GetJobProvisions(jobPath string) ([]string, error) {
 	var pl []string
 	var raw map[string]interface{}
 	c, err := jc.GetCrumb()
@@ -258,7 +259,7 @@ func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
 
 	resp, err := jc.resty.R().
 		SetHeaders(h).
-		Post(fmt.Sprintf("/job/%v/api/json?pretty=true", defaultJobProvisionsFolder))
+		Post(fmt.Sprintf("%v/api/json?pretty=true", jobPath))
 	if err != nil {
 		return nil, errors.Wrap(err, "Obtaining Job Provisioners list failed!")
 	}
