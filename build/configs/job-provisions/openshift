@@ -37,7 +37,7 @@ import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
-def jiraIntegrationEnabled = "${JIRA_INTEGRATION_ENABLED == "enabled" ? true : false}"
+def jiraIntegrationEnabled = Boolean.parseBoolean(("${JIRA_INTEGRATION_ENABLED}" == "enabled") as String)
 
 if (jiraIntegrationEnabled) {
     stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
@@ -247,7 +247,8 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
                       new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
-                      new StringParameterDefinition("REPOSITORY_PATH", "")]
+                      new StringParameterDefinition("REPOSITORY_PATH", ""),
+                      new StringParameterDefinition("JIRA_INTEGRATION_ENABLED", "")]
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)

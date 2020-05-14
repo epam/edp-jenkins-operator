@@ -115,6 +115,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         * GIT_USERNAME;
         * GIT_CREDENTIALS_ID;
         * REPOSITORY_PATH;
+        * JIRA_INTEGRATION_ENABLED;
 
     * Check the *Execute concurrent builds if necessary* option;
 
@@ -133,7 +134,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     Jenkins jenkins = Jenkins.instance
     def stages = [:]
-    def jiraIntegrationEnabled = "${JIRA_INTEGRATION_ENABLED == "enabled" ? true : false}"
+    def jiraIntegrationEnabled = Boolean.parseBoolean(("${JIRA_INTEGRATION_ENABLED}" == "enabled") as String)
     
     if (jiraIntegrationEnabled) {
          stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},' +

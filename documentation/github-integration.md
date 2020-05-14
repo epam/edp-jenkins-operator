@@ -56,7 +56,7 @@ import com.cloudbees.hudson.plugins.folder.*
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
-def jiraIntegrationEnabled = "${JIRA_INTEGRATION_ENABLED == "enabled" ? true : false}"
+def jiraIntegrationEnabled = Boolean.parseBoolean(("${JIRA_INTEGRATION_ENABLED}" == "enabled") as String)
     
 if (jiraIntegrationEnabled) {
     stages['Code-review-application'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
