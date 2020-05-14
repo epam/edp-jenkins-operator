@@ -19,6 +19,7 @@ rules:
   - jenkinses
   - keycloakrealms
   - stages
+  - jirafixversions
   verbs:
   - create
   - get
