@@ -7,12 +7,10 @@ replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20180801171038-322a19404e37
 
 require (
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
 	github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50
-	github.com/epmd-edp/codebase-operator/v2 v2.3.0-88
+	github.com/epmd-edp/codebase-operator/v2 v2.3.0-95.0.20200514095748-92497054f7da
 	github.com/epmd-edp/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0
 	github.com/epmd-edp/gerrit-operator/v2 v2.1.0-52
 	github.com/epmd-edp/keycloak-operator v1.0.31-alpha-56

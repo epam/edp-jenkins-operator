@@ -125,13 +125,14 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 	path := getRepositoryPath(c.Name, string(c.Spec.Strategy), c.Spec.GitUrlPath)
 	sshLink := generateSshLink(path, gs)
 	jpm := map[string]string{
-		"PARAM":                 "true",
-		"NAME":                  c.Name,
-		"BUILD_TOOL":            strings.ToLower(c.Spec.BuildTool),
-		"GIT_SERVER_CR_NAME":    gs.Name,
-		"GIT_SERVER_CR_VERSION": "v2",
-		"GIT_CREDENTIALS_ID":    gs.NameSshKeySecret,
-		"REPOSITORY_PATH":       sshLink,
+		"PARAM":                    "true",
+		"NAME":                     c.Name,
+		"BUILD_TOOL":               strings.ToLower(c.Spec.BuildTool),
+		"GIT_SERVER_CR_NAME":       gs.Name,
+		"GIT_SERVER_CR_VERSION":    "v2",
+		"GIT_CREDENTIALS_ID":       gs.NameSshKeySecret,
+		"REPOSITORY_PATH":          sshLink,
+		"JIRA_INTEGRATION_ENABLED": isJiraIntegrationEnabled(c.Spec.JiraServer),
 	}
 
 	bn, err := jc.BuildJob(jp, jpm)
@@ -141,6 +142,13 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 	jf.Status.JenkinsJobProvisionBuildNumber = *bn
 	log.Info("end triggering build job", "name", jp)
 	return nil
+}
+
+func isJiraIntegrationEnabled(server *string) string {
+	if server != nil {
+		return "enabled"
+	}
+	return "disabled"
 }
 
 func (h TriggerBuildJobProvision) getGitServer(codebaseName, gitServerName, namespace string) (*codebase_model.GitServer, error) {

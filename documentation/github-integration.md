@@ -56,12 +56,19 @@ import com.cloudbees.hudson.plugins.folder.*
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
-
-
-stages['Code-review-application'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
-stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
+def jiraIntegrationEnabled = "${JIRA_INTEGRATION_ENABLED == "enabled" ? true : false}"
+    
+if (jiraIntegrationEnabled) {
+    stages['Code-review-application'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
+    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
+} else {
+    stages['Code-review-application'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
+    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
+}
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"},{"name": "git-tag"}]'
