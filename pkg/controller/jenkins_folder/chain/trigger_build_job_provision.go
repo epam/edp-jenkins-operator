@@ -102,7 +102,7 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
 
-	jp := fmt.Sprintf("job-provisions/job/%v", *jf.Spec.JobName)
+	jp := fmt.Sprintf("job-provisions/job/ci/%v", *jf.Spec.JobName)
 	success, err := jc.IsBuildSuccessful(jp, jf.Status.JenkinsJobProvisionBuildNumber)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't check build status for job %v", jp)
