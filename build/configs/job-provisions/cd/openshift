@@ -1,0 +1,125 @@
+/* Copyright 2019 EPAM Systems.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License. */
+
+import groovy.json.*
+import jenkins.model.Jenkins
+import javaposse.jobdsl.plugin.*
+import com.cloudbees.hudson.plugins.folder.*
+
+def scriptText = '''
+/* Copyright 2019 EPAM Systems.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License. */
+
+import groovy.json.*
+import jenkins.model.Jenkins
+
+Jenkins jenkins = Jenkins.instance
+
+def pipelineName = "${PIPELINE_NAME}"
+def stageName = "${STAGE_NAME}"
+def gitServerCrName = "${GIT_SERVER_CR_NAME}"
+def qgStages = "${QG_STAGES}"
+def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
+def gitCredentialsId = "${GIT_CREDENTIALS_ID}"
+def sourceType = "${SOURCE_TYPE}"
+def libraryURL = "${LIBRARY_URL}"
+def libraryBranch = "${LIBRARY_BRANCH}"
+def scriptPath = "Jenkinsfile"
+
+def stages = '[{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
+
+def codebaseFolder = jenkins.getItem(pipelineName)
+if (codebaseFolder == null) {
+    folder(pipelineName)
+}
+
+createCdPipeline(pipelineName, stageName, stages, scriptPath, sourceType,
+        libraryURL, libraryBranch, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+
+
+def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrName, gitServerCrVersion) {
+    pipelineJob("${pipelineName}/${stageName}") {
+        if (sourceType == "library") {
+            definition {
+                cpsScm {
+                    scm {
+                        git {
+                            remote {
+                                url(libraryURL)
+                                credentials(libraryCredId)
+                            }
+                            branches("${libraryBranch}")
+                            scriptPath("${pipelineScript}")
+                        }
+                    }
+                }
+            }
+        } else {
+            definition {
+                cps {
+                    script("@Library([edp-library-stages, edp-library-pipelines]) _ \\n\\nDeploy()")
+                    sandbox(true)
+                }
+            }
+        }
+        parameters {
+            stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
+            stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
+            stringParam("STAGES", "${stages}", "Consequence of stages in JSON format to be run during execution")
+        }
+    }
+}'''
+def jobName = "default"
+def folderName = "job-provisions"
+def cdFolderName = "cd"
+def folder = Jenkins.instance.getItem(folderName)
+if (folder == null) {
+  folder = Jenkins.instance.createProject(Folder.class, folderName)
+}
+def cdFolder = folder.getItem(cdFolderName)
+if (cdFolder == null) {
+  cdFolder = folder.createProject(Folder.class, cdFolderName)
+}
+def project = cdFolder.getItem(jobName)
+if (project == null) {
+  project = cdFolder.createProject(FreeStyleProject, jobName)
+}
+project.getBuildersList().clear()
+executeDslScripts = new ExecuteDslScripts()
+executeDslScripts.setScriptText(scriptText)
+project.getBuildersList().add(executeDslScripts)
+def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
+                      new StringParameterDefinition("STAGE_NAME", ""),
+                      new StringParameterDefinition("QG_STAGES", ""),
+                      new StringParameterDefinition("GIT_SERVER_CR_NAME", ""),
+                      new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
+                      new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
+                      new StringParameterDefinition("SOURCE_TYPE", ""),
+                      new StringParameterDefinition("LIBRARY_BRANCH", ""),
+                      new StringParameterDefinition("LIBRARY_URL", "")]
+
+project.addProperty(new ParametersDefinitionProperty(definitionList))
+project.setConcurrentBuild(true)
+project.save()

@@ -37,12 +37,22 @@ import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
+def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
 
-stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
-stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
+if (jiraIntegrationEnabled) {
+    stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+            '[{"name": "sonar"},{"name": "helm-verify"}]]'
+    stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
+} else {
+    stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+            '[{"name": "sonar"},{"name": "helm-verify"}]]'
+    stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
+}
+
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
@@ -53,12 +63,12 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+        '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build"},{"name": "build-image-kaniko"},' +
         '{"name": "push"},{"name": "git-tag"}]'
 stages['Build-application-npm'] = stages['Build-application-maven']
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build-image"},' +
+        '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build-image-kaniko"},' +
         '{"name": "push"},{"name": "git-tag"}]'
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
@@ -80,7 +90,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
 
 if (buildTool.toString().equalsIgnoreCase('none')) {
     return true
@@ -88,7 +98,8 @@ if (buildTool.toString().equalsIgnoreCase('none')) {
 
 if (BRANCH) {
     def branch = "${BRANCH}"
-    createListView(codebaseName, "${branch.toUpperCase()}")
+    def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
+    createListView(codebaseName, formattedBranch)
 
     def type = "${TYPE}"
     def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
@@ -98,13 +109,20 @@ if (BRANCH) {
 
     def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
+        def jobExists = false
+        if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
+            jobExists = true
+
         createCiPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultBuild), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
+
+        if(!jobExists)
+          queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
     }
 }
 
 def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
-    pipelineJob("${codebaseName}/${watchBranch.toUpperCase()}-${pipelineName}") {
+    pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
         logRotator {
             numToKeep(10)
             daysToKeep(7)
@@ -145,7 +163,8 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
     }
 }
 
-def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, gitServerCrName, gitServerCrVersion) {
+def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
+ gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
     pipelineJob("${codebaseName}/${pipelineName}") {
         logRotator {
             numToKeep(14)
@@ -166,6 +185,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                 parameters {
                     stringParam("STAGES", "${codebaseStages}", "")
                     if (pipelineName.contains("Create-release")) {
+                        stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
                         stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                         stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                         stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")
@@ -211,11 +231,19 @@ def createListView(codebaseName, branchName) {
 }'''
 def jobName = "default"
 def folderName = "job-provisions"
+def ciFolderName = "ci"
 def folder = Jenkins.instance.getItem(folderName)
 if (folder == null) {
   folder = Jenkins.instance.createProject(Folder.class, folderName)
 }
-project = folder.createProject(FreeStyleProject, jobName)
+def ciFolder = folder.getItem(ciFolderName)
+if (ciFolder == null) {
+  ciFolder = folder.createProject(Folder.class, ciFolderName)
+}
+def project = ciFolder.getItem(jobName)
+if (project == null) {
+  project = ciFolder.createProject(FreeStyleProject, jobName)
+}
 project.getBuildersList().clear()
 executeDslScripts = new ExecuteDslScripts()
 executeDslScripts.setScriptText(scriptText)
@@ -227,9 +255,9 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
                       new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
-                      new StringParameterDefinition("REPOSITORY_PATH", "")]
+                      new StringParameterDefinition("REPOSITORY_PATH", ""),
+                      new StringParameterDefinition("JIRA_INTEGRATION_ENABLED", "")]
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
 project.save()
-project.scheduleBuild()

@@ -216,7 +216,7 @@ func (jc JenkinsClient) GetAdminToken() (*string, error) {
 }
 
 // GetJobProvisioners returns a list of Job provisioners configured in Jenkins
-func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
+func (jc JenkinsClient) GetJobProvisions(jobPath string) ([]string, error) {
 	var pl []string
 	var raw map[string]interface{}
 	c, err := jc.GetCrumb()
@@ -231,7 +231,7 @@ func (jc JenkinsClient) GetJobProvisions() ([]string, error) {
 
 	resp, err := jc.resty.R().
 		SetHeaders(h).
-		Post(fmt.Sprintf("/job/%v/api/json?pretty=true", defaultJobProvisionsFolder))
+		Post(fmt.Sprintf("%v/api/json?pretty=true", jobPath))
 	if err != nil {
 		return nil, errors.Wrap(err, "Obtaining Job Provisioners list failed!")
 	}

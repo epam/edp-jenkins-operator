@@ -5,6 +5,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+
 	"github.com/dchest/uniuri"
 	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	gerritSpec "github.com/epmd-edp/gerrit-operator/v2/pkg/service/gerrit/spec"
@@ -20,39 +26,36 @@ import (
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakControllerHelper "github.com/epmd-edp/keycloak-operator/pkg/controller/helper"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
 	authV1Api "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
-	"path/filepath"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"strings"
 )
 
 const (
-	initContainerName             = "grant-permissions"
-	adminCredentialsSecretPostfix = "admin-password"
-	adminTokenSecretPostfix       = "admin-token"
-	defaultScriptsDirectory       = "scripts"
-	defaultSlavesDirectory        = "slaves"
-	defaultJobProvisionsDirectory = "job-provisions"
-	defaultTemplatesDirectory     = "templates"
-	slavesTemplateName            = "jenkins-slaves"
-	sharedLibrariesTemplateName   = "config-shared-libraries.tmpl"
-	kubernetesPluginTemplateName  = "config-kubernetes-plugin.tmpl"
-	keycloakConfigTemplateName    = "config-keycloak.tmpl"
-	kanikoTemplateName            = "kaniko.json"
-	cbisTemplateName              = "cbis.json"
-	dockerRegistryTemplateName    = "config.json"
-	defaultScriptConfigMapKey     = "context"
-	sshKeyDefaultMountPath        = "/tmp/ssh"
-	edpJenkinsRoleName            = "edp-jenkins-role"
+	initContainerName               = "grant-permissions"
+	adminCredentialsSecretPostfix   = "admin-password"
+	adminTokenSecretPostfix         = "admin-token"
+	defaultScriptsDirectory         = "scripts"
+	defaultSlavesDirectory          = "slaves"
+	defaultJobProvisionsDirectory   = "job-provisions"
+	defaultCiJobProvisionsDirectory = "ci"
+	defaultCdJobProvisionsDirectory = "cd"
+	defaultTemplatesDirectory       = "templates"
+	slavesTemplateName              = "jenkins-slaves"
+	sharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
+	kubernetesPluginTemplateName    = "config-kubernetes-plugin.tmpl"
+	keycloakConfigTemplateName      = "config-keycloak.tmpl"
+	kanikoTemplateName              = "kaniko.json"
+	cbisTemplateName                = "cbis.json"
+	dockerRegistryTemplateName      = "config.json"
+	defaultScriptConfigMapKey       = "context"
+	sshKeyDefaultMountPath          = "/tmp/ssh"
+	edpJenkinsRoleName              = "edp-jenkins-role"
 
 	imgFolder = "img"
 	jenIcon   = "jenkins.svg"
@@ -332,20 +335,23 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 		upd = true
 	}
 
-	pr, err := jc.GetJobProvisions()
-
+	scopes := []string{defaultCiJobProvisionsDirectory, defaultCdJobProvisionsDirectory}
 	ps := []v1alpha1.JobProvision{}
-	for _, p := range pr {
-		ps = append(ps, v1alpha1.JobProvision{p})
+	for _, scope := range scopes {
+		pr, err := jc.GetJobProvisions(fmt.Sprintf("/job/%v/job/%v", defaultJobProvisionsDirectory, scope))
+		if err != nil {
+			return &instance, upd, errors.Wrapf(err, "Unable to get Jenkins Job provisions list for scope %v", scope)
+		}
+		for _, p := range pr {
+			ps = append(ps, v1alpha1.JobProvision{p, scope})
+		}
 	}
 
 	if !reflect.DeepEqual(instance.Status.JobProvisions, ps) {
 		instance.Status.JobProvisions = ps
 		upd = true
 	}
-
 	err = j.createEDPComponent(instance)
-
 	return &instance, upd, err
 }
 
@@ -452,17 +458,12 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 	}
 
-	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultJobProvisionsDirectory)
-	if err != nil {
-		return &instance, false, err
-	}
-
-	configMapName := fmt.Sprintf("%v-%v", instance.Name, "job-provisioner")
-	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
-	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
-	err = j.createScript(instance, configMapName, configMapKey, path)
-	if err != nil {
-		return &instance, false, err
+	scopes := []string{defaultCiJobProvisionsDirectory, defaultCdJobProvisionsDirectory}
+	for _, scope := range scopes {
+		err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, scope), jc, instance)
+		if err != nil {
+			return &instance, false, err
+		}
 	}
 
 	slavesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultSlavesDirectory)
@@ -510,7 +511,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 
 		jenkinsScriptName := strings.Split(template, ".")[0]
-		configMapName = fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+		configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
 
 		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 		if err != nil {
@@ -524,28 +525,32 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 	}
 
-	kanikoConfigMapKey := kanikoTemplateName
-	kanikoFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, kanikoTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "kaniko-template", &kanikoConfigMapKey, kanikoFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
-	}
-
-	dockerRegistryConfigMapKey := dockerRegistryTemplateName
-	dockerRegistryConfigFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, dockerRegistryTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "docker-config", &dockerRegistryConfigMapKey, dockerRegistryConfigFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
-	}
-
-	cbisConfigMapKey := cbisTemplateName
-	cbisFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, cbisTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "cbis-template", &cbisConfigMapKey, cbisFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+	for _, template := range []map[string]string{
+		{"ame": kanikoTemplateName, "cmName": "kaniko-template"},
+		{"name": dockerRegistryTemplateName, "cmName": "docker-config"},
+		{"name": cbisTemplateName, "cmName": "cbis-template"},
+	} {
+		configMapName := template["cmName"]
+		filePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, template["name"])
+		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapName, filePath, &instance)
+		if err != nil {
+			return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+		}
 	}
 
 	return &instance, true, nil
+}
+
+func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance v1alpha1.Jenkins) error {
+	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(jobPath)
+	if err != nil {
+		return err
+	}
+	configMapName := strings.ReplaceAll(fmt.Sprintf("%v-%v", instance.Name, jobPath), "/", "-")
+	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
+	err = j.createScript(instance, configMapName, configMapKey, path)
+	return err
 }
 
 // Install performs installation of Jenkins
