@@ -44,6 +44,7 @@ const (
 	defaultSlavesDirectory          = "slaves"
 	defaultJobProvisionsDirectory   = "job-provisions"
 	defaultCiJobProvisionsDirectory = "ci"
+	defaultCdJobProvisionsDirectory = "cd"
 	defaultTemplatesDirectory       = "templates"
 	slavesTemplateName              = "jenkins-slaves"
 	sharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
@@ -335,7 +336,7 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 		upd = true
 	}
 
-	scopes := []string{defaultCiJobProvisionsDirectory}
+	scopes := []string{defaultCiJobProvisionsDirectory, defaultCdJobProvisionsDirectory}
 	ps := []v1alpha1.JobProvision{}
 	for _, scope := range scopes {
 		pr, err := jc.GetJobProvisions(fmt.Sprintf("/job/%v/job/%v", defaultJobProvisionsDirectory, scope))
@@ -346,6 +347,7 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 			ps = append(ps, v1alpha1.JobProvision{p, scope})
 		}
 	}
+
 	if !reflect.DeepEqual(instance.Status.JobProvisions, ps) {
 		instance.Status.JobProvisions = ps
 		upd = true
@@ -457,9 +459,12 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 	}
 
-	err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, defaultCiJobProvisionsDirectory), jc, instance)
-	if err != nil {
-		return &instance, false, err
+	scopes := []string{defaultCiJobProvisionsDirectory, defaultCdJobProvisionsDirectory}
+	for _, scope := range scopes {
+		err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, scope), jc, instance)
+		if err != nil {
+			return &instance, false, err
+		}
 	}
 
 	slavesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultSlavesDirectory)
