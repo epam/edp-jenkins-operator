@@ -334,30 +334,23 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 		upd = true
 	}
 
-	ps, err := j.getJobProvisionsList(fmt.Sprintf("/job/%v", defaultJobProvisionsDirectory), jc)
+	scopes := []string{defaultCiJobProvisionsDirectory}
+	ps := []v1alpha1.JobProvision{}
+	for _, scope := range scopes {
+		pr, err := jc.GetJobProvisions(fmt.Sprintf("/job/%v/job/%v", defaultJobProvisionsDirectory, scope))
+		if err != nil {
+			return &instance, upd, errors.Wrapf(err, "Unable to get Jenkins Job provisions list for scope %v", scope)
+		}
+		for _, p := range pr {
+			ps = append(ps, v1alpha1.JobProvision{p, scope})
+		}
+	}
 	if !reflect.DeepEqual(instance.Status.JobProvisions, ps) {
 		instance.Status.JobProvisions = ps
 		upd = true
 	}
-	ps, err = j.getJobProvisionsList(fmt.Sprintf("/job/%v/job/%v", defaultJobProvisionsDirectory, defaultCiJobProvisionsDirectory), jc)
-	if !reflect.DeepEqual(instance.Status.CiJobProvisions, ps) {
-		instance.Status.CiJobProvisions = ps
-		upd = true
-	}
 	err = j.createEDPComponent(instance)
 	return &instance, upd, err
-}
-
-func (j JenkinsServiceImpl) getJobProvisionsList(jobPath string, jc *jenkinsClient.JenkinsClient) ([]v1alpha1.JobProvision, error) {
-	pr, err := jc.GetJobProvisions(jobPath)
-	ps := []v1alpha1.JobProvision{}
-	for _, p := range pr {
-		if p == "ci" {
-			continue
-		}
-		ps = append(ps, v1alpha1.JobProvision{p})
-	}
-	return ps, err
 }
 
 func (j JenkinsServiceImpl) createEDPComponent(jen v1alpha1.Jenkins) error {
@@ -462,13 +455,8 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			return &instance, false, err
 		}
 	}
-	var configMapName string
-	instance, configMapName, err = j.createJobProvisions(fmt.Sprintf("%v", defaultJobProvisionsDirectory), jc, instance)
-	if err != nil {
-		return &instance, false, err
-	}
 
-	instance, configMapName, err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, defaultCiJobProvisionsDirectory), jc, instance)
+	err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, defaultCiJobProvisionsDirectory), jc, instance)
 	if err != nil {
 		return &instance, false, err
 	}
@@ -518,7 +506,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 
 		jenkinsScriptName := strings.Split(template, ".")[0]
-		configMapName = fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+		configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
 
 		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
 		if err != nil {
@@ -532,40 +520,32 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 	}
 
-	kanikoConfigMapKey := kanikoTemplateName
-	kanikoFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, kanikoTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "kaniko-template", &kanikoConfigMapKey, kanikoFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
-	}
-
-	dockerRegistryConfigMapKey := dockerRegistryTemplateName
-	dockerRegistryConfigFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, dockerRegistryTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "docker-config", &dockerRegistryConfigMapKey, dockerRegistryConfigFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
-	}
-
-	cbisConfigMapKey := cbisTemplateName
-	cbisFilePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, cbisTemplateName)
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, "cbis-template", &cbisConfigMapKey, cbisFilePath, &instance)
-	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+	for _, template := range []map[string]string{
+		{"ame": kanikoTemplateName, "cmName": "kaniko-template"},
+		{"name": dockerRegistryTemplateName, "cmName": "docker-config"},
+		{"name": cbisTemplateName, "cmName": "cbis-template"},
+	} {
+		configMapName := template["cmName"]
+		filePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, template["name"])
+		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapName, filePath, &instance)
+		if err != nil {
+			return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+		}
 	}
 
 	return &instance, true, nil
 }
 
-func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance v1alpha1.Jenkins) (v1alpha1.Jenkins, string, error) {
+func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance v1alpha1.Jenkins) error {
 	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(jobPath)
 	if err != nil {
-		return instance, "", err
+		return err
 	}
 	configMapName := strings.ReplaceAll(fmt.Sprintf("%v-%v", instance.Name, jobPath), "/", "-")
 	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
 	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
 	err = j.createScript(instance, configMapName, configMapKey, path)
-	return instance, configMapName, err
+	return err
 }
 
 // Install performs installation of Jenkins

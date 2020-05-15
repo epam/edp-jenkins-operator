@@ -56,7 +56,6 @@ type JenkinsStatus struct {
 	AdminSecretName string         `json:"adminSecretName,omitempty"`
 	Slaves          []Slave        `json:"slaves,omitempty"`
 	JobProvisions   []JobProvision `json:"jobProvisions,omitempty"`
-	CiJobProvisions []JobProvision `json:"CiJobProvisions,omitempty"`
 }
 
 type Slave struct {
@@ -64,7 +63,8 @@ type Slave struct {
 }
 
 type JobProvision struct {
-	Name string `json:"name,omitempty"`
+	Name  string `json:"name"`
+	Scope string `json:"scope"`
 }
 
 type KeycloakSpec struct {
