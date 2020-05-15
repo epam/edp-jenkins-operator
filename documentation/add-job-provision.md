@@ -14,12 +14,22 @@ import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
+def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
 
-stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"},{"name": "sonar-cleanup"}]'
-stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
-        '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
+if (jiraIntegrationEnabled) {
+    stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"},{"name": "sonar-cleanup"}]'
+    stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
+} else {
+    stages['Code-review-application'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"},{"name": "sonar-cleanup"}]'
+    stages['Code-review-library'] = '[{"name": "gerrit-checkout"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "tests"},{"name": "sonar"}]'
+}
+
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
@@ -59,7 +69,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
 
 if (BRANCH) {
     def branch = "${BRANCH}"
@@ -141,6 +151,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                 parameters {
                     stringParam("STAGES", "${codebaseStages}", "")
                     if (pipelineName.contains("Create-release")) {
+                        stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
                         stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                         stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                         stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")

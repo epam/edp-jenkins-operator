@@ -15,6 +15,7 @@ import (
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -132,7 +133,7 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 		"GIT_SERVER_CR_VERSION":    "v2",
 		"GIT_CREDENTIALS_ID":       gs.NameSshKeySecret,
 		"REPOSITORY_PATH":          sshLink,
-		"JIRA_INTEGRATION_ENABLED": isJiraIntegrationEnabled(c.Spec.JiraServer),
+		"JIRA_INTEGRATION_ENABLED": strconv.FormatBool(isJiraIntegrationEnabled(c.Spec.JiraServer)),
 	}
 
 	bn, err := jc.BuildJob(jp, jpm)
@@ -144,11 +145,11 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 	return nil
 }
 
-func isJiraIntegrationEnabled(server *string) string {
+func isJiraIntegrationEnabled(server *string) bool {
 	if server != nil {
-		return "enabled"
+		return true
 	}
-	return "disabled"
+	return false
 }
 
 func (h TriggerBuildJobProvision) getGitServer(codebaseName, gitServerName, namespace string) (*codebase_model.GitServer, error) {

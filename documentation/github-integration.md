@@ -37,6 +37,7 @@ Discover the steps below to apply the GitHub integration correctly:
 	    * GIT_SERVER_CR_VERSION;
 	    * GIT_CREDENTIALS_ID;
 	    * REPOSITORY_PATH;
+	    * JIRA_INTEGRATION_ENABLED;
 	        
     * Check the *Execute concurrent builds if necessary* option;
         
@@ -56,7 +57,7 @@ import com.cloudbees.hudson.plugins.folder.*
 
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
-def jiraIntegrationEnabled = Boolean.parseBoolean(("${JIRA_INTEGRATION_ENABLED}" == "enabled") as String)
+def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
     
 if (jiraIntegrationEnabled) {
     stages['Code-review-application'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
@@ -105,7 +106,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
 
 if (buildTool.toString().equalsIgnoreCase('none')) {
     return true
@@ -269,7 +270,8 @@ def createListView(codebaseName, branchName) {
     }
 }
 
-def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, gitServerCrName, gitServerCrVersion) {
+def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
+ gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
     pipelineJob("${codebaseName}/${pipelineName}") {
         logRotator {
             numToKeep(14)
@@ -290,6 +292,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                 parameters {
                     stringParam("STAGES", "${codebaseStages}", "")
                     if (pipelineName.contains("Create-release")) {
+                        stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
                         stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                         stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                         stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")

@@ -134,26 +134,26 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     Jenkins jenkins = Jenkins.instance
     def stages = [:]
-    def jiraIntegrationEnabled = Boolean.parseBoolean(("${JIRA_INTEGRATION_ENABLED}" == "enabled") as String)
+    def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
     
     if (jiraIntegrationEnabled) {
-         stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},' +
+        stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},' +
                     '{"name": "tests"}, {"name": "sonar"}]'
-            stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tool-init"},{"name": "lint"}]'
-            stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
-            stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
-            stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
-                    '{"name": "sonar"}]'
-            stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
+        stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tool-init"},{"name": "lint"}]'
+        stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
+        stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "lint"}]'
+        stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
+                '{"name": "sonar"}]'
+        stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
     } else {
-         stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
+        stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
                     '{"name": "tests"}, {"name": "sonar"}]'
-            stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},{"name": "lint"}]'
-            stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
-            stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
-            stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
-                    '{"name": "sonar"}]'
-            stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
+        stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},{"name": "lint"}]'
+        stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
+        stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
+        stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
+                '{"name": "sonar"}]'
+        stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
     }
     stages['Code-review-application-npm'] = stages['Code-review-application-maven']
     stages['Code-review-application-gradle'] = stages['Code-review-application-maven']
@@ -196,7 +196,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     createListView(codebaseName, "Releases")
     createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-            repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion)
+            repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
 
     if (BRANCH == "master" && gitServerCrName != "gerrit") {
         def branch = "${BRANCH}"
@@ -313,6 +313,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                     parameters {
                         stringParam("STAGES", "${codebaseStages}", "")
                         if (pipelineName.contains("Create-release")) {
+                            stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
                             stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                             stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                             stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")
