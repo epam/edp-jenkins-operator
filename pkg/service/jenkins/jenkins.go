@@ -580,8 +580,8 @@ func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkin
 			APIGroups: []string{"*"},
 			Resources: []string{"codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines", "nexuses",
 				"stages", "gitservers", "adminconsoles", "jenkinses", "jenkins", "edpcomponents", "keycloakrealms",
-				"jirafixversions"},
-			Verbs: []string{"get", "create", "update", "patch", "list"},
+				"jirafixversions", "codebases/finalizers"},
+			Verbs: []string{"get", "create", "update", "patch", "list", "delete"},
 		},
 	}
 
