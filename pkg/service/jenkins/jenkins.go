@@ -51,6 +51,7 @@ const (
 	keycloakConfigTemplateName      = "config-keycloak.tmpl"
 	kanikoTemplateName              = "kaniko.json"
 	cbisTemplateName                = "cbis.json"
+	jfvTemplateName                 = "jfv.json"
 	dockerRegistryTemplateName      = "config.json"
 	defaultScriptConfigMapKey       = "context"
 	sshKeyDefaultMountPath          = "/tmp/ssh"
@@ -524,6 +525,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		{"ame": kanikoTemplateName, "cmName": "kaniko-template"},
 		{"name": dockerRegistryTemplateName, "cmName": "docker-config"},
 		{"name": cbisTemplateName, "cmName": "cbis-template"},
+		{"name": jfvTemplateName, "cmName": "jfv-template"},
 	} {
 		configMapName := template["cmName"]
 		filePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, template["name"])
