@@ -58,34 +58,28 @@ import com.cloudbees.hudson.plugins.folder.*
 Jenkins jenkins = Jenkins.instance
 def stages = [:]
 def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
+def commitValidateStage = jiraIntegrationEnabled ? ',{"name": "commit-validate"}' : ''
+def createJFVStage = jiraIntegrationEnabled ? ',{"name": "create-jira-fix-version"}' : ''
     
-if (jiraIntegrationEnabled) {
-    stages['Code-review-application'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
-    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "compile"},{"name": "tests"},' +
-            '{"name": "sonar"}]'
-    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "commit-validate"},{"name": "tests"},{"name": "sonar"}]'
-} else {
-    stages['Code-review-application'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
-    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
-            '{"name": "sonar"}]'
-    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
-}
-
+stages['Code-review-application'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
+stages['Code-review-library'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},' +
+        '{"name": "sonar"}]'
+stages['Code-review-autotests'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "tests"},{"name": "sonar"}]'
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"},{"name": "git-tag"}]'
 stages['Build-library-npm'] = stages['Build-library-maven']
 stages['Build-library-gradle'] = stages['Build-library-maven']
 stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
+        '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-kaniko"},' +
-        '{"name": "push"},{"name": "git-tag"}]'
+        '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-npm'] = stages['Build-application-maven']
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build-image-kaniko"},' +
-        '{"name": "push"},{"name": "git-tag"}]'
+        '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
 def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none"]
