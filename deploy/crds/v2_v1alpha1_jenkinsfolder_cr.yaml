@@ -6,6 +6,9 @@ spec:
   codebaseName: null
   ownerName: "example-jenkins"
   jobName: null
+  job:
+    name: "example-job"
+    config: "example-config"
 status:
   status: "initialized"
   jenkinsJobProvisionBuildNumber: 0
