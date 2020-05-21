@@ -2,19 +2,11 @@
   "apiVersion": "v2.edp.epam.com/v1alpha1",
   "kind": "JiraFixVersion",
   "metadata": {
-    "name": "replace",
-    "ownerReferences": [
-      {
-        "apiVersion": "v2.edp.epam.com/v1alpha1",
-        "blockOwnerDeletion": true,
-        "kind": "Codebase",
-        "name": "replace",
-        "uid": "replace"
-      }
-    ]
+    "name": "replace"
   },
   "spec": {
     "commits": "replace",
-    "tickets": "replace"
+    "tickets": "replace",
+    "codebaseName": "replace"
   }
 }
