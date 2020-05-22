@@ -82,6 +82,13 @@ rules:
     - cdpipelines/finalizers
     - cdpipelines/status
     - projectrequests
+    - codebases
+    - codebases/finalizers
+    - codebasebranches
+    - codebaseimagestreams
+    - gitservers
+    - jirafixversions
+    - adminconsoles
   verbs:
     - '*'
 {{ end }}
