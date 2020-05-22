@@ -277,15 +277,15 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                         stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                         stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
                         stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
-                        if (pipelineName.contains("Build"))
-                            stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
+                        stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
                     }
                 }
             }
         }
     }
 
-    def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, gitServerCrName, gitServerCrVersion) {
+    def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
+    gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
         pipelineJob("${codebaseName}/${pipelineName}") {
             logRotator {
                 numToKeep(14)

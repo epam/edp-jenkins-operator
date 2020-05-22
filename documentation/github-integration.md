@@ -158,8 +158,7 @@ def createCodeReviewPipeline(pipelineName, codebaseName, codebaseStages, pipelin
                     stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                     stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
                     stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
-                    if (pipelineName.contains("Build"))
-                        stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
+                    stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
                 }
             }
         }
