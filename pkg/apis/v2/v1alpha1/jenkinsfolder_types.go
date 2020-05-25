@@ -17,8 +17,7 @@ type JenkinsFolderSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	CodebaseName *string `json:"codebaseName"`
 	OwnerName    *string `json:"ownerName"`
-	JobName      *string `json:"jobName"`
-	Job          Job     `json: "job"`
+	Job          *Job    `json:"job,omitempty"`
 }
 
 // JenkinsFolderStatus defines the observed state of Jenkins

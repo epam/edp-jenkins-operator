@@ -40,18 +40,13 @@ spec:
               anyOf:
                 - type: null
                 - type: string
-            jobName:
-              description: 'Property indicates which job provision should be triggered.'
-              anyOf:
-                - type: null
-                - type: string
             job:
               properties:
                 name:
                   description: 'Property indicates job name.'
                   type: string
                 config:
-                  description: 'Contains config for triggering Job provision .'
+                  description: 'Contains config for triggering Job provision.'
                   type: string
               required:
                 - name

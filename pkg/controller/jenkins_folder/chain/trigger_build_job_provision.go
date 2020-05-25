@@ -2,6 +2,7 @@ package chain
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	edpv1alpha1 "github.com/epmd-edp/codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	codebase_model "github.com/epmd-edp/codebase-operator/v2/pkg/model"
@@ -15,8 +16,6 @@ import (
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -96,51 +95,29 @@ func (h TriggerBuildJobProvision) initGoJenkinsClient(jf v1alpha1.JenkinsFolder)
 }
 
 func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.JenkinsFolder) error {
-	log.V(2).Info("start triggering build job", "name", jf.Spec.JobName)
+	log.V(2).Info("start triggering build job", "name", jf.Spec.Job.Name)
 	jc, err := h.initGoJenkinsClient(*jf)
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
-	jp := fmt.Sprintf("job-provisions/job/ci/job/%v", *jf.Spec.JobName)
-	success, err := jc.IsBuildSuccessful(jp, jf.Status.JenkinsJobProvisionBuildNumber)
+	success, err := jc.IsBuildSuccessful(jf.Spec.Job.Name, jf.Status.JenkinsJobProvisionBuildNumber)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't check build status for job %v", jp)
+		return errors.Wrapf(err, "couldn't check build status for job %v", jf.Spec.Job.Name)
 	}
 	if success {
 		log.V(2).Info("last build was successful. triggering of job provision is skipped")
 		return nil
 	}
 
-	c, err := h.getCodebaseInstanceOwner(*jf)
-	if err != nil {
-		return errors.Wrapf(err, "an error has been occurred while getting owner codebase for jenkins folder %v", jf.Name)
-	}
+	var jpc map[string]string
+	err = json.Unmarshal([]byte(jf.Spec.Job.Config), &jpc)
 
-	gs, err := h.getGitServer(c.Name, c.Spec.GitServer, c.Namespace)
-	if err != nil {
-		return err
-	}
-	log.Info("GIT server has been retrieved", "name", gs.Name)
-
-	path := getRepositoryPath(c.Name, string(c.Spec.Strategy), c.Spec.GitUrlPath)
-	sshLink := generateSshLink(path, gs)
-	jpm := map[string]string{
-		"PARAM":                    "true",
-		"NAME":                     c.Name,
-		"BUILD_TOOL":               strings.ToLower(c.Spec.BuildTool),
-		"GIT_SERVER_CR_NAME":       gs.Name,
-		"GIT_SERVER_CR_VERSION":    "v2",
-		"GIT_CREDENTIALS_ID":       gs.NameSshKeySecret,
-		"REPOSITORY_PATH":          sshLink,
-		"JIRA_INTEGRATION_ENABLED": strconv.FormatBool(isJiraIntegrationEnabled(c.Spec.JiraServer)),
-	}
-
-	bn, err := jc.BuildJob(jp, jpm)
+	bn, err := jc.BuildJob(jf.Spec.Job.Name, jpc)
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
 	}
 	jf.Status.JenkinsJobProvisionBuildNumber = *bn
-	log.Info("end triggering build job", "name", jp)
+	log.Info("end triggering build job", "name", jf.Spec.Job.Name)
 	return nil
 }
 

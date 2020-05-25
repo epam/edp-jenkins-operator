@@ -138,7 +138,7 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 		return *result, err
 	}
 
-	h, err := r.createChain(i.Spec.JobName != nil)
+	h, err := r.createChain(i.Spec.Job != nil)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -208,7 +208,7 @@ func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.Jenkin
 }
 
 func (r ReconcileJenkinsFolder) getJenkinsFolderName(jf *v2v1alpha1.JenkinsFolder) string {
-	if jf.Spec.JobName == nil {
+	if jf.Spec.Job == nil {
 		return jf.Name
 	}
 	return strings.Replace(jf.Name, "-codebase", "", -1)
