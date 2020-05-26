@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/bndr/gojenkins"
 	pipev1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	codebasev1alpha1 "github.com/epmd-edp/codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
-	handler2 "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
+	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
@@ -20,7 +19,7 @@ import (
 )
 
 type PutJenkinsPipeline struct {
-	next handler2.JenkinsJobHandler
+	next jobhandler.JenkinsJobHandler
 	cs   openshift.ClientSet
 	ps   platform.PlatformService
 }
@@ -49,16 +48,6 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 		return err
 	}
 
-	jp := h.getJobName(jj)
-	job, err := h.getJob(jc, jp)
-	if err != nil {
-		return err
-	}
-	if job != nil {
-		log.V(2).Info("job already exists. skip creating", "name", jp)
-		return nil
-	}
-
 	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
 	if err != nil {
 		return err
@@ -78,15 +67,8 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 		return errors.Wrap(err, "couldn't create jenkins job")
 	}
 
-	log.Info("job has been created", "name", jp)
+	log.Info("job has been created", "name", jj.Spec.Job.Name)
 	return nil
-}
-
-func (h PutJenkinsPipeline) getJobName(jj *v1alpha1.JenkinsJob) string {
-	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
-		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jj.Spec.Job.Name)
-	}
-	return jj.Spec.Job.Name
 }
 
 func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *string, jj *v1alpha1.JenkinsJob) error {
@@ -105,18 +87,6 @@ func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *str
 	}
 	log.V(2).Info("job has been created", "name", jj.Spec.Job.Name)
 	return nil
-}
-
-func (h PutJenkinsPipeline) getJob(jc *jenkinsClient.JenkinsClient, jp string) (*gojenkins.Job, error) {
-	job, err := jc.GoJenkins.GetJob(jp)
-	if err != nil {
-		if err.Error() == "404" {
-			log.V(2).Info("job doesn't exist. start creating", "name", jp)
-			return nil, nil
-		}
-		return nil, err
-	}
-	return job, nil
 }
 
 func (h PutJenkinsPipeline) initGoJenkinsClient(jj *v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {

@@ -8,6 +8,7 @@ import (
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain"
+	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/finalizer"
@@ -140,9 +141,27 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
-	ch, err := chain.CreateDefChain(r.scheme, &r.client)
+	j, err := plutil.GetJenkinsInstanceOwner(r.client, i.Name, i.Namespace, i.Spec.OwnerName, i.GetOwnerReferences())
 	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
+		return reconcile.Result{}, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", i.Name)
+	}
+
+	var ch jobhandler.JenkinsJobHandler
+	jc, err := jenkinsClient.InitGoJenkinsClient(j, r.ps)
+	jobExist, err := isJenkinsJobExist(jc, i.Spec.Job.Name)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "an error has occurred while retrieving jenkins job %v", i.Spec.Job.Name)
+	}
+	if jobExist {
+		ch, err = chain.CreateTriggerJobProvisionChain(r.scheme, &r.client)
+		if err != nil {
+			return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
+		}
+	} else {
+		ch, err = chain.CreateDefChain(r.scheme, &r.client)
+		if err != nil {
+			return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
+		}
 	}
 
 	if err := ch.ServeRequest(i); err != nil {
@@ -151,6 +170,17 @@ func (r *ReconcileJenkinsJob) Reconcile(request reconcile.Request) (reconcile.Re
 
 	rlog.V(2).Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
+}
+
+func isJenkinsJobExist(jc *jenkinsClient.JenkinsClient, jp string) (bool, error) {
+	_, err := jc.GoJenkins.GetJob(jp)
+	if err != nil {
+		if err.Error() == "404" {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func (r ReconcileJenkinsJob) initGoJenkinsClient(jj v2v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {

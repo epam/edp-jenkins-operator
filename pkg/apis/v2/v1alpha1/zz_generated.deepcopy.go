@@ -127,7 +127,11 @@ func (in *JenkinsFolderSpec) DeepCopyInto(out *JenkinsFolderSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	out.Job = in.Job
+	if in.Job != nil {
+		in, out := &in.Job, &out.Job
+		*out = new(Job)
+		**out = **in
+	}
 	return
 }
 

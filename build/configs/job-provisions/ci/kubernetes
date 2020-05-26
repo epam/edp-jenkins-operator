@@ -258,4 +258,3 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
 project.save()
-project.scheduleBuild()

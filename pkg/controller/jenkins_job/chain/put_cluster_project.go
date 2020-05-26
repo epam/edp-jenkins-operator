@@ -8,7 +8,7 @@ import (
 	"github.com/epmd-edp/codebase-operator/v2/pkg/util"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
-	handler2 "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
+	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
@@ -20,7 +20,7 @@ import (
 )
 
 type PutClusterProject struct {
-	next handler2.JenkinsJobHandler
+	next jobhandler.JenkinsJobHandler
 	cs   openshift.ClientSet
 	ps   platform.PlatformService
 }

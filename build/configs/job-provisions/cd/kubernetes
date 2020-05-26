@@ -37,7 +37,7 @@ import jenkins.model.Jenkins
 
 Jenkins jenkins = Jenkins.instance
 
-def pipelineName = "${PIPELINE_NAME}"
+def pipelineName = "${PIPELINE_NAME}-cd-pipeline"
 def stageName = "${STAGE_NAME}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
 def qgStages = "${QG_STAGES}"
@@ -123,4 +123,3 @@ def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
 project.save()
-project.scheduleBuild()

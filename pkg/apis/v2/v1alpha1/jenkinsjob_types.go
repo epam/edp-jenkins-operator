@@ -44,14 +44,15 @@ type JenkinsJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool       `json:"available, omitempty"`
-	LastTimeUpdated time.Time  `json:"lastTimeUpdated, omitempty"`
-	Status          string     `json:"status, omitempty"`
-	Username        string     `json:"username"`
-	Action          ActionType `json:"action"`
-	Result          Result     `json:"result"`
-	DetailedMessage string     `json:"detailedMessage"`
-	Value           string     `json:"value"`
+	Available                      bool       `json:"available, omitempty"`
+	LastTimeUpdated                time.Time  `json:"lastTimeUpdated, omitempty"`
+	Status                         string     `json:"status, omitempty"`
+	JenkinsJobProvisionBuildNumber int64      `json:"jenkinsJobProvisionBuildNumber"`
+	Username                       string     `json:"username"`
+	Action                         ActionType `json:"action"`
+	Result                         Result     `json:"result"`
+	DetailedMessage                string     `json:"detailedMessage"`
+	Value                          string     `json:"value"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
