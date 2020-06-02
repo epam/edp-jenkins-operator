@@ -19,6 +19,7 @@ import (
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	appsApi "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
 	coreV1Api "k8s.io/api/core/v1"
 	extensionsApi "k8s.io/api/extensions/v1beta1"
@@ -30,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	appsV1Client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
 	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
@@ -53,6 +55,7 @@ type K8SService struct {
 	k8sUnstructuredClient client.Client
 	authClient            authV1Client.RbacV1Client
 	extensionsV1Client    extensionsV1Client.ExtensionsV1beta1Client
+	appsV1Client          appsV1Client.AppsV1Client
 	edpCompClient         edpCompClient.EDPComponentV1Client
 }
 
@@ -84,6 +87,12 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 		return errors.Wrap(err, "Failed to init extensions V1 client for K8S")
 	}
 	service.extensionsV1Client = *extensionsClient
+
+	appsClient, err := appsV1Client.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to init apps V1 client for K8S")
+	}
+	service.appsV1Client = *appsClient
 
 	compCl, err := edpCompClient.NewForConfig(config)
 	if err != nil {
@@ -145,7 +154,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return nil
 	}
 
-	deployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -166,7 +175,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return err
 	}
 
-	_, err = service.extensionsV1Client.Deployments(deployment.Namespace).Patch(deployment.Name, types.StrategicMergePatchType, jsonDc)
+	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(deployment.Name, types.StrategicMergePatchType, jsonDc)
 	if err != nil {
 		return err
 	}
@@ -195,15 +204,15 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 		rpPath = fmt.Sprintf("%v/login", instance.Spec.BasePath)
 	}
 
-	jo := &extensionsApi.Deployment{
+	jo := &appsApi.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
 			Labels:    l,
 		},
-		Spec: extensionsApi.DeploymentSpec{
+		Spec: appsApi.DeploymentSpec{
 			Replicas: &jenkinsDefaultSpec.Replicas,
-			Strategy: extensionsApi.DeploymentStrategy{
+			Strategy: appsApi.DeploymentStrategy{
 				Type: "Recreate",
 			},
 			Selector: &metav1.LabelSelector{
@@ -369,12 +378,12 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 		return err
 	}
 
-	d, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	d, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
 	if !k8sErrors.IsNotFound(err) {
 		return err
 	}
 
-	d, err = service.extensionsV1Client.Deployments(instance.Namespace).Create(jo)
+	d, err = service.appsV1Client.Deployments(instance.Namespace).Create(jo)
 	if err != nil {
 		return err
 	}
@@ -386,7 +395,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 }
 
 func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deployment, err := service.extensionsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}

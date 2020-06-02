@@ -66,6 +66,7 @@ github.com/emicklei/go-restful v2.9.6+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT
 github.com/emirpasic/gods v1.9.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50 h1:2a+EYbwYjhwJa0MAd4lsq1/LmTAqPp8/G9yAeheYPuQ=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50/go.mod h1:ygALtMzvxjLfbXLfGqZ+eGjsARgBdyf6IvoTl5NF5Kk=
+github.com/epmd-edp/cd-pipeline-operator/v2 v2.3.0-58.0.20200424095303-90cf9714dc73 h1:cmX9ryXWuu7a9owPm2HxX0cDsZ8us9mesbStyYAxSIo=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.3.0-58.0.20200424095303-90cf9714dc73/go.mod h1:1w6Fdba/iDnEv1Tm/4cfU31H2K6izgpzj11sVA3RKUE=
 github.com/epmd-edp/codebase-operator/v2 v2.3.0-88 h1:Ssj1tSYMtItlkLfVIGRaN4+c3a3V5sf4glM2zmb8eLk=
 github.com/epmd-edp/codebase-operator/v2 v2.3.0-88/go.mod h1:MqnZsWXSdziAmOYznnMW+C3M160So5AMuJoCSL84t8M=
