@@ -239,7 +239,7 @@ func (service K8SService) CreateDeployment(instance v1alpha1.Jenkins) error {
 								RunAsUser:  &uid,
 								RunAsGroup: &gid,
 							},
-							Image:                    "busybox",
+							Image:                    instance.Spec.InitImage,
 							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
 							Name:                     "grant-permissions",
 							Command:                  jenkinsDefaultSpec.Command,

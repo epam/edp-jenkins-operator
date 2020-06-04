@@ -139,7 +139,7 @@ func (service OpenshiftService) CreateDeployment(instance v1alpha1.Jenkins) erro
 					SchedulerName:                 coreV1Api.DefaultSchedulerName,
 					InitContainers: []coreV1Api.Container{
 						{
-							Image:                    "busybox",
+							Image:                    instance.Spec.InitImage,
 							ImagePullPolicy:          coreV1Api.PullIfNotPresent,
 							Name:                     "grant-permissions",
 							Command:                  jenkinsDefaultSpec.Command,

@@ -18,6 +18,7 @@ type JenkinsSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Image            string                           `json:"image"`
 	Version          string                           `json:"version"`
+	InitImage        string                           `json:"initImage"`
 	BasePath         string                           `json:"basePath,omitempty"`
 	ImagePullSecrets []coreV1Api.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	Volumes          []JenkinsVolumes                 `json:"volumes,omitempty"`
