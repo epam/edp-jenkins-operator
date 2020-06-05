@@ -79,7 +79,7 @@ def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType
         } else {
             definition {
                 cps {
-                    script("@Library([edp-library-stages, edp-library-pipelines]) _ \\n\\nDeploy()")
+                    script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\nDeploy()")
                     sandbox(true)
                 }
             }
