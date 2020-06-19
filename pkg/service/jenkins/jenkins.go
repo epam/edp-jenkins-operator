@@ -527,14 +527,14 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 
 	for _, template := range []map[string]string{
-		{"ame": kanikoTemplateName, "cmName": "kaniko-template"},
+		{"name": kanikoTemplateName, "cmName": "kaniko-template"},
 		{"name": dockerRegistryTemplateName, "cmName": "docker-config"},
 		{"name": cbisTemplateName, "cmName": "cbis-template"},
 		{"name": jfvTemplateName, "cmName": "jfv-template"},
 	} {
 		configMapName := template["cmName"]
 		filePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, template["name"])
-		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapName, filePath, &instance)
+		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, nil, filePath, &instance)
 		if err != nil {
 			return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
 		}
