@@ -137,6 +137,8 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
     def commitValidateStage = jiraIntegrationEnabled ? ',{"name": "commit-validate"}' : ''
     def createJFVStage = jiraIntegrationEnabled ? ',{"name": "create-jira-fix-version"}' : ''
+    def platformType = "${PLATFORM_TYPE}"
+    def buildStage = platformType == "kubernetes" ? ',{"name": "build-image-kaniko"},' : ',{"name": "build-image-from-dockerfile"},'
     
     stages['Code-review-application-maven'] = '[{"name": "checkout"}' + "${commitValidateStage}" +
         ',{"name": "compile"},{"name": "tests"}, {"name": "sonar"}]'
@@ -158,12 +160,12 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-            '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
+            '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
             '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']
     stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-            '{"name": "tests"},{"name": "sonar"},{"name": "build-image"},' +
+            '{"name": "tests"},{"name": "sonar"}' + "${buildStage}" +
             '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},' +
             '{"name": "lint"},{"name": "git-tag"}]'
@@ -189,7 +191,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
     createListView(codebaseName, "Releases")
     createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-            repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
+            repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType)
 
     if (BRANCH == "master" && gitServerCrName != "gerrit") {
         def branch = "${BRANCH}"
@@ -285,7 +287,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     }
 
     def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
-    gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
+    gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType) {
         pipelineJob("${codebaseName}/${pipelineName}") {
             logRotator {
                 numToKeep(14)
@@ -307,6 +309,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                         stringParam("STAGES", "${codebaseStages}", "")
                         if (pipelineName.contains("Create-release")) {
                             stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
+                            stringParam("PLATFORM_TYPE", "${platformType}", "Platform type")
                             stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                             stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                             stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")

@@ -67,7 +67,9 @@ def stages = [:]
 def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
 def commitValidateStage = jiraIntegrationEnabled ? ',{"name": "commit-validate"}' : ''
 def createJFVStage = jiraIntegrationEnabled ? ',{"name": "create-jira-fix-version"}' : ''
-    
+def platformType = "${PLATFORM_TYPE}"
+def buildStage = platformType == "kubernetes" ? ',{"name": "build-image-kaniko"},' : ',{"name": "build-image-from-dockerfile"},'
+
 stages['Code-review-application'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
 stages['Code-review-library'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
@@ -80,12 +82,12 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-kaniko"},' +
+        '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-npm'] = stages['Build-application-maven']
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build-image-kaniko"},' +
+        '{"name": "tests"},{"name": "sonar"}' + "${buildStage}" +
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
@@ -107,7 +109,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType)
 
 if (buildTool.toString().equalsIgnoreCase('none')) {
     return true
@@ -271,7 +273,7 @@ def createListView(codebaseName, branchName) {
 }
 
 def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
- gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
+ gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType) {
     pipelineJob("${codebaseName}/${pipelineName}") {
         logRotator {
             numToKeep(14)
@@ -293,6 +295,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                     stringParam("STAGES", "${codebaseStages}", "")
                     if (pipelineName.contains("Create-release")) {
                         stringParam("JIRA_INTEGRATION_ENABLED", "${jiraIntegrationEnabled}", "Is Jira integration enabled")
+                        stringParam("PLATFORM_TYPE", "${platformType}", "Platform type")
                         stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                         stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
                         stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")
