@@ -1,0 +1,24 @@
+{{ if eq .Values.platform "openshift" }}
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins-{{ .Values.namespace }}-cluster-role
+rules:
+- apiGroups:
+    - "*"
+  attributeRestrictions: null
+  resources:
+    - securitycontextconstraints
+  verbs:
+    - get
+    - list
+    - update
+- apiGroups:
+    - ""
+    - "project.openshift.io"
+  attributeRestrictions: null
+  resources:
+    - projectrequests
+  verbs:
+    - create
+{{ end }}

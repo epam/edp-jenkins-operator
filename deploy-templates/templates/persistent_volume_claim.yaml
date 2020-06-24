@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-data
+  labels:
+    app: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.jenkins.volumeCapacity }}
+  storageClassName: {{ .Values.jenkins.storageClass }}
+  volumeMode: Filesystem

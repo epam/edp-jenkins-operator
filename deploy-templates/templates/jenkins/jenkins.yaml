@@ -1,0 +1,33 @@
+{{- if .Values.jenkins.deploy -}}
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: Jenkins
+metadata:
+  name: jenkins
+spec:
+  edpSpec:
+    dnsWildcard: {{ .Values.edp.dnsWildCard }}
+    {{- if .Values.jenkins.pullSecrets}}
+    imagePullSecrets:
+      {{- range .Values.jenkins.pullSecrets }}
+      - {{. -}}
+      {{- end -}}
+    {{end}}
+  image: {{.Values.jenkins.image}}
+  version: {{.Values.jenkins.version}}
+  volumes:
+    - name: "data"
+      storageClass: {{ .Values.jenkins.storageClass }}
+      capacity: {{ .Values.jenkins.volumeCapacity }}
+  sharedLibraries:
+    - name: "edp-library-stages"
+      id: "Stages"
+      repository: {{ .Values.jenkins.libraryStagesRepo }}
+      version: {{ .Values.jenkins.libraryStagesVersion }}
+    - name: "edp-library-pipelines"
+      id: "Pipelines"
+      repository: {{ .Values.jenkins.libraryPipelinesRepo }}
+      version: {{ .Values.jenkins.libraryPipelinesVersion }}
+  keycloakSpec:
+    enabled: true
+    realm: "{{ .Values.edp.name }}-edp"
+{{end}}

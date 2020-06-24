@@ -1,7 +1,23 @@
 name: jenkins-operator
 namespace: ""
 platform: "openshift"
-dnsWildcard: ""
 image:
   name: epamedp/jenkins-operator
   version: v2.3.0
+
+edp:
+  name: "stub-edp-name"
+  dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
+
+jenkins:
+  deploy: true
+  image: "docker-registry.default.svc:5000/oc-green-edp-cicd/edp-jenkins-master"
+  version: "master-2.4.0-26"
+  storageClass: gp2
+  volumeCapacity: 10Gi
+  libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"
+  libraryPipelinesVersion: "master"
+  libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"
+  libraryStagesVersion: "master"
+  pullSecrets:
+  basePath:

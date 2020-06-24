@@ -1,0 +1,24 @@
+{{ if eq .Values.platform "kubernetes" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins-{{ .Values.namespace }}-cluster-role
+rules:
+- apiGroups:
+    - "*"
+  attributeRestrictions: null
+  resources:
+    - podsecuritypolicies
+  verbs:
+    - get
+    - list
+    - update
+- apiGroups:
+    - "*"
+  attributeRestrictions: null
+  resources:
+    - namespaces
+  verbs:
+    - create
+    - get
+{{ end }}

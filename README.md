@@ -18,7 +18,7 @@ _**NOTE:** It is highly recommended to use the latest released version._
 
 * Go to the unzipped directory and deploy operator:
 ```bash
-helm install jenkins-operator --namespace <edp_cicd_project> --set name=jenkins-operator --set namespace=<edp_cicd_project> --set platform=<platform_type> --set image.name=epamedp/jenkins-operator --set image.version=<operator_version> --set dnsWildcard=<dns_wildcard> deploy-templates
+helm install jenkins-operator --namespace <edp_cicd_project> --set name=jenkins-operator --set namespace=<edp_cicd_project> --set platform=<platform_type> --set image.name=epamedp/jenkins-operator --set image.version=<operator_version> --set edp.dnsWildCard=<dns_wildcard> --set jenkins.deploy=<true/false> --set jenkins.image=epamedp/edp-jenkins --set jenkins.version=<jenkins_version> deploy-templates
 ```
 
 - _<edp_cicd_project> - a namespace or a project name (in case of OpenShift) that is created by one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install_edp.md#install-edp) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install_edp.md#install-edp);_ 
