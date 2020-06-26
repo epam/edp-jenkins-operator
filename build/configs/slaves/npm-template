@@ -10,7 +10,7 @@
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
   <label>npm</label>
   <serviceAccount>jenkins</serviceAccount>
-  <nodeSelector></nodeSelector>
+  <nodeSelector>beta.kubernetes.io/os="linux"</nodeSelector>
   <nodeUsageMode>NORMAL</nodeUsageMode>
   <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
     <memory>false</memory>
