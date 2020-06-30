@@ -10,7 +10,7 @@
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
   <label>maven-java8</label>
   <serviceAccount>jenkins</serviceAccount>
-  <nodeSelector>beta.kubernetes.io/os=linux</nodeSelector>
+  <nodeSelector>beta.kubernetes.io/os=linux</nodeSelector>11111111111111111111
   <nodeUsageMode>NORMAL</nodeUsageMode>
   <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
     <memory>false</memory>
