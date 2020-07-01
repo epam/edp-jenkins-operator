@@ -98,7 +98,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     }
     ```
 
-6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions* folder:
+6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions/ci* folder:
 
     * Click *New Item*;
     * Type the name;
@@ -140,38 +140,40 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     def platformType = "${PLATFORM_TYPE}"
     def buildStage = platformType == "kubernetes" ? ',{"name": "build-image-kaniko"},' : ',{"name": "build-image-from-dockerfile"},'
     
-    stages['Code-review-application-maven'] = '[{"name": "checkout"}' + "${commitValidateStage}" +
-        ',{"name": "compile"},{"name": "tests"}, {"name": "sonar"}]'
-    stages['Code-review-application-terraform'] = '[{"name": "checkout"}' + "${commitValidateStage}" +
-        ',{"name": "tool-init"},{"name": "lint"}]'
-    stages['Code-review-application-helm'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "lint"}]'
-    stages['Code-review-application-docker'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "lint"}]'
-    stages['Code-review-library'] = '[{"name": "checkout"}' + "${commitValidateStage}" +
-        ',{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
-    stages['Code-review-autotests'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "tests"},{"name": "sonar"}]'
+    stages['Code-review-application-python'] = '[{"name": "checkout"},{"name": "compile"},{"name": "test"}]'
+    stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
+        '{"name": "tests"}, {"name": "sonar"}]'
     stages['Code-review-application-npm'] = stages['Code-review-application-maven']
     stages['Code-review-application-gradle'] = stages['Code-review-application-maven']
     stages['Code-review-application-dotnet'] = stages['Code-review-application-maven']
-   
+    stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},{"name": "lint"}]'
+    stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
+    stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
+    stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
+            '{"name": "sonar"}]'
+    stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
     stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-            '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
+            '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"},{"name": "git-tag"}]'
     stages['Build-library-npm'] = stages['Build-library-maven']
     stages['Build-library-gradle'] = stages['Build-library-maven']
     stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-            '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
+            '{"name": "tests"},{"name": "sonar"},{"name": "push"},{"name": "git-tag"}]'
     stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
-            '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
+            '{"name": "push"},{"name": "git-tag"}]'
+    stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "test"},' +
+    '{"name": "build-image-from-dockerfile"},{"name":"push"},{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']
     stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"}' + "${buildStage}" +
-            '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
+            '{"name": "push"},{"name": "git-tag"}]'
     stages['Build-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},' +
             '{"name": "lint"},{"name": "git-tag"}]'
     stages['Build-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Build-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
+
 
     def codebaseName = "${NAME}"
     def buildTool = "${BUILD_TOOL}"
@@ -192,30 +194,6 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     createListView(codebaseName, "Releases")
     createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
             repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType)
-
-    if (BRANCH == "master" && gitServerCrName != "gerrit") {
-        def branch = "${BRANCH}"
-        def formattedBranch = "${branch.toUpperCase().replaceAll(/\\//, "-")}"
-        createListView(codebaseName, formattedBranch)
-
-        def type = "${TYPE}"
-        createCiPipeline("Code-review-${codebaseName}", codebaseName, stages["Code-review-${type}-${buildTool.toLowerCase()}"], "code-review.groovy",
-                repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
-
-        if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
-            def jobExists = false
-            if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name}) {
-               jobExists = true
-            }
-            createCiPipeline("Build-${codebaseName}", codebaseName, stages["Build-${type}-${buildTool.toLowerCase()}"], "build.groovy",
-                    repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
-            if(!jobExists) {
-                queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
-            }
-        }
-        registerWebHook(repositoryPath)
-        return
-    }
 
     if (BRANCH) {
         def branch = "${BRANCH}"
@@ -241,50 +219,68 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
 
 
     def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
-        pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
-            logRotator {
-                numToKeep(10)
-                daysToKeep(7)
-            }
-            if(gitServerCrName == "gerrit") {
-                triggers {
-                    gerrit {
-                        events {
-                            if (pipelineName.contains("Build"))
-                                changeMerged()
-                            else
-                                patchsetCreated()
+    def jobName = "${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}"
+    def existingJob = Jenkins.getInstance().getItemByFullName("${codebaseName}/${jobName}")
+    def webhookToken = null
+    if (existingJob) {
+        def triggersMap = existingJob.getTriggers()
+        triggersMap.each { key, value ->
+            webhookToken = value.getSecretToken()
+        }
+    } else {
+        def random = new byte[16]
+        new java.security.SecureRandom().nextBytes(random)
+        webhookToken = random.encodeHex().toString()
+    }
+    pipelineJob("${codebaseName}/${jobName}") {
+        logRotator {
+            numToKeep(10)
+            daysToKeep(7)
+        }
+        definition {
+            cpsScm {
+                scm {
+                    git {
+                        remote {
+                            url(repository)
+                            credentials(credId)
                         }
-                        project("plain:${codebaseName}", ["plain:${watchBranch}"])
+                        branches(pipelineName.contains("Build") ? "${watchBranch}" : "\${gitlabMergeRequestLastCommit}")
+                        scriptPath("${pipelineScript}")
                     }
                 }
-            }
-            definition {
-                cpsScm {
-                    scm {
-                        git {
-                            remote {
-                                url(repository)
-                                credentials(credId)
-                            }
-                            if (watchBranch == "FB")
-                                branches("\${BRANCH}")
-                            else
-                                branches("${watchBranch}")
-                            scriptPath("${pipelineScript}")
-                        }
-                    }
-                    parameters {
-                        stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
-                        stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
-                        stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
-                        stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
+                parameters {
+                    stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
+                    stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
+                    stringParam("STAGES", "${codebaseStages}", "Consequence of stages in JSON format to be run during execution")
+                    stringParam("GERRIT_PROJECT_NAME", "${codebaseName}", "Gerrit project name(Codebase name) to be build")
+                    if (pipelineName.contains("Build"))
                         stringParam("BRANCH", "${watchBranch}", "Branch to build artifact from")
-                    }
+                    else
+                        stringParam("BRANCH", "\${gitlabMergeRequestLastCommit}", "Branch to build artifact from")
                 }
             }
         }
+        triggers {
+            gitlabPush {
+                buildOnMergeRequestEvents(pipelineName.contains("Build") ? false : true)
+                buildOnPushEvents(pipelineName.contains("Build") ? true : false)
+                enableCiSkip(false)
+                setBuildDescription(true)
+                rebuildOpenMergeRequest(pipelineName.contains("Build") ? 'never' : 'source')
+                commentTrigger("Build it please")
+                skipWorkInProgressMergeRequest(true)
+                targetBranchRegex("${watchBranch}")
+            }
+        }
+        configure {
+            it / triggers / 'com.dabsquared.gitlabjenkins.GitLabPushTrigger' << secretToken(webhookToken)
+            it / triggers / 'com.dabsquared.gitlabjenkins.GitLabPushTrigger' << triggerOnApprovedMergeRequest(pipelineName.contains("Build") ? false : true)
+        }
     }
+    registerWebHook(repository, codebaseName, jobName, webhookToken)
+    }
+
 
     def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
     gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType) {
@@ -354,53 +350,65 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         }
     }
 
-    def registerWebHook(repositoryPath) {
-        if(!Jenkins.getInstance().getItemByFullName("Gitlab-webhook-listener")) {
-            println("Job \"Gitlab-webhook-listener\" doesn't exist. Webhook is not configured.")
+    def registerWebHook(repositoryPath, codebaseName, jobName, webhookToken) {
+        def apiUrl = 'https://' + repositoryPath.replaceAll("ssh://", "").split('@')[1].replace('/', "%2F").replaceAll(~/:\d+%2F/, '/api/v4/projects/') + '/hooks'
+        def jobWebhookUrl = "${System.getenv('JENKINS_UI_URL')}/project/${codebaseName}/${jobName}"
+        def gitlabToken = getSecretValue('gitlab-token')
+
+        if (checkWebHookExist(apiUrl, jobWebhookUrl, gitlabToken)) {
+            println("[JENKINS][DEBUG] Webhook for job ${jobName} is already exist\r\n")
             return
         }
 
-        def apiUrl = 'https://' + repositoryPath.split('@')[1].replaceAll('/',"%2F").replace(':22%2F', '/api/v4/projects/') + '/hooks'
-        def webhookListenerJob = Jenkins.getInstance().getItemByFullName("Gitlab-webhook-listener")
-        def jobUrl = webhookListenerJob.getAbsoluteUrl().replace('/job/','/project/')
-        def triggersMap = webhookListenerJob.getTriggers()
-
-        triggersMap.each { key, value ->
-            webhookSecretToken = value.getSecretToken()
-        }
-
+        println("[JENKINS][DEBUG] Creating webhook for job ${jobName}")
         def webhookConfig = [:]
-        webhookConfig["url"]                        = jobUrl
-        webhookConfig["push_events"]                = "true"
-        webhookConfig["issues_events"]              = "true"
-        webhookConfig["confidential_issues_events"] = "true"
-        webhookConfig["merge_requests_events"]      = "true"
-        webhookConfig["tag_push_events"]            = "true"
-        webhookConfig["note_events"]                = "true"
-        webhookConfig["job_events"]                 = "true"
-        webhookConfig["pipeline_events"]            = "true"
-        webhookConfig["wiki_page_events"]           = "true"
-        webhookConfig["enable_ssl_verification"]    = "true"
-        webhookConfig["token"]                      = webhookSecretToken
+        webhookConfig["url"] = jobWebhookUrl
+        webhookConfig["push_events"] = jobName.contains("Build") ? "true" : "false"
+        webhookConfig["merge_requests_events"] = jobName.contains("Build") ? "false" : "true"
+        webhookConfig["issues_events"] = "false"
+        webhookConfig["confidential_issues_events"] = "false"
+        webhookConfig["tag_push_events"] = "false"
+        webhookConfig["note_events"] = "true"
+        webhookConfig["job_events"] = "false"
+        webhookConfig["pipeline_events"] = "false"
+        webhookConfig["wiki_page_events"] = "false"
+        webhookConfig["enable_ssl_verification"] = "true"
+        webhookConfig["token"] = webhookToken
         def requestBody = JsonOutput.toJson(webhookConfig)
-        def http = new URL(apiUrl).openConnection() as HttpURLConnection
-        http.setRequestMethod('POST')
-        http.setDoOutput(true)
-        println(apiUrl)
-        http.setRequestProperty("Accept", 'application/json')
-        http.setRequestProperty("Content-Type", 'application/json')
-        http.setRequestProperty("Authorization", "Bearer ${getSecretValue('gitlab-access-token')}")
-        http.outputStream.write(requestBody.getBytes("UTF-8"))
-        http.connect()
-        println(http.responseCode)
+        def httpConnector = new URL(apiUrl).openConnection() as HttpURLConnection
+        httpConnector.setRequestMethod('POST')
+        httpConnector.setDoOutput(true)
 
-        if (http.responseCode == 201) {
-            response = new JsonSlurper().parseText(http.inputStream.getText('UTF-8'))
-        } else {
-            response = new JsonSlurper().parseText(http.errorStream.getText('UTF-8'))
+        httpConnector.setRequestProperty("Accept", 'application/json')
+        httpConnector.setRequestProperty("Content-Type", 'application/json')
+        httpConnector.setRequestProperty("PRIVATE-TOKEN", "${gitlabToken}")
+        httpConnector.outputStream.write(requestBody.getBytes("UTF-8"))
+        httpConnector.connect()
+
+        if (httpConnector.responseCode == 201)
+            println("[JENKINS][DEBUG] Webhook for job ${jobName} has been created\r\n")
+        else {
+            println("[JENKINS][ERROR] Responce code - ${httpConnector.responseCode}")
+            def response = new JsonSlurper().parseText(httpConnector.errorStream.getText('UTF-8'))
+            println("[JENKINS][ERROR] Failed to create webhook for job ${jobName}. Response - ${response}")
         }
+    }
 
-        println "response: ${response}"
+    def checkWebHookExist(apiUrl, jobWebhookUrl, gitlabToken) {
+        println("[JENKINS][DEBUG] Checking if webhook ${jobWebhookUrl} exists")
+        def httpConnector = new URL(apiUrl).openConnection() as HttpURLConnection
+        httpConnector.setRequestMethod('GET')
+        httpConnector.setDoOutput(true)
+
+        httpConnector.setRequestProperty("Accept", 'application/json')
+        httpConnector.setRequestProperty("Content-Type", 'application/json')
+        httpConnector.setRequestProperty("PRIVATE-TOKEN", "${gitlabToken}")
+        httpConnector.connect()
+
+        if (httpConnector.responseCode == 200) {
+            def response = new JsonSlurper().parseText(httpConnector.inputStream.getText('UTF-8'))
+            return response.find { it.url == jobWebhookUrl } ? true : false
+        }
     }
 
     def getSecretValue(name) {
@@ -411,8 +419,8 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
                 null
         )
 
-        def secret = creds.find {it.properties['id'] == name}
-        return secret != null ? secret['apiToken'] : null
+        def secret = creds.find { it.properties['id'] == name }
+        return secret != null ? secret['secret'] : null
     }
     ```
 7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.
