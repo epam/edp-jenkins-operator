@@ -1,4 +1,4 @@
-FROM alpine:3.11.3
+FROM alpine:3.11.6
 
 ENV OPERATOR=/usr/local/bin/jenkins-operator \
     USER_UID=1001 \
