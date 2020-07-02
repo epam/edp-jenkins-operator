@@ -14,6 +14,7 @@ spec:
     {{end}}
   image: {{.Values.jenkins.image}}
   version: {{.Values.jenkins.version}}
+  initImage: {{.Values.jenkins.initImage}}
   volumes:
     - name: "data"
       storageClass: {{ .Values.jenkins.storageClass }}

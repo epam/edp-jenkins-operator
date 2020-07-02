@@ -3,7 +3,7 @@ namespace: ""
 platform: "openshift"
 image:
   name: epamedp/jenkins-operator
-  version: v2.3.0
+  version: v2.4.0
 
 edp:
   name: "stub-edp-name"
@@ -11,8 +11,9 @@ edp:
 
 jenkins:
   deploy: true
-  image: "docker-registry.default.svc:5000/oc-green-edp-cicd/edp-jenkins-master"
-  version: "master-2.4.0-26"
+  initImage: "busybox"
+  image: "epamedp/edp-jenkins"
+  version: "2.4.0"
   storageClass: gp2
   volumeCapacity: 10Gi
   libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"

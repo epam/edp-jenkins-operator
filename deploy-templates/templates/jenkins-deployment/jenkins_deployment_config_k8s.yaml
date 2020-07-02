@@ -1,7 +1,7 @@
 {{if eq .Values.platform "kubernetes"}}
 {{if .Values.jenkins.deploy}}
 kind: Deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 metadata:
   name: jenkins
   labels:
@@ -22,7 +22,7 @@ spec:
             claimName: jenkins-data
       initContainers:
         - name: grant-permissions
-          image: busybox
+          image: {{.Values.jenkins.initImage}}
           command:
             - sh
             - '-c'

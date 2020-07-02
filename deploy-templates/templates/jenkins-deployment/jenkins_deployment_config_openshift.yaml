@@ -85,7 +85,7 @@ spec:
               /tmp/ssh/id_rsa > $JENKINS_HOME/.ssh/id_rsa;chmod 400
               $JENKINS_HOME/.ssh/id_rsa; if [ -e $JENKINS_HOME/.ssh/config ];
               then chmod 400 -fR $JENKINS_HOME/.ssh/config; fi; fi
-          image: busybox
+          image: {{.Values.jenkins.initImage}}
           imagePullPolicy: IfNotPresent
           name: grant-permissions
           resources: {}
