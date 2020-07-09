@@ -1,13 +1,12 @@
+global:
+  edpName: ""
+  platform: "openshift"
+  dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
+
 name: jenkins-operator
-namespace: ""
-platform: "openshift"
 image:
   name: epamedp/jenkins-operator
   version: v2.4.0
-
-edp:
-  name: "stub-edp-name"
-  dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
 
 jenkins:
   deploy: true

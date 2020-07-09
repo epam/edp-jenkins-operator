@@ -12,26 +12,52 @@ There is an ability to customize the Jenkins instance and to check changes durin
 3. EDP project/namespace is deployed by following one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install_edp.md#edp-project) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install_edp.md#edp-namespace).
 
 ### Installation
-* Go to the [releases](https://github.com/epmd-edp/jenkins-operator/releases) page of this repository, choose a version, download an archive, and unzip it;
+In order to install the EDP Jenkins-operator, follow the steps below:
 
-_**NOTE:** It is highly recommended to use the latest released version._
+1. To add the Helm EPAMEDP Charts for local client, run "helm repo add":
+     ```bash
+     helm repo add epamedp https://chartmuseum.demo.edp-epam.com/
+     ```
+2. Choose available Helm chart version:
+    ```bash
+     helm search repo epamedp/jenkins-operator
+    ```
+   Example response:
+   ```
+     NAME                      CHART VERSION   APP VERSION     DESCRIPTION
+     epamedp/jenkins-operator  v2.4.0                          Helm chart for Golang application/service deplo...
+     ```
 
-* Go to the unzipped directory and deploy operator:
-```bash
-helm install jenkins-operator --namespace <edp_cicd_project> --set name=jenkins-operator --set namespace=<edp_cicd_project> --set platform=<platform_type> --set image.name=epamedp/jenkins-operator --set image.version=<operator_version> --set edp.dnsWildCard=<dns_wildcard> --set jenkins.deploy=<true/false> --set jenkins.image=epamedp/edp-jenkins --set jenkins.version=<jenkins_version> deploy-templates
+    _**NOTE:** It is highly recommended to use the latest released version._
+
+3. Deploy operator:
+
+Full available chart parameters list:
 ```
-
-- _<edp_cicd_project> - a namespace or a project name (in case of OpenShift) that is created by one of the instructions: [edp-install-openshift](https://github.com/epmd-edp/edp-install/blob/master/documentation/openshift_install_edp.md#install-edp) or [edp-install-kubernetes](https://github.com/epmd-edp/edp-install/blob/master/documentation/kubernetes_install_edp.md#install-edp);_ 
-
-- _<platform_type> - a platform type that can be "kubernetes" or "openshift";_
-
-- _<operator_version> - a selected release version;_
-
-- _<dns_wildcard> - a cluster DNS wildcard name_.
-
+    - <chart_version>                        # Helm chart version;
+    - global.edpName                         # a namespace or a project name (in case of OpenShift);
+    - global.platform                        # "openShift" or "kubernetes";
+    - global.dnsWildCard                     # a cluster DNS wildcard name;
+    - image.name                             # EDP jenkins-oprator Docker image name. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator;
+    - image.version                          # EDP jenkins-oprator Docker image tag. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator/tags;
+    - jenkins.name                           # Jenkins custom resource name
+    - jenkins.image                          # EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins";
+    - jenkins.version                        # EDP Jenkins Docker image tag. Default supported is "2.4.0";
+    - jenkins.initImage                      # Init Docker image for Jenkins deployment. Default is "busybox";
+    - jenkins.storageClass                   # Storageclass for Jenkins data volume. Default is "gp2";
+    - jenkins.volumeCapacity                 # Jenkins data volume capacity. Default is "10Gi";
+    - jenkins.libraryPipelinesRepo           # EDP shared-library-pipelines repository link;
+    - jenkins.libraryPipelinesVersion        # EDP shared-library-pipelines repository version;
+    - jenkins.libraryStagesRepo              # EDP shared-library-stages repository link;
+    - jenkins.libraryStagesVersion           # EDP shared-library-stages repository version;
+    - jenkins.pullSecrets                    # Secrets to pull from private Docker registry;
+    - jenkins.basePath                       # Base path for Jenkins URL.
+```
+Set your parameters and launching a Helm chart deployment. Example command:
+```bash
+helm install jenkins-operator epamedp/jenkins-operator --version <chart_version> --namespace <edp_cicd_project> --set name=jenkins-operator --set global.edpName=<edp_cicd_project> --set global.platform=<platform_type> --set global.dnsWildCard=<cluster_DNS_wildcard> --set image.name=epamedp/jenkins-operator --set image.version=<operator_version>
+```
 * Check the <edp_cicd_project> namespace that should contain Deployment with your operator in a running status
-
----
 
 In order to apply the necessary customization, get acquainted with the following sections:
 

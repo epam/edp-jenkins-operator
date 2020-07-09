@@ -1,4 +1,4 @@
-{{ if eq .Values.platform "openshift" }}
+{{ if eq .Values.global.platform "openshift" }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -6,7 +6,7 @@ metadata:
     app: jenkins
   name: jenkins
 spec:
-  host: {{if .Values.jenkins.basePath}}{{ .Values.edp.dnsWildCard }}{{else}}jenkins-{{ .Values.namespace }}.{{ .Values.edp.dnsWildCard }}{{end}}
+  host: {{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
   path: {{if .Values.jenkins.basePath}}/{{.Values.jenkins.basePath}}(/|$)(.*){{else}}/{{end}}
   port:
     targetPort: 8080

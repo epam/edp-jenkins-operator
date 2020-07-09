@@ -1,4 +1,4 @@
-{{if eq .Values.platform "kubernetes"}}
+{{if eq .Values.global.platform "kubernetes"}}
 {{if .Values.jenkins.deploy}}
 kind: Deployment
 apiVersion: apps/v1
@@ -70,7 +70,7 @@ spec:
                   name: jenkins-admin-password
                   key: password
             - name: JENKINS_UI_URL
-              value: https://{{if .Values.jenkins.basePath}}{{ .Values.edp.dnsWildCard }}{{else}}jenkins-{{ .Values.namespace }}.{{ .Values.edp.dnsWildCard }}{{end}}
+              value: https://{{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
             - name: JENKINS_OPTS
               value: '--requestHeaderSize=32768'
             - name: PLATFORM_TYPE

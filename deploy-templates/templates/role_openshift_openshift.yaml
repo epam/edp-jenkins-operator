@@ -1,8 +1,8 @@
-{{ if eq .Values.platform "openshift" }}
+{{ if eq .Values.global.platform "openshift" }}
 apiVersion: authorization.openshift.io/v1
 kind: Role
 metadata:
-  name: edp-{{ .Values.name }}-role-{{ .Values.namespace }}
+  name: edp-{{ .Values.name }}-role-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
   - '*'

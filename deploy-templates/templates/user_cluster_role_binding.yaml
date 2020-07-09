@@ -1,12 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: jenkins-{{ .Values.namespace }}-cluster-permissions
+  name: jenkins-{{ .Values.global.edpName }}-cluster-permissions
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: jenkins-{{ .Values.namespace }}-cluster-role
+  name: jenkins-{{ .Values.global.edpName }}-cluster-role
 subjects:
   - kind: ServiceAccount
     name: jenkins
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.global.edpName }}

@@ -1,8 +1,8 @@
-{{ if eq .Values.platform "openshift" }}
+{{ if eq .Values.global.platform "openshift" }}
 apiVersion: authorization.openshift.io/v1
 kind: ClusterRole
 metadata:
-  name: jenkins-{{ .Values.namespace }}-cluster-role
+  name: jenkins-{{ .Values.global.edpName }}-cluster-role
 rules:
 - apiGroups:
     - "*"

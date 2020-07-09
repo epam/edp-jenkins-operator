@@ -1,16 +1,16 @@
-{{- if eq .Values.platform "openshift" -}}
+{{- if eq .Values.global.platform "openshift" -}}
 apiVersion: authorization.openshift.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.name }}-edp-{{ .Values.namespace }}
+  name: {{ .Values.name }}-edp-{{ .Values.global.edpName }}
 roleRef:
-  name: edp-{{ .Values.name }}-role-{{ .Values.namespace }}
-  namespace: {{ .Values.namespace }}
+  name: edp-{{ .Values.name }}-role-{{ .Values.global.edpName }}
+  namespace: {{ .Values.global.edpName }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.name }}-edp
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.global.edpName }}
 userNames:
-  - system:serviceaccount:{{ .Values.namespace }}:{{ .Values.name }}-edp
+  - system:serviceaccount:{{ .Values.global.edpName }}:{{ .Values.name }}-edp
 groupNames: []
 {{- end -}}

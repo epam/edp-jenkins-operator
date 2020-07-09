@@ -1,11 +1,11 @@
-{{ if eq .Values.platform "kubernetes" }}
+{{ if eq .Values.global.platform "kubernetes" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
     annotations:
         kubernetes.io/description: Role for {{ .Values.name }}-edp service account
         kubernetes.io/reconcile-protect: "false"
-    name: edp-{{ .Values.name }}-clusterrole-{{ .Values.namespace }}
+    name: edp-{{ .Values.name }}-clusterrole-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
   - 'rbac.authorization.k8s.io'

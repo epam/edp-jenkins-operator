@@ -1,8 +1,8 @@
-{{ if eq .Values.platform "kubernetes" }}
+{{ if eq .Values.global.platform "kubernetes" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: jenkins-{{ .Values.namespace }}-cluster-role
+  name: jenkins-{{ .Values.global.edpName }}-cluster-role
 rules:
 - apiGroups:
     - "*"

@@ -5,7 +5,7 @@ metadata:
   name: jenkins
 spec:
   edpSpec:
-    dnsWildcard: {{ .Values.edp.dnsWildCard }}
+    dnsWildcard: {{ .Values.global.dnsWildCard }}
     {{- if .Values.jenkins.pullSecrets}}
     imagePullSecrets:
       {{- range .Values.jenkins.pullSecrets }}
@@ -30,5 +30,5 @@ spec:
       version: {{ .Values.jenkins.libraryPipelinesVersion }}
   keycloakSpec:
     enabled: true
-    realm: "{{ .Values.edp.name }}-edp"
+    realm: "{{ .Values.global.edpName }}-edp"
 {{end}}

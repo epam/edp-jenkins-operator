@@ -1,4 +1,4 @@
-{{if eq .Values.platform "openshift"}}
+{{if eq .Values.global.platform "openshift"}}
 {{if .Values.jenkins.deploy}}
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
@@ -45,7 +45,7 @@ spec:
                   key: password
                   name: jenkins-admin-password
             - name: JENKINS_UI_URL
-              value: https://{{if .Values.jenkins.basePath}}{{ .Values.edp.dnsWildCard }}{{else}}jenkins-{{ .Values.namespace }}.{{ .Values.edp.dnsWildCard }}{{end}}
+              value: https://{{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
             - name: JENKINS_OPTS
               value: '--requestHeaderSize=32768'
             - name: PLATFORM_TYPE
