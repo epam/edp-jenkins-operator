@@ -40,7 +40,7 @@ Full available chart parameters list:
     - global.dnsWildCard                     # a cluster DNS wildcard name;
     - image.name                             # EDP jenkins-oprator Docker image name. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator;
     - image.version                          # EDP jenkins-oprator Docker image tag. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator/tags;
-    - jenkins.name                           # Jenkins custom resource name
+    - jenkins.deploy                         # Flag to enable/disable Jenkins deploy;
     - jenkins.image                          # EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins";
     - jenkins.version                        # EDP Jenkins Docker image tag. Default supported is "2.4.0";
     - jenkins.initImage                      # Init Docker image for Jenkins deployment. Default is "busybox";
