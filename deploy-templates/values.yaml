@@ -20,4 +20,4 @@ jenkins:
   libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"
   libraryStagesVersion: "master"
   imagePullSecrets:
-  basePath:
+  basePath: ""
