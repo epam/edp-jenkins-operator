@@ -6,15 +6,16 @@ metadata:
 spec:
   edpSpec:
     dnsWildcard: {{ .Values.global.dnsWildCard }}
-    {{- if .Values.jenkins.pullSecrets}}
+    {{- if .Values.jenkins.imagePullSecrets}}
     imagePullSecrets:
-      {{- range .Values.jenkins.pullSecrets }}
+      {{- range .Values.jenkins.imagePullSecrets }}
       - {{. -}}
       {{- end -}}
     {{end}}
   image: {{.Values.jenkins.image}}
   version: {{.Values.jenkins.version}}
   initImage: {{.Values.jenkins.initImage}}
+  basePath: {{.Values.jenkins.basePath}}
   volumes:
     - name: "data"
       storageClass: {{ .Values.jenkins.storageClass }}

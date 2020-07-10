@@ -50,7 +50,7 @@ Full available chart parameters list:
     - jenkins.libraryPipelinesVersion        # EDP shared-library-pipelines repository version;
     - jenkins.libraryStagesRepo              # EDP shared-library-stages repository link;
     - jenkins.libraryStagesVersion           # EDP shared-library-stages repository version;
-    - jenkins.pullSecrets                    # Secrets to pull from private Docker registry;
+    - jenkins.imagePullSecrets               # Secrets to pull from private Docker registry;
     - jenkins.basePath                       # Base path for Jenkins URL.
 ```
 Set your parameters and launching a Helm chart deployment. Example command:

@@ -19,5 +19,5 @@ jenkins:
   libraryPipelinesVersion: "master"
   libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"
   libraryStagesVersion: "master"
-  pullSecrets:
+  imagePullSecrets:
   basePath:
