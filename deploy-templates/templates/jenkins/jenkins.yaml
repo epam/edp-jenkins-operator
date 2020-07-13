@@ -18,8 +18,8 @@ spec:
   basePath: "{{.Values.jenkins.basePath}}"
   volumes:
     - name: "data"
-      storageClass: {{ .Values.jenkins.storageClass }}
-      capacity: {{ .Values.jenkins.volumeCapacity }}
+      storageClass: {{ .Values.jenkins.storage.class }}
+      capacity: {{ .Values.jenkins.storage.size }}
   sharedLibraries:
     - name: "edp-library-stages"
       id: "Stages"

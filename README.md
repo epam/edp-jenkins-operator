@@ -44,8 +44,8 @@ Full available chart parameters list:
     - jenkins.image                          # EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins";
     - jenkins.version                        # EDP Jenkins Docker image tag. Default supported is "2.4.0";
     - jenkins.initImage                      # Init Docker image for Jenkins deployment. Default is "busybox";
-    - jenkins.storageClass                   # Storageclass for Jenkins data volume. Default is "gp2";
-    - jenkins.volumeCapacity                 # Jenkins data volume capacity. Default is "10Gi";
+    - jenkins.storage.class                  # Storageclass for Jenkins data volume. Default is "gp2";
+    - jenkins.storage.size                   # Jenkins data volume capacity. Default is "10Gi";
     - jenkins.libraryPipelinesRepo           # EDP shared-library-pipelines repository link;
     - jenkins.libraryPipelinesVersion        # EDP shared-library-pipelines repository version;
     - jenkins.libraryStagesRepo              # EDP shared-library-stages repository link;

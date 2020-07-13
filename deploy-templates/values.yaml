@@ -13,8 +13,9 @@ jenkins:
   initImage: "busybox"
   image: "epamedp/edp-jenkins"
   version: "2.4.0"
-  storageClass: gp2
-  volumeCapacity: 10Gi
+  storage:
+    class: gp2
+    size: 10Gi
   libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"
   libraryPipelinesVersion: "master"
   libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"

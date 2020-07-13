@@ -9,6 +9,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.jenkins.volumeCapacity }}
-  storageClassName: {{ .Values.jenkins.storageClass }}
+      storage: {{ .Values.jenkins.storage.size }}
+  storageClassName: {{ .Values.jenkins.storage.class }}
   volumeMode: Filesystem
