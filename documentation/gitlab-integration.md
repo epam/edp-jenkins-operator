@@ -37,68 +37,7 @@ Discover the steps below to apply the GitLab integration correctly:
 
     ![gitlab-plugin-configuration](../readme-resource/gitlab-plugin-configuration.png "gitlab-plugin-configuration")
 
-5. Create WebHook job with the following name **Gitlab-webhook-listener** by navigating to *Jenkins -> New Item* and click **Pipeline**.
-In the *Enter an item name field*, type the **Gitlab-webhook-listener** and click OK:
-
-    ![webhook-job](../readme-resource/webhook-job.png "webhook-job")
-
-    * In the **Build Triggers** section, select the *Build when a change is pushed to GitLab. GitLab webhook URL* check box and examine all options;
-    * In the **Build Triggers** section, open *Advanced settings* and generate a secret token;
-
-    ![secret-token](../readme-resource/secret-token.png "secret-token")
-
-    * Insert script into the **Pipeline** section;
-
-    ```
-    node("master") {
-        println "[JENKINS][DEBUG] Webhook parameters:"
-        sh "printenv|sort|grep \"^gitlab\""
-        if(!env.gitlabActionType)
-            error "[JENKINS][DEBUG] Job was triggered manually. Skipping..."
-        try{
-            stage('Trigger CI Job') {
-                println "[JENKINS][DEBUG] Action type: ${gitlabActionType}";
-                println "[JENKINS][DEBUG] Commit ID: ${gitlabMergeRequestLastCommit}"
-                switch(gitlabActionType) {
-                    case "MERGE":
-                        currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-${gitlabActionType}-${gitlabMergeRequestState}"
-                        if(gitlabMergeRequestState == "opened") {
-                            updateGitlabCommitStatus state: "running"
-                            build job: "${gitlabSourceRepoName}/MASTER-Code-review-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabSourceBranch)]
-                            updateGitlabCommitStatus state: "success"
-                        }
-                        else if(gitlabMergeRequestState == "merged") {
-                            build job: "${gitlabSourceRepoName}/${gitlabTargetBranch.toUpperCase()}-Build-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabTargetBranch)]
-                        }
-                        else {
-                            println "[JENKINS][DEBUG] Unsupportable MR state: \"${gitlabMergeRequestState}\". Skipping...";
-                        }
-                        break;
-                    case "PUSH":
-                        if(gitlabSourceBranch == "master" && gitlabTargetBranch == "master") {
-                            currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-MERGE-merged"
-                            build job: "${gitlabSourceRepoName}/MASTER-Build-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: "master")]
-                            break;
-                        }
-                        currentBuild.displayName = "${BUILD_NUMBER}-${gitlabSourceRepoName}-${gitlabSourceBranch}-${gitlabActionType}"
-                        updateGitlabCommitStatus state: "running"
-                        build job: "${gitlabSourceRepoName}/MASTER-Code-review-${gitlabSourceRepoName}", parameters: [string(name: "BRANCH", value: gitlabSourceBranch)]
-                        updateGitlabCommitStatus state: "success"
-                        break;
-                    default:
-                        println "[JENKINS][DEBUG] Unsupportable event type: \"${gitlabActionType}\". Skipping...";
-                        break;
-                }
-            }
-        }
-        catch (Exception e) {
-            updateGitlabCommitStatus state: "failed"
-            throw e
-        }
-    }
-    ```
-
-6. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions/ci* folder:
+5. Create a new Job Provision. Navigate to the Jenkins main page and open the *job-provisions/ci* folder:
 
     * Click *New Item*;
     * Type the name;
@@ -241,6 +180,11 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
             numToKeep(10)
             daysToKeep(7)
         }
+        properties {
+            gitLabConnection {
+                gitLabConnection('git.epam.com')
+            }
+        }
         definition {
             cpsScm {
                 scm {
@@ -280,6 +224,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         configure {
             it / triggers / 'com.dabsquared.gitlabjenkins.GitLabPushTrigger' << secretToken(webhookToken)
             it / triggers / 'com.dabsquared.gitlabjenkins.GitLabPushTrigger' << triggerOnApprovedMergeRequest(pipelineName.contains("Build") ? false : true)
+            it / triggers / 'com.dabsquared.gitlabjenkins.GitLabPushTrigger' << pendingBuildName(pipelineName.contains("Build") ? "" : "Jenkins")
         }
     }
     registerWebHook(repository, codebaseName, jobName, webhookToken)
@@ -357,7 +302,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     def registerWebHook(repositoryPath, codebaseName, jobName, webhookToken) {
         def apiUrl = 'https://' + repositoryPath.replaceAll("ssh://", "").split('@')[1].replace('/', "%2F").replaceAll(~/:\d+%2F/, '/api/v4/projects/') + '/hooks'
         def jobWebhookUrl = "${System.getenv('JENKINS_UI_URL')}/project/${codebaseName}/${jobName}"
-        def gitlabToken = getSecretValue('gitlab-token')
+        def gitlabToken = getSecretValue('gitlab-access-token')
 
         if (checkWebHookExist(apiUrl, jobWebhookUrl, gitlabToken)) {
             println("[JENKINS][DEBUG] Webhook for job ${jobName} is already exist\r\n")
@@ -424,7 +369,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
         )
 
         def secret = creds.find { it.properties['id'] == name }
-        return secret != null ? secret['secret'] : null
+        return secret != null ? secret.getApiToken() : null
     }
     ```
 7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.
