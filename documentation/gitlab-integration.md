@@ -149,6 +149,7 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
     stages['Code-review-application-terraform'] = '[{"name": "checkout"},{"name": "tool-init"},{"name": "lint"}]'
     stages['Code-review-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
+    stages['Code-review-application-go'] = stages['Code-review-application-maven']
     stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
             '{"name": "sonar"}]'
     stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
@@ -172,6 +173,8 @@ In the *Enter an item name field*, type the **Gitlab-webhook-listener** and clic
             '{"name": "lint"},{"name": "git-tag"}]'
     stages['Build-application-helm'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Build-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
+    stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
+                                    '{"name": "build"}' + "${buildStage}" + "${createJFVStage}" + '{"name": "git-tag"}]'
     stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
 

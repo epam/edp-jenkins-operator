@@ -67,6 +67,9 @@ stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build-image-kaniko"},' +
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
+stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
+                                '{"name": "helm-verify"},{"name": "build"},{"name": "build-image-kaniko"}, +
+                                "${createJFVStage}" + ',{"name": "git-tag"}]'
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
