@@ -69,8 +69,11 @@ def commitValidateStage = jiraIntegrationEnabled ? ',{"name": "commit-validate"}
 def createJFVStage = jiraIntegrationEnabled ? ',{"name": "create-jira-fix-version"}' : ''
 def platformType = "${PLATFORM_TYPE}"
 def buildStage = platformType == "kubernetes" ? ',{"name": "build-image-kaniko"},' : ',{"name": "build-image-from-dockerfile"},'
+def buildTool = "${BUILD_TOOL}"
+def goBuildStage = buildTool.toString() == "go" ? ',{"name": "build"}' : ',{"name": "compile"}'
 
-stages['Code-review-application'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
+stages['Code-review-application'] = '[{"name": "checkout"}' + "${commitValidateStage}" + goBuildStage +
+                                     ',{"name": "tests"},{"name": "sonar"}]'
 stages['Code-review-library'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
 stages['Code-review-autotests'] = '[{"name": "checkout"}' + "${commitValidateStage}" + ',{"name": "tests"},{"name": "sonar"}]'
@@ -97,7 +100,6 @@ def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none", "go"]
 def defaultStages = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
-def buildTool = "${BUILD_TOOL}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
 def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
 def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"

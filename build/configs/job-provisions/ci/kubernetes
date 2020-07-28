@@ -41,10 +41,11 @@ def stages = [:]
 def jiraIntegrationEnabled = Boolean.parseBoolean("${JIRA_INTEGRATION_ENABLED}" as String)
 def commitValidateStage = jiraIntegrationEnabled ? ',{"name": "commit-validate"}' : ''
 def createJFVStage = jiraIntegrationEnabled ? ',{"name": "create-jira-fix-version"}' : ''
+def buildTool = "${BUILD_TOOL}"
+def goBuildStage = buildTool.toString() == "go" ? ',{"name": "build"}' : ',{"name": "compile"}'
 
-stages['Code-review-application'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
- ',{"name": "compile"},{"name": "tests"},' +
-        '[{"name": "sonar"},{"name": "helm-verify"}]]'
+stages['Code-review-application'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + goBuildStage +
+ ',{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}]]'
 stages['Code-review-library'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
@@ -77,7 +78,6 @@ def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none", "go"]
 def defaultBuild = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
-def buildTool = "${BUILD_TOOL}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
 def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
 def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"
