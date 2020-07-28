@@ -73,7 +73,7 @@ stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none"]
+def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none", "go"]
 def defaultBuild = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
