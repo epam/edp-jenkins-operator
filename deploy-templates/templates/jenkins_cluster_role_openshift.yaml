@@ -21,13 +21,4 @@ rules:
     - projectrequests
   verbs:
     - create
-- apiGroups:
-    - '*'
-  attributeRestrictions: null
-  resources:
-    - customresourcedefinitions
-  verbs:
-    - create
-    - get
-    - list
 {{ end }}
