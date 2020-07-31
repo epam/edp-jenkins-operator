@@ -90,6 +90,8 @@ Discover the steps below to apply the GitLab integration correctly:
     stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Code-review-application-go'] = '[{"name": "checkout"},{"name": "build"},' +
                                            '{"name": "tests"}, {"name": "sonar"}]'
+    stages['Code-review-application-python'] = '[{"name": "checkout"}, '{"name": "compile"}, +
+                                           '{"name": "tests"}]', {"name": "sonar"}]'
     stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
             '{"name": "sonar"}]'
     stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
@@ -102,7 +104,7 @@ Discover the steps below to apply the GitLab integration correctly:
     stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
             '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
             '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
-    stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "test"},' +
+    stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"},' +
     '{"name": "build-image-from-dockerfile"},{"name":"push"},{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']

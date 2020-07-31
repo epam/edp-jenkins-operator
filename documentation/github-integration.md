@@ -94,9 +94,11 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
                                     '{"name": "build"}' + "${buildStage}" + "${createJFVStage}" + '{"name": "git-tag"}]'
+stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"},' +
+                                '{"name": "build-image-from-dockerfile"},{"name": "push"}' + '{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none", "go"]
+def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
 def defaultStages = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
