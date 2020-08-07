@@ -90,8 +90,8 @@ Discover the steps below to apply the GitLab integration correctly:
     stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Code-review-application-go'] = '[{"name": "checkout"},{"name": "build"},' +
                                            '{"name": "tests"}, {"name": "sonar"}]'
-    stages['Code-review-application-python'] = '[{"name": "checkout"}, '{"name": "compile"}, +
-                                           '{"name": "tests"}]', {"name": "sonar"}]'
+    stages['Code-review-application-python'] = '[{"name": "checkout"}, {"name": "compile"},' +
+                                           '{"name": "tests"}], {"name": "sonar"}]'
     stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
             '{"name": "sonar"}]'
     stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
