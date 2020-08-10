@@ -105,7 +105,7 @@ Discover the steps below to apply the GitLab integration correctly:
             '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
             '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"},' +
-    '{"name": "build-image-from-dockerfile"},{"name":"push"},{"name": "git-tag"}]'
+    '{"name": "buildStage"},{"name":"push"},{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']
     stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
