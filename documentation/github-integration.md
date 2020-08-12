@@ -5,31 +5,31 @@ Discover the steps below to apply the GitHub integration correctly:
     * Click the profile account and navigate to Settings;
     * Go to Developer Settings;
     * Select Personal access token and generate a new one with the following parameters
-    
+
         ![scopes-1](../readme-resource/github-scopes-1.png "scopes-1")
-    
+
    >**WARNING**: Make sure to copy your new personal access token right at this moment because there will not be any ability to see it again.
 
 2. Navigate to Jenkins -> Manage Jenkins -> Manage plugins, and click the Available tab and install the following plugins: **GitHub** and **GitHub Pull Request Builder**.
-   
-   _**NOTE**: If the necessary plugins are not available in the list, check out the Installed tab and verify whether they are presented._  
- 
+
+   _**NOTE**: If the necessary plugins are not available in the list, check out the Installed tab and verify whether they are presented._
+
 3.	Navigate to Jenkins -> Credentials -> System -> Global credentials -> Add credentials, and create new credentials with the *Secret text* kind. In the Secret field, provide your GitHub API token, fill in the *ID* field with the *github-access-token* value:
-   ![jenkins_github_cred](../readme-resource/jenkins_github_cred.png "jenkins_github_cred") 
+   ![jenkins_github_cred](../readme-resource/jenkins_github_cred.png "jenkins_github_cred")
 
 4. Generate and add a new SSH key to the GitHub account. To get more detailed information, please inspect the [official GitHub documentation](https://help.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account) page.
 _**NOTE:** Use the same SSH key that was added to the GitServer definition._
 
 5. Add a private part of the SSH key to Jenkins by navigating to Jenkins -> Credentials -> System -> Global credentials -> Add credentials; and create new credentials with the *SSH username with private key* kind:
-   ![github_ssh_key](../readme-resource/github_ssh_key.png "github_ssh_key") 
-   
+   ![github_ssh_key](../readme-resource/github_ssh_key.png "github_ssh_key")
+
 6.	Navigate to Jenkins -> Manage Jenkins -> Configure system -> GitHub part, and configure the GitHub server:
-   ![github_plugin_config](../readme-resource/github_plugin_config.png "github_plugin_config") 
- 
+   ![github_plugin_config](../readme-resource/github_plugin_config.png "github_plugin_config")
+
 7.	Configure the GitHub Pull Request Builder plugin:
  _**NOTE**: The **Secret** field is optional, for details, please refer to the official [GitHub pull request builder plugin documentation](https://wiki.jenkins.io/display/JENKINS/GitHub+pull+request+builder+plugin)._
-    ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config") 
- 
+    ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config")
+
 8. Create a new *Job Provision* by navigating to the Jenkins main page and opening the **job-provisions** folder:
 
     * Click New Item;
@@ -45,15 +45,15 @@ _**NOTE:** Use the same SSH key that was added to the GitServer definition._
 	    * GIT_CREDENTIALS_ID;
 	    * REPOSITORY_PATH;
 	    * JIRA_INTEGRATION_ENABLED;
-	        
+
     * Check the *Execute concurrent builds if necessary* option;
-        
+
     * In the *Build* section, perform the following:
 	    * Select *DSL Script*;
 	    * Select the *Use the provided DSL script* check box:
 
   ![dsl_script](../readme-resource/dsl_script.png "dsl_script")
- 
+
 9.Insert the following code:
 
 ```java
@@ -94,8 +94,8 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
                                     '{"name": "build"}' + "${buildStage}" + "${createJFVStage}" + '{"name": "git-tag"}]'
-stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"},' +
-                                '{"name": "buildStage"},{"name": "push"}' + '{"name": "git-tag"}]'
+stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}' +
+                                    "${buildStage}" + '{"name":"push"},{"name": "git-tag"}]'
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
 def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
@@ -135,7 +135,7 @@ if (BRANCH) {
 
 
 	def buildKey = "Build-${type}-${buildTool.toLowerCase()}".toString()
-	
+
     if (type.equalsIgnoreCase('application') || type.equalsIgnoreCase('library')) {
 		def jobExists = false
 		if("${formattedBranch}-Build-${codebaseName}".toString() in Jenkins.instance.getAllItems().collect{it.name})
@@ -143,7 +143,7 @@ if (BRANCH) {
         createBuildPipeline("Build-${codebaseName}", codebaseName, stages.get(buildKey, defaultStages), "build.groovy",
                 repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion, githubRepository)
         registerWebHook(repositoryPath, 'build')
-		
+
 		if(!jobExists)
           queue("${codebaseName}/${formattedBranch}-Build-${codebaseName}")
     }
@@ -379,7 +379,7 @@ def getSecretValue(name) {
 
     def secret = creds.find { it.properties['id'] == name }
     return secret != null ? secret['secret'] : null
-} 
+}
 ```
 As a result, the new custom job-provision will be available in the Advanced CI Settings menu during the application creation:
 
