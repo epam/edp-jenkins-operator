@@ -368,6 +368,8 @@ Discover the steps below to apply the GitLab integration correctly:
         return secret != null ? secret.getApiToken() : null
     }
     ```
+6. Create Secret, GitServer CR and Jenkins credentials with the "gitlab" ID by following the instruction: [Adjust Import Strategy](https://github.com/epmd-edp/admin-console/blob/release/2.4/documentation/import-strategy.md)
+
 7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.
 
    ![job-provision](../readme-resource/AC_job-provisioner_field.png "job-provision")
