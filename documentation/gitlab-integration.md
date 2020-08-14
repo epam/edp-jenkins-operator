@@ -373,3 +373,8 @@ Discover the steps below to apply the GitLab integration correctly:
 7. After the steps above are performed, the new custom job-provision will be available in Advanced CI Settings during the application creation.
 
    ![job-provision](../readme-resource/AC_job-provisioner_field.png "job-provision")
+   
+### Related Articles
+
+- [Adjust Import Strategy](https://github.com/epmd-edp/admin-console/blob/master/documentation/import-strategy.md#adjust-import-strategy)
+- [Adjust Integration With Jira Server](https://github.com/epmd-edp/admin-console/blob/release/2.4/documentation/jira-server.md#adjust-integration-with-jira-server)
