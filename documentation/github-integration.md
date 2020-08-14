@@ -15,7 +15,7 @@ Discover the steps below to apply the GitHub integration correctly:
    _**NOTE**: If the necessary plugins are not available in the list, check out the Installed tab and verify whether they are presented._  
  
 3.	Navigate to Jenkins -> Credentials -> System -> Global credentials -> Add credentials, and create new credentials with the *Secret text* kind. In the Secret field, provide your GitHub API token, fill in the *ID* field with the *github-access-token* value:
-   ![jenkins_github_cred](../readme-resource/api_token.png "jenkins_github_cred") 
+   ![jenkins_github_cred](../readme-resource/api_token2.png "jenkins_github_cred") 
 
 4. Generate and add a new SSH key to the GitHub account. To get more detailed information, please inspect the [official GitHub documentation](https://help.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account) page.
 _**NOTE:** Use the same SSH key that was added to the GitServer definition._
