@@ -15,7 +15,7 @@ Discover the steps below to apply the GitHub integration correctly:
    _**NOTE**: If the necessary plugins are not available in the list, check out the Installed tab and verify whether they are presented._
 
 3.	Navigate to Jenkins -> Credentials -> System -> Global credentials -> Add credentials, and create new credentials with the *Secret text* kind. In the Secret field, provide your GitHub API token, fill in the *ID* field with the *github-access-token* value:
-   ![jenkins_github_cred](../readme-resource/jenkins_github_cred.png "jenkins_github_cred")
+   ![jenkins_github_cred](../readme-resource/api_token.png "jenkins_github_cred")
 
 4. Generate and add a new SSH key to the GitHub account. To get more detailed information, please inspect the [official GitHub documentation](https://help.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account) page.
 _**NOTE:** Use the same SSH key that was added to the GitServer definition._
@@ -24,11 +24,11 @@ _**NOTE:** Use the same SSH key that was added to the GitServer definition._
    ![github_ssh_key](../readme-resource/github_ssh_key.png "github_ssh_key")
 
 6.	Navigate to Jenkins -> Manage Jenkins -> Configure system -> GitHub part, and configure the GitHub server:
-   ![github_plugin_config](../readme-resource/github_plugin_config.png "github_plugin_config")
+   ![github_plugin_config](../readme-resource/github_int.png "github_plugin_config")
 
 7.	Configure the GitHub Pull Request Builder plugin:
  _**NOTE**: The **Secret** field is optional, for details, please refer to the official [GitHub pull request builder plugin documentation](https://wiki.jenkins.io/display/JENKINS/GitHub+pull+request+builder+plugin)._
-    ![github_pull_plugin_config](../readme-resource/github_pull_plugin_config.png "github_pull_plugin_config")
+    ![github_pull_plugin_config](../readme-resource/pull_request.png "github_pull_plugin_config")
 
 8. Create a new *Job Provision* by navigating to the Jenkins main page and opening the **job-provisions** folder:
 
@@ -384,3 +384,8 @@ def getSecretValue(name) {
 As a result, the new custom job-provision will be available in the Advanced CI Settings menu during the application creation:
 
 ![job-provision](../readme-resource/AC_job-provisioner_field.png "job-provision")
+
+### Related Articles
+
+-[]()
+-[]()
