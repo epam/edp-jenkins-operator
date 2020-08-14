@@ -79,7 +79,6 @@ Discover the steps below to apply the GitLab integration correctly:
     def platformType = "${PLATFORM_TYPE}"
     def buildStage = platformType == "kubernetes" ? ',{"name": "build-image-kaniko"},' : ',{"name": "build-image-from-dockerfile"},'
 
-    stages['Code-review-application-python'] = '[{"name": "checkout"},{"name": "compile"},{"name": "test"}]'
     stages['Code-review-application-maven'] = '[{"name": "checkout"},{"name": "compile"},' +
         '{"name": "tests"}, {"name": "sonar"}]'
     stages['Code-review-application-npm'] = stages['Code-review-application-maven']
@@ -90,8 +89,8 @@ Discover the steps below to apply the GitLab integration correctly:
     stages['Code-review-application-docker'] = '[{"name": "checkout"},{"name": "lint"}]'
     stages['Code-review-application-go'] = '[{"name": "checkout"},{"name": "build"},' +
                                            '{"name": "tests"}, {"name": "sonar"}]'
-    stages['Code-review-application-python'] = '[{"name": "checkout"}, {"name": "compile"},' +
-                                           '{"name": "tests"}], {"name": "sonar"}]'
+    stages['Code-review-application-python'] = '[{"name": "checkout"},{"name": "compile"},' +
+                                           '{"name": "tests"}, {"name": "sonar"}]'
     stages['Code-review-library'] = '[{"name": "checkout"},{"name": "compile"},{"name": "tests"},' +
             '{"name": "sonar"}]'
     stages['Code-review-autotests'] = '[{"name": "checkout"},{"name": "tests"},{"name": "sonar"}]'
@@ -105,7 +104,7 @@ Discover the steps below to apply the GitLab integration correctly:
             '{"name": "tests"},{"name": "sonar"},{"name": "build"}' + "${buildStage}" +
             '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"}' +
-    "${buildStage}" + '{"name":"push"},{"name": "git-tag"}]'
+    "${buildStage}" + '{"name":"push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
     stages['Build-application-npm'] = stages['Build-application-maven']
     stages['Build-application-gradle'] = stages['Build-application-maven']
     stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
