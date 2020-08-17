@@ -2,6 +2,10 @@ package jenkins
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_folder/chain"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
@@ -9,10 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"strings"
-	"time"
 
 	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+
+	"reflect"
 
 	"github.com/epmd-edp/codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
@@ -23,7 +27,6 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -197,7 +200,10 @@ func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.Jenkin
 
 	fn := r.getJenkinsFolderName(jf)
 	if _, err := jc.GoJenkins.DeleteJob(fn); err != nil {
-		return &reconcile.Result{}, err
+		if err != fmt.Errorf("404") {
+			return &reconcile.Result{}, err
+		}
+		log.V(2).Info("404 code error when Jenkins job was deleted earlier during reconciliation", "jenkins folder", jf.Name)
 	}
 
 	jf.ObjectMeta.Finalizers = finalizer.RemoveString(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName)
