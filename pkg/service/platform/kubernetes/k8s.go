@@ -749,9 +749,10 @@ func (service K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, i
 			Name: jen.Name,
 		},
 		Spec: edpCompApi.EDPComponentSpec{
-			Type: "jenkins",
-			Url:  url,
-			Icon: icon,
+			Type:    "jenkins",
+			Url:     url,
+			Icon:    icon,
+			Visible: true,
 		},
 	}
 	if err := controllerutil.SetControllerReference(&jen, obj, service.Scheme); err != nil {

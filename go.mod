@@ -11,7 +11,7 @@ require (
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
 	github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50
 	github.com/epmd-edp/codebase-operator/v2 v2.3.0-95.0.20200514095748-92497054f7da
-	github.com/epmd-edp/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0
+	github.com/epmd-edp/edp-component-operator v0.1.1-0.20200827122548-e87429a916e0
 	github.com/epmd-edp/gerrit-operator/v2 v2.1.0-52
 	github.com/epmd-edp/keycloak-operator v1.0.31-alpha-56
 	github.com/go-openapi/spec v0.19.3
