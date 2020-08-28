@@ -10,6 +10,7 @@ import (
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	rbacV1 "k8s.io/api/rbac/v1"
+	"strings"
 )
 
 type PutRoleBinding struct {
@@ -34,7 +35,7 @@ func (h PutRoleBinding) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 }
 
 func (h PutRoleBinding) tryToCreateRoleBinding(jj *v1alpha1.JenkinsJob) error {
-	d, err := h.ps.GetConfigMapData(jj.Namespace, "edp-config")
+	d, err := h.ps.GetConfigMapData(jj.Namespace, consts.EdpConfigMap)
 	if err != nil {
 		return err
 	}
@@ -44,34 +45,61 @@ func (h PutRoleBinding) tryToCreateRoleBinding(jj *v1alpha1.JenkinsJob) error {
 	}
 	en := d["edp_name"]
 	pn := fmt.Sprintf("%v-%v", en, s.Name)
-	if err := h.createRoleBinding(en, pn, jj.Namespace); err != nil {
-		return errors.Wrap(err, "an error has occurred while creating role binging")
+	if err := h.createRoleBindings(en, pn, jj.Namespace); err != nil {
+		return errors.Wrap(err, "an error has occurred while creating role bingings")
 	}
 	log.Info("role binding has been created")
 	return nil
 }
 
-func (h PutRoleBinding) createRoleBinding(edpName, projectName, namespace string) error {
+func (h PutRoleBinding) createRoleBindings(edpName, projectName, namespace string) error {
+	cm, err := h.ps.GetConfigMapData(namespace, consts.EdpConfigMap)
+	if err != nil {
+		return err
+	}
+
+	if err := h.createAdminRoleBinding(strings.Split(cm["adminGroups"], ","), edpName, projectName, namespace); err != nil {
+		return err
+	}
+	return h.createDeveloperRoleBinding(strings.Split(cm["developerGroups"], ","), edpName, projectName)
+}
+
+func (h PutRoleBinding) createAdminRoleBinding(adminGroups []string, edpName, projectName, namespace string) error {
+	subjects := []rbacV1.Subject{
+		{Kind: "ServiceAccount", Name: consts.JenkinsServiceAccount, Namespace: namespace},
+		{Kind: "ServiceAccount", Name: consts.EdpAdminConsoleServiceAccount, Namespace: namespace},
+	}
+
+	for _, g := range adminGroups {
+		subjects = append(subjects, rbacV1.Subject{Kind: "Group", Name: g})
+	}
+
 	err := h.ps.CreateRoleBinding(
 		edpName,
 		projectName,
 		rbacV1.RoleRef{Name: "admin", APIGroup: consts.AuthorizationApiGroup, Kind: consts.ClusterRoleKind},
-		[]rbacV1.Subject{
-			{Kind: "Group", Name: edpName + "-edp-super-admin"},
-			{Kind: "Group", Name: edpName + "-edp-admin"},
-			{Kind: "ServiceAccount", Name: consts.JenkinsServiceAccount, Namespace: namespace},
-			{Kind: "ServiceAccount", Name: consts.EdpAdminConsoleServiceAccount, Namespace: namespace},
-		},
+		subjects,
 	)
 	if err != nil {
 		return err
 	}
-	return h.ps.CreateRoleBinding(
+	return nil
+}
+
+func (h PutRoleBinding) createDeveloperRoleBinding(developerGroups []string, edpName, projectName string) error {
+	var subjects []rbacV1.Subject
+	for _, g := range developerGroups {
+		subjects = append(subjects, rbacV1.Subject{Kind: "Group", Name: g})
+	}
+
+	err := h.ps.CreateRoleBinding(
 		edpName,
 		projectName,
 		rbacV1.RoleRef{Name: "view", APIGroup: consts.AuthorizationApiGroup, Kind: consts.ClusterRoleKind},
-		[]rbacV1.Subject{
-			{Kind: "Group", Name: edpName + "-edp-view"},
-		},
+		subjects,
 	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

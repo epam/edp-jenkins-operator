@@ -21,4 +21,6 @@ const (
 	EdpAdminConsoleServiceAccount = "edp-admin-console"
 
 	LibraryCodebase = "library"
+
+	EdpConfigMap = "edp-config"
 )

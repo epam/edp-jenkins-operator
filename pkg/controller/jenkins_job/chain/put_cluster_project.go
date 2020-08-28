@@ -41,7 +41,7 @@ func (h PutClusterProject) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 }
 
 func (h PutClusterProject) tryToCreateProject(jj *v1alpha1.JenkinsJob) error {
-	d, err := h.ps.GetConfigMapData(jj.Namespace, "edp-config")
+	d, err := h.ps.GetConfigMapData(jj.Namespace, consts.EdpConfigMap)
 	if err != nil {
 		return err
 	}

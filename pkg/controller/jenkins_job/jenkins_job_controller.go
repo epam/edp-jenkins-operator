@@ -243,7 +243,7 @@ func (r ReconcileJenkinsJob) getJobName(jj *v2v1alpha1.JenkinsJob) string {
 }
 
 func (r ReconcileJenkinsJob) deleteProject(jj *v2v1alpha1.JenkinsJob) error {
-	d, err := r.ps.GetConfigMapData(jj.Namespace, "edp-config")
+	d, err := r.ps.GetConfigMapData(jj.Namespace, consts.EdpConfigMap)
 	if err != nil {
 		return err
 	}
