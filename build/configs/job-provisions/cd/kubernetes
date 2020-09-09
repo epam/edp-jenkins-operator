@@ -1,4 +1,4 @@
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2020 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import javaposse.jobdsl.plugin.*
 import com.cloudbees.hudson.plugins.folder.*
 
 def scriptText = '''
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2020 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ def libraryURL = "${LIBRARY_URL}"
 def libraryBranch = "${LIBRARY_BRANCH}"
 def scriptPath = "Jenkinsfile"
 
-def stages = '[{"name":"deploy-helm","step_name":"deploy"},' + qgStages + ',{"name":"promote-images-ecr","step_name":"promote-images"}]'
+def stages = '[{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images-ecr","step_name":"promote-images"}]'
 
 def codebaseFolder = jenkins.getItem(pipelineName)
 if (codebaseFolder == null) {
