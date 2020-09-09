@@ -1026,13 +1026,12 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 	return coreV1Api.Volume{}, false
 }
 
-func (s K8SService) CreateProject(name string, or []metav1.OwnerReference) error {
+func (s K8SService) CreateProject(name string) error {
 	log.V(2).Info("start sending request to create namespace...", "name", name)
 	_, err := s.coreClient.Namespaces().Create(
 		&coreV1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:            name,
-				OwnerReferences: or,
 			},
 		},
 	)

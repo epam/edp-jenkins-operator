@@ -7,14 +7,11 @@ import (
 	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/epmd-edp/codebase-operator/v2/pkg/util"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
@@ -58,17 +55,7 @@ func (h PutClusterProject) tryToCreateProject(jj *v1alpha1.JenkinsJob) error {
 }
 
 func (h PutClusterProject) createProject(s pipev1alpha1.Stage, name string) error {
-	or := []metav1.OwnerReference{
-		{
-			APIVersion:         "v2.edp.epam.com/v1alpha1",
-			Kind:               consts.StageKind,
-			Name:               s.Name,
-			UID:                s.UID,
-			BlockOwnerDeletion: helper.NewTrue(),
-		},
-	}
-
-	if err := h.ps.CreateProject(name, or); err != nil {
+	if err := h.ps.CreateProject(name); err != nil {
 		if k8serrors.IsAlreadyExists(err) {
 			log.V(2).Info("project already exists. skip creating...", "name", name)
 			return nil
