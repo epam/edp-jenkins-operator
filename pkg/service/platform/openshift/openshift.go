@@ -515,13 +515,12 @@ func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) 
 	return string(o), err
 }
 
-func (s OpenshiftService) CreateProject(name string, or []metav1.OwnerReference) error {
+func (s OpenshiftService) CreateProject(name string) error {
 	log.V(2).Info("start sending request to create project...", "name", name)
 	_, err := s.projectClient.ProjectRequests().Create(
 		&projectV1.ProjectRequest{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:            name,
-				OwnerReferences: or,
 			},
 			Description: "deploy project for stage",
 		},
