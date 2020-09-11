@@ -75,5 +75,4 @@ In order to install the EDP Jenkins Operator, follow the steps below:
 * [Add Jenkins Slave](documentation/add-jenkins-slave.md) 
 * [Add Job Provision](documentation/add-job-provision.md)
 
-
 >_**NOTE**: To get more accurate information on the CI/CD customization, please refer to the [admin-console](https://github.com/epmd-edp/admin-console/tree/master#edp-admin-console) repository._
