@@ -12,7 +12,7 @@ jenkins:
   deploy: true
   initImage: "busybox"
   image: "epamedp/edp-jenkins"
-  version: "2.4.0"
+  version: "2.5.0"
   storage:
     class: gp2
     size: 10Gi
