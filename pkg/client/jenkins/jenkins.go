@@ -193,10 +193,9 @@ func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) erro
 		return err
 	}
 
-	resp, err := jc.resty.
-		SetRedirectPolicy(resty.FlexibleRedirectPolicy(10)).R().
-		SetQueryParams(requestParams).
+	resp, err := jc.resty.SetRedirectPolicy(resty.FlexibleRedirectPolicy(10)).R().
 		SetHeaders(headers).
+		SetFormData(requestParams).
 		Post("/credentials/store/system/domain/_/createCredentials")
 	if err != nil {
 		return errors.Wrap(err, "Failed to sent Jenkins user creation request!")
