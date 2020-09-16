@@ -8,7 +8,7 @@
   <slaveConnectTimeout>100</slaveConnectTimeout>
   <idleMinutes>5</idleMinutes>
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
-  <label>dotnet-3.1</label>
+  <label>dotnet-2.1</label>
   <serviceAccount>jenkins</serviceAccount>
   <nodeSelector>beta.kubernetes.io/os=linux</nodeSelector>
   <nodeUsageMode>NORMAL</nodeUsageMode>
