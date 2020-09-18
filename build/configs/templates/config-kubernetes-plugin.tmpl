@@ -20,7 +20,7 @@ def cloudPluginName = 'openshift'
 
 def instance = Jenkins.instance
 KubernetesCloud cloud = instance.getCloud(cloudPluginName) ?: new KubernetesCloud(cloudPluginName)
-cloud.setContainerCapStr("0")
+cloud.setContainerCapStr("50")
 cloud.setJenkinsUrl("{{ .JenkinsUrl }}")
 if (!instance.getCloud(cloudPluginName)) {
     instance.clouds.add(cloud)
