@@ -1,4 +1,4 @@
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2020 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.cloudbees.hudson.plugins.folder.*
 import hudson.model.*
 
 def scriptText = '''
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2020 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-npm'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image"},' +
+        '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"}' + "${createJFVStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
