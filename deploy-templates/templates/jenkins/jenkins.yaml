@@ -31,5 +31,5 @@ spec:
       version: {{ .Values.jenkins.libraryPipelinesVersion }}
   keycloakSpec:
     enabled: true
-    realm: "{{ .Values.global.edpName }}-edp"
+    realm: "{{ .Values.global.edpName }}-main"
 {{end}}
