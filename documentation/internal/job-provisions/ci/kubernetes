@@ -71,7 +71,8 @@ stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-versio
 stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
                                 '{"name": "helm-verify"},{"name": "build"},{"name": "build-image-kaniko"}' +
                                 "${createJFVStage}" + ',{"name": "git-tag"}]'
-stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},{"name": "tests"},{"name": "sonar"},' +
+stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
+                                '{"name": "tests"},{"name": "helm-verify"},{"name": "sonar"},' +
                                 '{"name": "build-image-kaniko"},{"name": "push"}' + "${createJFVStage}" +
                                 ',{"name": "git-tag"}]'
 
