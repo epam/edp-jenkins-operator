@@ -2,6 +2,7 @@ package jenkins
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	pipev1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
@@ -237,7 +238,11 @@ func (r ReconcileJenkinsJob) deleteJob(jj *v2v1alpha1.JenkinsJob) error {
 
 func (r ReconcileJenkinsJob) getJobName(jj *v2v1alpha1.JenkinsJob) string {
 	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
-		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jj.Spec.Job.Name)
+		var jobName, err = r.getStageJobName(jj)
+		if err != nil {
+			return "an error has been occurred while getting jenkins job name"
+		}
+		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jobName)
 	}
 	return jj.Spec.Job.Name
 }
@@ -342,4 +347,14 @@ func (r *ReconcileJenkinsJob) canJenkinsJobBeHandled(jj *v2v1alpha1.JenkinsJob) 
 	}
 	log.V(2).Info("create job in Jenkins root folder", "name", jj.Name)
 	return true, nil
+}
+
+func (r ReconcileJenkinsJob) getStageJobName(jj *v2v1alpha1.JenkinsJob) (string, error) {
+	jobConfig := make(map[string]string)
+	err := json.Unmarshal([]byte(jj.Spec.Job.Config), &jobConfig)
+	if err != nil {
+		return "", err
+	}
+	var stageName = jobConfig["STAGE_NAME"]
+	return stageName, nil
 }
