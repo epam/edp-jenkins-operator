@@ -10,6 +10,7 @@ import (
 	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
