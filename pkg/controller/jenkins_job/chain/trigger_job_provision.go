@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
@@ -83,6 +84,28 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 	var jpc map[string]string
 	err = json.Unmarshal([]byte(jj.Spec.Job.Config), &jpc)
 
+	pn, err := h.getParamFromJenkinsJobConfig("PIPELINE_NAME", jj.Spec.Job.Config)
+	if err != nil {
+		return errors.Wrapf(err, "an error has been occurred while getting parameter PIPELINE_NAME from Jenkins job config")
+	}
+	sn, err := h.getParamFromJenkinsJobConfig("STAGE_NAME", jj.Spec.Job.Config)
+	if err != nil {
+		return errors.Wrapf(err, "an error has been occurred while getting parameter STAGE_NAME from Jenkins job config")
+	}
+	jenkinsJobName := fmt.Sprintf("%v-cd-pipeline/job/%v", *pn, *sn)
+	job, err := jc.GetJobByName(jenkinsJobName)
+	if err != nil {
+		if err.Error() == "404" {
+			log.V(2).Info("job not found, need job provisioning", "jenkinsJob", jenkinsJobName)
+		} else {
+			return errors.Wrapf(err, "an error has been occurred while getting job %v", jenkinsJobName)
+		}
+	}
+	if job != nil {
+		log.V(2).Info("job already exist, job provisioning will be skipped", "jenkinsJob", jenkinsJobName)
+		return nil
+	}
+
 	bn, err := jc.BuildJob(jj.Spec.Job.Name, jpc)
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
@@ -90,4 +113,14 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 	jj.Status.JenkinsJobProvisionBuildNumber = *bn
 	log.Info("end triggering build job", "name", jj.Spec.Job.Name)
 	return nil
+}
+
+func (h TriggerJobProvision) getParamFromJenkinsJobConfig(name, jjConfig string) (*string, error) {
+	jobConfig := make(map[string]string)
+	err := json.Unmarshal([]byte(jjConfig), &jobConfig)
+	if err != nil {
+		return nil, err
+	}
+	var stageName = jobConfig[name]
+	return &stageName, nil
 }
