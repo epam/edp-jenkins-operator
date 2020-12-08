@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
@@ -36,7 +35,6 @@ import (
 	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
-	"math/big"
 	"os"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -1041,11 +1039,10 @@ func (s K8SService) CreateProject(name string) error {
 // CreateRoleBinding creates RoleBinding
 func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error {
 	log.V(2).Info("start creating role binding", "edp name", edpName, "namespace", namespace, "role name", roleRef)
-	randPostfix, err := rand.Int(rand.Reader, big.NewInt(10000))
-	_, err = s.authClient.RoleBindings(namespace).Create(
+	_, err := s.authClient.RoleBindings(namespace).Create(
 		&rbacV1.RoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: fmt.Sprintf("%s-%s-%d", edpName, roleRef.Name, randPostfix),
+				Name: fmt.Sprintf("%s-%s", edpName, roleRef.Name),
 			},
 			RoleRef:  roleRef,
 			Subjects: subjects,
@@ -1081,4 +1078,13 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 
 func (s K8SService) DeleteProject(name string) error {
 	return s.coreClient.Namespaces().Delete(name, metav1.NewDeleteOptions(0))
+}
+
+// GetRoleBinding get RoleBinding
+func (s K8SService) GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error) {
+	rb, err := s.authClient.RoleBindings(namespace).Get(roleBindingName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return rb, nil
 }
