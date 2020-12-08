@@ -351,3 +351,13 @@ func (jc JenkinsClient) CreateFolder(name string) error {
 	log.V(2).Info("end creating jenkins folder", "name", name)
 	return nil
 }
+
+func (jc JenkinsClient) GetJobByName(jobName string) (*gojenkins.Job, error) {
+	log.V(2).Info("start getting jenkins job", "jobName", jobName)
+	job, err := jc.GoJenkins.GetJob(jobName)
+	if err != nil {
+		return nil, err
+	}
+	log.V(2).Info("end getting jenkins job", "jobName", jobName)
+	return job, nil
+}
