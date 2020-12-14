@@ -40,7 +40,7 @@
     "containers": [
       {
         "name": "kaniko",
-        "image": "gcr.io/kaniko-project/executor:v0.22.0",
+        "image": "gcr.io/kaniko-project/executor:v1.3.0",
         "args": [
           "--destination=REPLACE_DESTINATION_IMAGE"
         ],
