@@ -45,6 +45,7 @@ type PlatformService interface {
 	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
 	CreateStageJSON(cr edpv1alpha1.Stage) (string, error)
 	DeleteProject(name string) error
+	GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error)
 }
 
 // NewPlatformService returns platform service interface implementation
