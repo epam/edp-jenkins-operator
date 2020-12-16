@@ -8,6 +8,14 @@ image:
   name: epamedp/jenkins-operator
   version: v2.4.0
 
+resources:
+  limits:
+    cpu: 200m
+    memory: 192Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
 jenkins:
   deploy: true
   initImage: "busybox"
@@ -22,3 +30,11 @@ jenkins:
   libraryStagesVersion: "master"
   imagePullSecrets:
   basePath: ""
+
+  resources:
+    limits:
+      cpu: 2
+      memory: 3Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi

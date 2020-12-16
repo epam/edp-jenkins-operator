@@ -76,8 +76,7 @@ spec:
             - name: PLATFORM_TYPE
               value: kubernetes
           resources:
-            requests:
-              memory: 500Mi
+{{ toYaml .Values.jenkins.resources | indent 12 }}
           volumeMounts:
             - name: jenkins-jenkins-data
               mountPath: /var/lib/jenkins
