@@ -91,6 +91,7 @@ def gitServerCrName = "${GIT_SERVER_CR_NAME}"
 def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
 def gitCredentialsId = "${GIT_CREDENTIALS_ID ? GIT_CREDENTIALS_ID : 'gerrit-ciuser-sshkey'}"
 def repositoryPath = "${REPOSITORY_PATH}"
+def defaultBranch = "${DEFAULT_BRANCH}"
 
 def codebaseFolder = jenkins.getItem(codebaseName)
 if (codebaseFolder == null) {
@@ -99,7 +100,7 @@ if (codebaseFolder == null) {
 
 createListView(codebaseName, "Releases")
 createReleasePipeline("Create-release-${codebaseName}", codebaseName, stages["Create-release"], "create-release.groovy",
-        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled)
+        repositoryPath, gitCredentialsId, gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, defaultBranch)
 
 if (buildTool.toString().equalsIgnoreCase('none')) {
     return true
@@ -130,7 +131,7 @@ if (BRANCH) {
     }
 }
 
-def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch = "master", gitServerCrName, gitServerCrVersion) {
+def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId, watchBranch, gitServerCrName, gitServerCrVersion) {
     pipelineJob("${codebaseName}/${watchBranch.toUpperCase().replaceAll(/\\//, "-")}-${pipelineName}") {
         logRotator {
             numToKeep(10)
@@ -173,7 +174,7 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
 }
 
 def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
- gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled) {
+ gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, defaultBranch) {
     pipelineJob("${codebaseName}/${pipelineName}") {
         logRotator {
             numToKeep(14)
@@ -187,7 +188,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                             url(repository)
                             credentials(credId)
                         }
-                        branches("master")
+                        branches("${defaultBranch}")
                         scriptPath("${pipelineScript}")
                     }
                 }
@@ -201,6 +202,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineSc
                         stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
                         stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                         stringParam("REPOSITORY_PATH", "${repository}", "Full repository path")
+                        stringParam("DEFAULT_BRANCH", "${defaultBranch}", "Default repository branch")
                     }
                 }
             }
