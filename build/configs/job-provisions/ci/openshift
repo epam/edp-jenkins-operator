@@ -56,7 +56,8 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
                       new StringParameterDefinition("GIT_SERVER_CR_VERSION", ""),
                       new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
                       new StringParameterDefinition("REPOSITORY_PATH", ""),
-                      new StringParameterDefinition("JIRA_INTEGRATION_ENABLED", "")]
+                      new StringParameterDefinition("JIRA_INTEGRATION_ENABLED", ""),
+                      new StringParameterDefinition("DEFAULT_BRANCH", "")]
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
