@@ -25,9 +25,9 @@ jenkins:
     class: gp2
     size: 10Gi
   libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"
-  libraryPipelinesVersion: "release-2.7"
+  libraryPipelinesVersion: "master"
   libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"
-  libraryStagesVersion: "release-2.7"
+  libraryStagesVersion: "master"
   imagePullSecrets:
   basePath: ""
 
