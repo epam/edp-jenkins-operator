@@ -44,6 +44,7 @@ func (h TriggerJobProvision) setStatus(jj *v1alpha1.JenkinsJob, status string) e
 		LastTimeUpdated:                time.Time{},
 		Status:                         status,
 		JenkinsJobProvisionBuildNumber: jj.Status.JenkinsJobProvisionBuildNumber,
+		Action:                         v1alpha1.TriggerJobProvision,
 	}
 	return h.updateStatus(jj)
 }

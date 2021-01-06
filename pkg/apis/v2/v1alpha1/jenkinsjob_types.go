@@ -33,6 +33,7 @@ const (
 	PlatformProjectCreation ActionType = "platform_project_creation"
 	RoleBinding             ActionType = "role_binding"
 	CreateJenkinsPipeline   ActionType = "create_jenkins_pipeline"
+	TriggerJobProvision     ActionType = "trigger_job_provision"
 
 	Success Result = "success"
 	Error   Result = "error"
