@@ -17,7 +17,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: {{ .Values.name }}
-          image: "{{ .Values.image.name }}:{{ .Values.image.version }}"
+          image: "{{ .Values.image.name }}:{{ .Values.image.version | default .Chart.AppVersion }}"
           command:
             - {{ .Values.name }}
           imagePullPolicy: Always
