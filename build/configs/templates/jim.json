@@ -1,12 +1,13 @@
 {
   "apiVersion": "v2.edp.epam.com/v1alpha1",
-  "kind": "JiraFixVersion",
+  "kind": "JiraIssueMetadata",
   "metadata": {
     "name": "replace"
   },
   "spec": {
     "commits": "replace",
     "tickets": "replace",
-    "codebaseName": "replace"
+    "codebaseName": "replace",
+    "payload": "replace"
   }
 }
