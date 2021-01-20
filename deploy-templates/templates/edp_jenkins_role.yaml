@@ -6,5 +6,6 @@ rules:
   - apiGroups: ["*"] # "" indicates the core API group
     resources: ["codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines", "nexuses", "stages",
                 "gitservers", "adminconsoles", "jenkinses", "jenkins", "edpcomponents", "keycloakrealms",
-                "jirafixversions", "codebases/finalizers"]
+                "jirafixversions", "codebases/finalizers", "jiraissuemetadatas", "jiraissuemetadatas/finalizers",
+                "jiraissuemetadatas/status"]
     verbs: ["get", "create", "update", "patch", "list", "delete"]
