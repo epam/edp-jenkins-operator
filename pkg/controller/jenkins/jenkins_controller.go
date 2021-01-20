@@ -139,12 +139,6 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
-	instance, err = r.service.Install(*instance)
-	if err != nil {
-		r.updateStatus(instance, StatusFailed)
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Installation has been failed")
-	}
-
 	if instance.Status.Status == StatusInstall {
 		reqLogger.Info("Installation has finished")
 		err = r.updateStatus(instance, StatusCreated)
