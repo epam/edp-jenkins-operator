@@ -395,16 +395,8 @@ func (j JenkinsServiceImpl) getIcon() (*string, error) {
 
 // Configure performs self-configuration of Jenkins
 func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
-	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
-	if err != nil {
-		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
-	}
-	if jc == nil {
-		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
-	}
-
 	secretName := fmt.Sprintf("%v-%v", instance.Name, adminCredentialsSecretPostfix)
-	err = j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
+	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
 	if err != nil {
 		return &instance, false, err
 	}
@@ -414,6 +406,14 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			return &instance, false, err
 		}
 		instance = *updatedInstance
+	}
+
+	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
+	if err != nil {
+		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
+	}
+	if jc == nil {
+		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
 	}
 
 	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, adminTokenSecretPostfix)
