@@ -55,7 +55,6 @@ const (
 	dockerRegistryTemplateName      = "config.json"
 	defaultScriptConfigMapKey       = "context"
 	sshKeyDefaultMountPath          = "/tmp/ssh"
-	edpJenkinsRoleName              = "edp-jenkins-role"
 
 	imgFolder = "img"
 	jenIcon   = "jenkins.svg"
@@ -402,6 +401,19 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 	if jc == nil {
 		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
+	}
+
+	secretName := fmt.Sprintf("%v-%v", instance.Name, adminCredentialsSecretPostfix)
+	err = j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
+	if err != nil {
+		return &instance, false, err
+	}
+	if instance.Status.AdminSecretName == "" {
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
+		if err != nil {
+			return &instance, false, err
+		}
+		instance = *updatedInstance
 	}
 
 	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, adminTokenSecretPostfix)
