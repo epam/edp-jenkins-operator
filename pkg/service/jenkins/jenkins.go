@@ -27,7 +27,6 @@ import (
 	keycloakControllerHelper "github.com/epmd-edp/keycloak-operator/pkg/controller/helper"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
-	authV1Api "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -66,7 +65,6 @@ var log = logf.Log.WithName("jenkins_service")
 
 // JenkinsService interface for Jenkins EDP component
 type JenkinsService interface {
-	Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error)
 	Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
@@ -553,90 +551,6 @@ func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClien
 	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
 	err = j.createScript(instance, configMapName, configMapKey, path)
 	return err
-}
-
-// Install performs installation of Jenkins
-func (j JenkinsServiceImpl) Install(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, error) {
-	secretName := fmt.Sprintf("%v-%v", instance.Name, adminCredentialsSecretPostfix)
-	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
-	if err != nil {
-		return &instance, err
-	}
-	if instance.Status.AdminSecretName == "" {
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
-		if err != nil {
-			return &instance, err
-		}
-		instance = *updatedInstance
-	}
-
-	err = j.platformService.CreateServiceAccount(instance)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Service Account %v", instance.Name)
-	}
-
-	rules := []authV1Api.PolicyRule{
-		{
-			APIGroups: []string{"*"},
-			Resources: []string{"codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines", "nexuses",
-				"stages", "gitservers", "adminconsoles", "jenkinses", "jenkins", "edpcomponents", "keycloakrealms",
-				"jirafixversions", "codebases/finalizers"},
-			Verbs: []string{"get", "create", "update", "patch", "list", "delete"},
-		},
-	}
-
-	err = j.platformService.CreateRole(instance, edpJenkinsRoleName, rules)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Role %v", edpJenkinsRoleName)
-	}
-
-	rules = j.platformService.CreateClusterRolePolicyRules()
-
-	clusterRoleName := fmt.Sprintf("%v-%v-cluster-role", instance.Name, instance.Namespace)
-	err = j.platformService.CreateClusterRole(instance, clusterRoleName, rules)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create ClusterRole %v", clusterRoleName)
-	}
-
-	roleBindingName := fmt.Sprintf("%v-edp-resources-permissions", instance.Name)
-	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, edpJenkinsRoleName, "Role")
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
-	}
-
-	roleBindingName = fmt.Sprintf("%v-edit-permissions", instance.Name)
-	err = j.platformService.CreateUserRoleBinding(instance, roleBindingName, "edit", "ClusterRole")
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Role Binding %v", instance.Name)
-	}
-
-	clusterRoleBindingName := fmt.Sprintf("%v-%v-cluster-permissions", instance.Name, instance.Namespace)
-	err = j.platformService.CreateUserClusterRoleBinding(instance, clusterRoleBindingName, clusterRoleName)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Cluster Role Binding %v", instance.Name)
-	}
-
-	err = j.platformService.CreatePersistentVolumeClaim(instance)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Volume for %v", instance.Name)
-	}
-
-	err = j.platformService.CreateService(instance)
-	if err != nil {
-		return &instance, errors.Wrapf(err, "Failed to create Service for %v/%v", instance.Namespace, instance.Name)
-	}
-
-	err = j.platformService.CreateExternalEndpoint(instance)
-	if err != nil {
-		return &instance, errors.Wrap(err, "Failed to create Route.")
-	}
-
-	err = j.platformService.CreateDeployment(instance)
-	if err != nil {
-		return &instance, errors.Wrap(err, "Failed to create Deployment Config.")
-	}
-
-	return &instance, nil
 }
 
 // IsDeploymentConfigReady check if DC for Jenkins is ready
