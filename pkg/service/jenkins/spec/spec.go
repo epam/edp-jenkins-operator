@@ -12,6 +12,9 @@ const (
 	//EdpAnnotationsPrefix
 	EdpAnnotationsPrefix string = "edp.epam.com"
 
+	//JenkinsAdminPasswordSuffix
+	JenkinsAdminPasswordSuffix string = "admin-password"
+
 	//JenkinsTokenAnnotationSuffix
 	JenkinsTokenAnnotationSuffix string = "admin-token"
 

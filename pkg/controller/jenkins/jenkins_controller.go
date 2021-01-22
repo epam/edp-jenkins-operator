@@ -147,6 +147,13 @@ func (r *ReconcileJenkins) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
+	// Create Admin password secret
+	err = r.service.CreateAdminPassword(*instance)
+	if err != nil {
+		reqLogger.Error(err, "Admin password secret creation has failed")
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Admin password secret creation has failed")
+	}
+
 	if dcIsReady, err := r.service.IsDeploymentReady(*instance); err != nil {
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrapf(err, "Checking if Deployment configs is ready has been failed")
 	} else if !dcIsReady {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,7 +19,6 @@ import (
 	jenkinsClient "github.com/epmd-edp/jenkins-operator/v2/pkg/client/jenkins"
 	helperController "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
 	jenkinsScriptHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
 	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
@@ -37,8 +37,6 @@ import (
 
 const (
 	initContainerName               = "grant-permissions"
-	adminCredentialsSecretPostfix   = "admin-password"
-	adminTokenSecretPostfix         = "admin-token"
 	defaultScriptsDirectory         = "scripts"
 	defaultSlavesDirectory          = "slaves"
 	defaultJobProvisionsDirectory   = "job-provisions"
@@ -68,6 +66,7 @@ type JenkinsService interface {
 	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
+	CreateAdminPassword(instance v1alpha1.Jenkins) error
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
@@ -395,19 +394,6 @@ func (j JenkinsServiceImpl) getIcon() (*string, error) {
 
 // Configure performs self-configuration of Jenkins
 func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
-	secretName := fmt.Sprintf("%v-%v", instance.Name, adminCredentialsSecretPostfix)
-	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
-	if err != nil {
-		return &instance, false, err
-	}
-	if instance.Status.AdminSecretName == "" {
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
-		if err != nil {
-			return &instance, false, err
-		}
-		instance = *updatedInstance
-	}
-
 	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
 	if err != nil {
 		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
@@ -416,7 +402,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
 	}
 
-	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, adminTokenSecretPostfix)
+	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
 	adminTokenSecret, err := j.platformService.GetSecretData(instance.Namespace, adminTokenSecretName)
 	if err != nil {
 		return &instance, false, errors.Wrapf(err, "Unable to get admin token secret for %v", instance.Name)
@@ -578,6 +564,22 @@ func (j JenkinsServiceImpl) createScript(instance v1alpha1.Jenkins, configMapNam
 	err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, &configMapKey, contextPath, jenkinsScript)
 	if err != nil {
 		return errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.", configMapName, instance.Namespace)
+	}
+	return nil
+}
+
+func (j JenkinsServiceImpl) CreateAdminPassword(instance v1alpha1.Jenkins) error {
+	secretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsAdminPasswordSuffix)
+	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
+	if err != nil {
+		return errors.Wrap(err, "Failed to create Admin password secret")
+	}
+	if instance.Status.AdminSecretName == "" {
+		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
+		if err != nil {
+			return err
+		}
+		instance = *updatedInstance
 	}
 	return nil
 }
