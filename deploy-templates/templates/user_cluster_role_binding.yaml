@@ -3,11 +3,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     {{- include "jenkins-operator.labels" . | nindent 4 }}
-  name: edp-{{ .Values.global.edpName }}
+  name: edp-{{ .Values.global.edpName }}-jenkins
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: edp-{{ .Values.global.edpName }}
+  name: edp-{{ .Values.global.edpName }}-jenkins
 subjects:
   - kind: ServiceAccount
     name: jenkins

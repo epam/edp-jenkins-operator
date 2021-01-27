@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   labels:
     {{- include "jenkins-operator.labels" . | nindent 4 }}
-  name: edp-{{ .Values.global.edpName }}
+  name: edp-{{ .Values.global.edpName }}-jenkins
 rules:
 - apiGroups:
     - "*"
