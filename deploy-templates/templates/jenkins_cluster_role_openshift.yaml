@@ -2,7 +2,9 @@
 apiVersion: authorization.openshift.io/v1
 kind: ClusterRole
 metadata:
-  name: jenkins-{{ .Values.global.edpName }}-cluster-role
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
     - "*"

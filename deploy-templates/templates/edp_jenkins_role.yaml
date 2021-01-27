@@ -1,6 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
   name: edp-jenkins-role
 rules:
   - apiGroups: ["*"] # "" indicates the core API group

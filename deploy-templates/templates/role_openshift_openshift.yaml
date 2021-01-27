@@ -2,7 +2,9 @@
 apiVersion: authorization.openshift.io/v1
 kind: Role
 metadata:
-  name: edp-{{ .Values.name }}-role-{{ .Values.global.edpName }}
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
   - '*'

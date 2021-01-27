@@ -2,10 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-    annotations:
-        kubernetes.io/description: Role for {{ .Values.name }}-edp service account
-        kubernetes.io/reconcile-protect: "false"
-    name: edp-{{ .Values.name }}-clusterrole-{{ .Values.global.edpName }}
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
   - 'rbac.authorization.k8s.io'

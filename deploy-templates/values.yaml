@@ -4,6 +4,10 @@ global:
   dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
 
 name: jenkins-operator
+annotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
 image:
   name: epamedp/jenkins-operator
   # if not defined then .Chart.AppVersion is used
@@ -24,6 +28,12 @@ jenkins:
   storage:
     class: gp2
     size: 10Gi
+  annotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ingress:
+    annotations: {}
   libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"
   libraryPipelinesVersion: "master"
   libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"

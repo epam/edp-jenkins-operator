@@ -4,6 +4,7 @@ metadata:
   name: jenkins-data
   labels:
     app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce

@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
   name: jenkins
 spec:
   ports:

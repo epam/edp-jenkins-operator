@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: jenkins
   labels:
     app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: jenkins

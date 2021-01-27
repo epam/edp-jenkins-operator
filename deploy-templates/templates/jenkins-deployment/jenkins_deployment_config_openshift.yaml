@@ -5,6 +5,11 @@ kind: DeploymentConfig
 metadata:
   labels:
     app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  {{- with .Values.jenkins.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: jenkins
 spec:
   replicas: 1
@@ -74,6 +79,18 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/jenkins
               name: jenkins-jenkins-data
+      {{- with .Values.jenkins.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       dnsPolicy: ClusterFirst
       initContainers:
         - command:
