@@ -19,7 +19,4 @@ spec:
             backend:
               serviceName: jenkins
               servicePort: 8080
-status:
-  loadBalancer:
-    ingress:
 {{ end }}
