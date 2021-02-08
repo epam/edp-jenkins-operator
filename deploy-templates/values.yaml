@@ -34,9 +34,9 @@ jenkins:
   affinity: {}
   ingress:
     annotations: {}
-  libraryPipelinesRepo: "https://github.com/epmd-edp/edp-library-pipelines.git"
+  libraryPipelinesRepo: "https://github.com/epam/edp-library-pipelines.git"
   libraryPipelinesVersion: "master"
-  libraryStagesRepo: "https://github.com/epmd-edp/edp-library-stages.git"
+  libraryStagesRepo: "https://github.com/epam/edp-library-stages.git"
   libraryStagesVersion: "master"
   imagePullSecrets:
   basePath: ""
