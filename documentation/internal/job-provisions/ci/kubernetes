@@ -53,6 +53,7 @@ stages['Code-review-library'] = '[{"name": "gerrit-checkout"}' + "${commitValida
 stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "tests"},{"name": "sonar"}]'
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + ']'
+stages['Code-review-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
@@ -62,6 +63,7 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
+stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build"},{"name": "build-image-kaniko"},' +
@@ -81,7 +83,6 @@ stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-versio
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
 def defaultBuild = '[{"name": "checkout"}]'
 
 def codebaseName = "${NAME}"
@@ -110,8 +111,7 @@ if (BRANCH) {
     createListView(codebaseName, formattedBranch)
 
     def type = "${TYPE}"
-    def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
-    def crKey = supBuildTool ? "Code-review-${type}" : "Code-review-default"
+    def crKey = getStageKeyName(buildTool)
     createCiPipeline("Code-review-${codebaseName}", codebaseName, stages[crKey], "code-review.groovy",
             repositoryPath, gitCredentialsId, branch, gitServerCrName, gitServerCrVersion)
 
@@ -169,6 +169,15 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
             }
         }
     }
+}
+
+def getStageKeyName(buildTool) {
+    if (buildTool.toString().equalsIgnoreCase('terraform')) {
+        return "Code-review-library-terraform"
+    }
+    def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
+    def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
+    return supBuildTool ? "Code-review-${TYPE}" : "Code-review-default"
 }
 
 def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineScript, repository, credId,
