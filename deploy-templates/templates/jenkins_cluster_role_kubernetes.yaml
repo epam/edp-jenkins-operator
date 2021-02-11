@@ -8,7 +8,6 @@ metadata:
 rules:
 - apiGroups:
     - "*"
-  attributeRestrictions: null
   resources:
     - podsecuritypolicies
   verbs:
@@ -17,7 +16,6 @@ rules:
     - update
 - apiGroups:
     - "*"
-  attributeRestrictions: null
   resources:
     - namespaces
   verbs:

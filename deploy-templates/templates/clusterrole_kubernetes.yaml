@@ -8,7 +8,6 @@ metadata:
 rules:
 - apiGroups:
   - 'rbac.authorization.k8s.io'
-  attributeRestrictions: null
   resources:
   - clusterroles
   verbs:
@@ -17,7 +16,6 @@ rules:
   - delete
 - apiGroups:
   - '*'
-  attributeRestrictions: null
   resources:
   - podsecuritypolicies
   verbs:
@@ -26,7 +24,6 @@ rules:
   - update
 - apiGroups:
   - '*'
-  attributeRestrictions: null
   resources:
   - namespaces
   verbs:
@@ -35,7 +32,6 @@ rules:
   - delete
 - apiGroups:
     - '*'
-  attributeRestrictions: null
   resources:
     - clusterrolebindings
   verbs:
@@ -44,7 +40,6 @@ rules:
     - delete
 - apiGroups:
     - '*'
-  attributeRestrictions: null
   resources:
     - keycloaks
     - gerrits

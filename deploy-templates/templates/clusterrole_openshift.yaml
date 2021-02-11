@@ -8,7 +8,6 @@ metadata:
 rules:
 - apiGroups:
   - rbac.authorization.k8s.io
-  attributeRestrictions: null
   resources:
   - clusterroles
   verbs:
@@ -16,7 +15,6 @@ rules:
   - delete
 - apiGroups:
   - '*'
-  attributeRestrictions: null
   resources:
   - securitycontextconstraints
   verbs:
@@ -26,14 +24,12 @@ rules:
 - apiGroups:
   - ""
   - project.openshift.io
-  attributeRestrictions: null
   resources:
   - projectrequests
   verbs:
   - create
 - apiGroups:
     - '*'
-  attributeRestrictions: null
   resources:
     - clusterrolebindings
   verbs:
@@ -42,7 +38,6 @@ rules:
     - delete
 - apiGroups:
     - '*'
-  attributeRestrictions: null
   resources:
     - keycloaks
     - gerrits
