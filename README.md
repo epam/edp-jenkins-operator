@@ -69,8 +69,8 @@ In order to install the EDP Jenkins Operator, follow the steps below:
 ### Related Articles
 * [Architecture Scheme of Jenkins Operator](documentation/arch.md)
 * [Local Development](documentation/local-development.md)
-* [GitHub Integration](https://github.com/epam/admin-console/blob/master/documentation/github-integration.md#github-integration)
-* [GitLab Integration](https://github.com/epam/admin-console/blob/master/documentation/gitlab-integration.md#gitlab-integration)
+* [GitHub Integration](https://github.com/epam/edp-admin-console/blob/master/documentation/github-integration.md#github-integration)
+* [GitLab Integration](https://github.com/epam/edp-admin-console/blob/master/documentation/gitlab-integration.md#gitlab-integration)
 ---
 * [Add Jenkins Slave](documentation/add-jenkins-slave.md) 
 * [Add Job Provision](documentation/add-job-provision.md)
