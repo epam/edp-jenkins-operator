@@ -60,3 +60,25 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Define Jenkins URL
+*/}}
+{{- define "jenkins-operator.jenkinsBaseUrl" -}}
+{{- if .Values.jenkins.basePath }}
+{{- .Values.global.dnsWildCard }}
+{{- else }}
+{{- printf "jenkins-%s.%s" .Values.global.edpName .Values.global.dnsWildCard  }}
+{{- end }}
+{{- end }}
+
+{{/*
+Define Jenkins BasePath
+*/}}
+{{- define "jenkins-operator.jenkinsBasePath" -}}
+{{- if .Values.jenkins.basePath }}
+{{- printf "/%s(/|$)(.*)" .Values.jenkins.basePath }}
+{{- else }}
+{{- printf "/"  }}
+{{- end }}
+{{- end }}

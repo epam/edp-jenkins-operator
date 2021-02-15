@@ -11,8 +11,8 @@ metadata:
   {{- end }}
   name: jenkins
 spec:
-  host: {{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
-  path: {{if .Values.jenkins.basePath}}/{{.Values.jenkins.basePath}}(/|$)(.*){{else}}/{{end}}
+  host: {{ include "jenkins-operator.jenkinsBaseUrl" . }}
+  path: {{ include "jenkins-operator.jenkinsBasePath" . }}
   port:
     targetPort: 8080
   tls:

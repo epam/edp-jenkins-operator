@@ -15,7 +15,9 @@ spec:
   image: {{.Values.jenkins.image}}
   version: {{.Values.jenkins.version}}
   initImage: {{.Values.jenkins.initImage}}
-  basePath: "{{.Values.jenkins.basePath}}"
+  {{- if .Values.jenkins.basePath }}
+  basePath: "{{ .Values.jenkins.basePath }}"
+  {{- end }}
   volumes:
     - name: "data"
       storageClass: {{ .Values.jenkins.storage.class }}

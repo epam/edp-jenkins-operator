@@ -75,7 +75,7 @@ spec:
                   name: jenkins-admin-password
                   key: password
             - name: JENKINS_UI_URL
-              value: https://{{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
+              value: https://{{ include "jenkins-operator.jenkinsBaseUrl" . }}
             - name: JENKINS_OPTS
               value: '--requestHeaderSize=32768'
             - name: PLATFORM_TYPE

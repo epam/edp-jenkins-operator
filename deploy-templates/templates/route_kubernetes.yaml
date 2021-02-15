@@ -12,10 +12,10 @@ metadata:
   {{- end }}
 spec:
   rules:
-    - host: {{if .Values.jenkins.basePath}}{{ .Values.global.dnsWildCard }}{{else}}jenkins-{{ .Values.global.edpName }}.{{ .Values.global.dnsWildCard }}{{end}}
+    - host: {{ include "jenkins-operator.jenkinsBaseUrl" . }}
       http:
         paths:
-          - path: {{if .Values.jenkins.basePath}}/{{.Values.jenkins.basePath}}(/|$)(.*){{else}}/{{end}}
+          - path: {{ include "jenkins-operator.jenkinsBasePath" . }}
             backend:
               serviceName: jenkins
               servicePort: 8080

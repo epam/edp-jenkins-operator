@@ -39,7 +39,7 @@ jenkins:
   libraryStagesRepo: "https://github.com/epam/edp-library-stages.git"
   libraryStagesVersion: "master"
   imagePullSecrets:
-  basePath: ""
+  #basePath: ""
 
   resources:
     limits:
