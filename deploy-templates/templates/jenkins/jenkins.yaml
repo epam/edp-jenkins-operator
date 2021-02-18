@@ -23,15 +23,16 @@ spec:
       storageClass: {{ .Values.jenkins.storage.class }}
       capacity: {{ .Values.jenkins.storage.size }}
   sharedLibraries:
-    - name: "edp-library-stages"
-      id: "Stages"
-      repository: {{ .Values.jenkins.libraryStagesRepo }}
-      version: {{ .Values.jenkins.libraryStagesVersion }}
-    - name: "edp-library-pipelines"
-      id: "Pipelines"
-      repository: {{ .Values.jenkins.libraryPipelinesRepo }}
-      version: {{ .Values.jenkins.libraryPipelinesVersion }}
+    {{- range .Values.jenkins.sharedLibraries}}
+    - name: {{.name}}
+      id: {{.id}}
+      url: {{.url}}
+      tag: {{.tag}}
+      {{- if .secret}}
+      secret: {{.secret}}
+      {{- end}}
+    {{- end}}
   keycloakSpec:
     enabled: true
     realm: "{{ .Values.global.edpName }}-edp"
-{{end}}
+  {{end}}

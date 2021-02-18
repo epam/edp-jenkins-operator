@@ -39,10 +39,11 @@ type JenkinsVolumes struct {
 }
 
 type JenkinsSharedLibraries struct {
-	Name       string `json:"name"`
-	Id         string `json:"id"`
-	Repository string `json:"repository"`
-	Version    string `json:"version"`
+	Name         string  `json:"name"`
+	Id           string  `json:"id"`
+	Url          string  `json:"url"`
+	Tag          string  `json:"tag"`
+	CredentialId *string `json:"secret,omitempty"`
 }
 
 // JenkinsStatus defines the observed state of Jenkins

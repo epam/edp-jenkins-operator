@@ -32,8 +32,12 @@ def librariesArray = []
 {{ range .JenkinsSharedLibraries }}
 GitSCMSource gitSCMSource{{.Id}} = new GitSCMSource(
 "{{ .Name }}",
-"{{ .Repository }}",
+"{{ .Url }}",
+{{- if .CredentialId}}
+"{{ .CredentialId }}",
+{{- else}}
 "",
+{{- end}}
 "*",
 "",
 false
@@ -42,7 +46,7 @@ false
 gitSCMSource{{.Id}}.setTraits(traits)
 SCMSourceRetriever sCMSourceRetriever{{.Id}} = new SCMSourceRetriever(gitSCMSource{{.Id}})
 LibraryConfiguration libraryConfiguration{{.Id}} = new LibraryConfiguration("{{.Name}}", sCMSourceRetriever{{.Id}})
-libraryConfiguration{{.Id}}.setDefaultVersion("{{ .Version }}")
+libraryConfiguration{{.Id}}.setDefaultVersion("{{ .Tag }}")
 libraryConfiguration{{.Id}}.setImplicit(false)
 librariesArray.add(libraryConfiguration{{.Id}})
 {{ end }}
