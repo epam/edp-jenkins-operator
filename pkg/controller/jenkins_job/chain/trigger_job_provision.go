@@ -26,25 +26,26 @@ func (h TriggerJobProvision) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 	log.V(2).Info("start triggering job provision")
 
 	if err := h.triggerJobProvision(jj); err != nil {
-		if err := h.setStatus(jj, consts.StatusFailed); err != nil {
+		if err := h.setStatus(jj, consts.StatusFailed, v1alpha1.Error); err != nil {
 			return errors.Wrapf(err, "an error has been occurred while updating %v JenkinsJob status", jj.Name)
 		}
 		return err
 	}
 
-	if err := h.setStatus(jj, consts.StatusFinished); err != nil {
+	if err := h.setStatus(jj, consts.StatusFinished, v1alpha1.Success); err != nil {
 		return errors.Wrapf(err, "an error has been occurred while updating %v JenkinsJob status", jj.Name)
 	}
 	return nextServeOrNil(h.next, jj)
 }
 
-func (h TriggerJobProvision) setStatus(jj *v1alpha1.JenkinsJob, status string) error {
+func (h TriggerJobProvision) setStatus(jj *v1alpha1.JenkinsJob, status string, result v1alpha1.Result) error {
 	jj.Status = v1alpha1.JenkinsJobStatus{
 		Available:                      true,
 		LastTimeUpdated:                time.Time{},
 		Status:                         status,
 		JenkinsJobProvisionBuildNumber: jj.Status.JenkinsJobProvisionBuildNumber,
 		Action:                         v1alpha1.TriggerJobProvision,
+		Result:                         result,
 	}
 	return h.updateStatus(jj)
 }
