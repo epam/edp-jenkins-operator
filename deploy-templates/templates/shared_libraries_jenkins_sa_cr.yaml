@@ -1,0 +1,15 @@
+{{if .Values.jenkins.deploy}}
+  {{- range .Values.jenkins.sharedLibraries}}
+  {{- if .secret}}
+kind: JenkinsServiceAccount
+apiVersion: v2.edp.epam.com/v1alpha1
+metadata:
+  name: {{ toYaml .secret}}
+spec:
+  credentials: {{ toYaml .secret}}
+  ownerName: ""
+  type: {{ toYaml .type}}
+---
+  {{- end}}
+  {{- end}}
+{{end}}

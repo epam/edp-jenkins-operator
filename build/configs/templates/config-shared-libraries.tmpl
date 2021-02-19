@@ -1,4 +1,4 @@
-/* Copyright 2018 EPAM Systems.
+/* Copyright 2020 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,21 +29,25 @@ templates.add(new RefSpecTemplate('+refs/heads/*:refs/remotes/@{remote}/*'))
 templates.add(new RefSpecTemplate('+refs/changes/*:refs/remotes/@{remote}/*'))
 traits.add(new RefSpecsSCMSourceTrait(templates))
 def librariesArray = []
-{{ range .JenkinsSharedLibraries }}
-GitSCMSource gitSCMSource{{.Id}} = new GitSCMSource(
-"{{ .Name }}",
-"{{ .Repository }}",
+{{ range $i, $v := .JenkinsSharedLibraries }}
+GitSCMSource gitSCMSource{{$i}} = new GitSCMSource(
+"{{ $v.Name }}",
+"{{ $v.Url }}",
+{{- if $v.CredentialId}}
+"{{ $v.CredentialId }}",
+{{- else}}
 "",
+{{- end}}
 "*",
 "",
 false
 )
 
-gitSCMSource{{.Id}}.setTraits(traits)
-SCMSourceRetriever sCMSourceRetriever{{.Id}} = new SCMSourceRetriever(gitSCMSource{{.Id}})
-LibraryConfiguration libraryConfiguration{{.Id}} = new LibraryConfiguration("{{.Name}}", sCMSourceRetriever{{.Id}})
-libraryConfiguration{{.Id}}.setDefaultVersion("{{ .Version }}")
-libraryConfiguration{{.Id}}.setImplicit(false)
-librariesArray.add(libraryConfiguration{{.Id}})
+gitSCMSource{{$i}}.setTraits(traits)
+SCMSourceRetriever sCMSourceRetriever{{$i}} = new SCMSourceRetriever(gitSCMSource{{$i}})
+LibraryConfiguration libraryConfiguration{{$i}} = new LibraryConfiguration("{{$v.Name}}", sCMSourceRetriever{{$i}})
+libraryConfiguration{{$i}}.setDefaultVersion("{{ $v.Tag }}")
+libraryConfiguration{{$i}}.setImplicit(false)
+librariesArray.add(libraryConfiguration{{$i}})
 {{ end }}
 globalLibraries.get().setLibraries(librariesArray)

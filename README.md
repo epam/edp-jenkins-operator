@@ -52,13 +52,66 @@ In order to install the EDP Jenkins Operator, follow the steps below:
      - jenkins.initImage                      # Init Docker image for Jenkins deployment. Default is "busybox";
      - jenkins.storage.class                  # Storageclass for Jenkins data volume. Default is "gp2";
      - jenkins.storage.size                   # Jenkins data volume capacity. Default is "10Gi";
-     - jenkins.libraryPipelinesRepo           # EDP shared-library-pipelines repository link;
-     - jenkins.libraryPipelinesVersion        # EDP shared-library-pipelines repository version;
-     - jenkins.libraryStagesRepo              # EDP shared-library-stages repository link;
-     - jenkins.libraryStagesVersion           # EDP shared-library-stages repository version;
+     - jenkins.sharedLibraries[i].name        # EDP shared-library name;
+     - jenkins.sharedLibraries[i].url         # EDP shared-library repository link;
+     - jenkins.sharedLibraries[i].tag         # EDP shared-library repository version;
+     - jenkins.sharedLibraries[i].secret      # Name of Kubernetes secret which contains credentials to private repository. Use only if repo is private.;
+     - jenkins.sharedLibraries[i].type        # Type of connection to repository (eg ssh, password and token);
      - jenkins.imagePullSecrets               # Secrets to pull from private Docker registry;
      - jenkins.basePath                       # Base path for Jenkins URL.
     ```
+
+_**NOTE:** You can add any number of shared libraries. For correct passing values you have to adjust it by index [i]:_
+
+   ```bash
+   --set jenkins.sharedLibraries[0].name="stub-name" --set jenkins.sharedLibraries[0].url="stub-url" --set jenkins.sharedLibraries[0].tag="stub-tag" --set jenkins.sharedLibraries[0].secret="stub-secret-name" --set jenkins.sharedLibraries[0].type="ssh"
+   ```
+
+_**NOTE:** Adding private shared-library requires pre-condition before deploy - created secret with credentials to private repository:_
+
+Shared library secrets examples:
+
+SSH secret:
+   ```
+   kind: Secret
+   apiVersion: v1
+   metadata:
+     name: <jenkins.sharedLibraries[i].secret>
+     namespace: <edp_cicd_project>
+   data:
+     id_rsa: private-key
+     id_rsa.pub: private-key
+     username: username
+   type: Opaque
+  ```
+
+Password secret:
+   ```
+   kind: Secret
+   apiVersion: v1
+   metadata:
+     name: <jenkins.sharedLibraries[i].secret>
+     namespace: <edp_cicd_project>
+   data:
+     first_name: first-name
+     last_name: last-name
+     password: password
+     username: username
+   type: Opaque
+  ```
+
+Token secret:
+   ```
+   kind: Secret
+   apiVersion: v1
+   metadata:
+     name: <jenkins.sharedLibraries[i].secret>
+     namespace: <edp_cicd_project>
+   data:
+     secret: token
+     username: username
+   type: Opaque
+  ```
 
 4. Install operator in the <edp_cicd_project> namespace with the helm command; find below the installation command example:
     ```bash
