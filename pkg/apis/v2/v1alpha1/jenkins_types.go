@@ -40,7 +40,6 @@ type JenkinsVolumes struct {
 
 type JenkinsSharedLibraries struct {
 	Name         string  `json:"name"`
-	Id           string  `json:"id"`
 	Url          string  `json:"url"`
 	Tag          string  `json:"tag"`
 	CredentialId *string `json:"secret,omitempty"`

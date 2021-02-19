@@ -4,12 +4,12 @@
 kind: JenkinsServiceAccount
 apiVersion: v2.edp.epam.com/v1alpha1
 metadata:
-  name: {{.secret}}
+  name: {{ toYaml .secret}}
 spec:
-  credentials: {{.secret}}
+  credentials: {{ toYaml .secret}}
   ownerName: ""
   type: "password"
 ---
-{{- end}}
   {{- end}}
-        {{end}}
+  {{- end}}
+{{end}}

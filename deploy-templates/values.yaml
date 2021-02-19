@@ -36,12 +36,9 @@ jenkins:
     annotations: {}
   sharedLibraries:
     - name: "edp-library-stages"
-      id: "Stages"
       url: "https://github.com/epam/edp-library-stages.git"
       tag: "master"
-      secret: "temp-secr"
     - name: "edp-library-pipelines"
-      id: "Pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
       tag: "master"
   imagePullSecrets:

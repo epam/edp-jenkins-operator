@@ -24,15 +24,14 @@ spec:
       capacity: {{ .Values.jenkins.storage.size }}
   sharedLibraries:
     {{- range .Values.jenkins.sharedLibraries}}
-    - name: {{.name}}
-      id: {{.id}}
-      url: {{.url}}
-      tag: {{.tag}}
+    - name: {{ toYaml .name}}
+      url: {{ toYaml .url}}
+      tag: {{ toYaml .tag}}
       {{- if .secret}}
-      secret: {{.secret}}
+      secret: {{ toYaml .secret}}
       {{- end}}
     {{- end}}
   keycloakSpec:
     enabled: true
     realm: "{{ .Values.global.edpName }}-edp"
-  {{end}}
+{{end}}
