@@ -29,6 +29,7 @@ spec:
       tag: {{ toYaml .tag}}
       {{- if .secret}}
       secret: {{ toYaml .secret}}
+      type: {{ toYaml .type}}
       {{- end}}
     {{- end}}
   keycloakSpec:

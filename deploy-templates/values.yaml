@@ -39,6 +39,7 @@ jenkins:
       url: "git@github.com:Tarianyk/shared-lib.git"
       tag: "main"
       secret: "shared-lib-secret"
+      type: "ssh"
     - name: "edp-library-pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
       tag: "master"
