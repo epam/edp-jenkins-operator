@@ -35,6 +35,11 @@ jenkins:
   ingress:
     annotations: {}
   sharedLibraries:
+    - name: "shared-lib"
+      url: "git@github.com:Tarianyk/shared-lib.git"
+      tag: "main"
+      secret: "shared-lib-secret"
+      type: "ssh"
     - name: "edp-library-stages"
       url: "https://github.com/epam/edp-library-stages.git"
       tag: "master"
