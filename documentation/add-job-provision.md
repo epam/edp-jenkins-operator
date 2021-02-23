@@ -22,7 +22,7 @@ def buildTool = "${BUILD_TOOL}"
 def goBuildStage = buildTool.toString() == "go" ? ',{"name": "build"}' : ',{"name": "compile"}'
 
 stages['Code-review-application'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + goBuildStage +
- ',{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}]]'
+ ',{"name": "tests"},[{"name": "sonar"},{"name": "dockerfile-lint"},{"name": "helm-lint"}]]'
 stages['Code-review-library'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
