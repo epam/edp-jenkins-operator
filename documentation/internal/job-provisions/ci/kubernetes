@@ -63,7 +63,7 @@ stages['Build-library-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
-stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"}]'
+stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"},{"name": "terraform-plan"},{"name": "terraform-apply"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build"},{"name": "build-image-kaniko"},' +
