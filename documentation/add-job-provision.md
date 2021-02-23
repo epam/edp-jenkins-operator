@@ -235,7 +235,9 @@ The job-provisions pipeline consists of the following parameters:
 * GIT_SERVER_CR_NAME - the name of the application Git server custom resource 
 * GIT_SERVER_CR_VERSION - the version of the application Git server custom resource
 * GIT_CREDENTIALS_ID - the secret name where Git server credentials are stored (default 'gerrit-ciuser-sshkey');
-* REPOSITORY_PATH - the full repository path.
+* REPOSITORY_PATH - the full repository path;
+* JIRA_INTEGRATION_ENABLED - the Jira integration is enabled or not;
+* DEFAULT_BRANCH - the default repository branch.
 
 _**NOTE**: The default template should be changed if there is another creation logic for the code-review, build and create-release pipelines.
 Furthermore, all pipeline types should have the necessary stages as well._
