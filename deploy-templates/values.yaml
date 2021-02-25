@@ -48,7 +48,7 @@ jenkins:
 #      secret: "stub-secret-name"
 #      type: "ssh" # can be "ssh", "password" or "token"
   imagePullSecrets:
-  #basePath: ""
+#  basePath: ""
 
   resources:
     limits:
