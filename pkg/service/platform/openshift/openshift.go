@@ -3,13 +3,13 @@ package openshift
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
+	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/model"
-	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
-	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
@@ -236,7 +236,7 @@ func (s OpenshiftService) CreateProject(name string) error {
 	_, err := s.projectClient.ProjectRequests().Create(
 		&projectV1.ProjectRequest{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:            name,
+				Name: name,
 			},
 			Description: "deploy project for stage",
 		},

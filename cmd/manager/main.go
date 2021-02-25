@@ -7,8 +7,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 

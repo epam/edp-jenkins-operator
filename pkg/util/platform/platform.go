@@ -3,10 +3,10 @@ package platform
 import (
 	"context"
 	"fmt"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"

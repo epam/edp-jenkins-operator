@@ -66,6 +66,10 @@ github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8
 github.com/emicklei/go-restful v2.9.6+incompatible h1:tfrHha8zJ01ywiOEC1miGY8st1/igzWB8OmvPgoYX7w=
 github.com/emicklei/go-restful v2.9.6+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emirpasic/gods v1.9.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
+github.com/epam/edp-jenkins-operator/v2 v2.1.0-32/go.mod h1:yVeuimCbYOgqjwMiqc1piFj3HohgfcYMjE4fWl2lPVw=
+github.com/epam/edp-jenkins-operator/v2 v2.1.0-47/go.mod h1:n5IZrwC++e8lEAxac12vei/DJCSLGGV9Na/io9wmhWs=
+github.com/epam/edp-jenkins-operator/v2 v2.1.0-61/go.mod h1:n5IZrwC++e8lEAxac12vei/DJCSLGGV9Na/io9wmhWs=
+github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20200416062406-16c330e09a19/go.mod h1:lhEvImddh3dQ60upbreE1/7GZUoe5pkFRQuxDs3vZFA=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50 h1:2a+EYbwYjhwJa0MAd4lsq1/LmTAqPp8/G9yAeheYPuQ=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50/go.mod h1:ygALtMzvxjLfbXLfGqZ+eGjsARgBdyf6IvoTl5NF5Kk=
 github.com/epmd-edp/codebase-operator/v2 v2.3.0-88 h1:Ssj1tSYMtItlkLfVIGRaN4+c3a3V5sf4glM2zmb8eLk=

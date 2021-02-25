@@ -2,12 +2,12 @@ package chain
 
 import (
 	"fmt"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
+	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/util/consts"
-	plutil "github.com/epmd-edp/jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	rbacV1 "k8s.io/api/rbac/v1"
 	k8sError "k8s.io/apimachinery/pkg/api/errors"
@@ -48,25 +48,25 @@ func (h PutRoleBinding) tryToCreateRoleBinding(jj *v1alpha1.JenkinsJob) error {
 	if err := h.createAdminRoleBinding(en, pn, jj.Namespace); err != nil {
 		return errors.Wrap(err, "an error has occurred while creating admin role binging")
 	}
-	log.Info("admin role binding has been created", "roleBindingName", en + "-admin")
+	log.Info("admin role binding has been created", "roleBindingName", en+"-admin")
 	if err := h.createViewRoleBinding(en, pn); err != nil {
 		return errors.Wrap(err, "an error has occurred while creating view role binging")
 	}
-	log.Info("view role binding has been created", "roleBindingName", en + "-view")
+	log.Info("view role binding has been created", "roleBindingName", en+"-view")
 	return nil
 }
 
 func (h PutRoleBinding) createAdminRoleBinding(edpName, projectName, namespace string) error {
-	rb, err := h.ps.GetRoleBinding(edpName + "-admin", projectName)
+	rb, err := h.ps.GetRoleBinding(edpName+"-admin", projectName)
 	if err != nil {
 		if k8sError.IsNotFound(err) == true {
-			log.V(2).Info("admin RoleBinding not found, it will be created", "roleBindingName", edpName + "-admin")
+			log.V(2).Info("admin RoleBinding not found, it will be created", "roleBindingName", edpName+"-admin")
 		} else {
 			return errors.Wrapf(err, "an error has been occurred while getting admin RoleBinding")
 		}
 	}
 	if rb != nil {
-		log.V(2).Info("admin RoleBinding already exist, its creation will be skipped", "roleBindingName", edpName + "-admin")
+		log.V(2).Info("admin RoleBinding already exist, its creation will be skipped", "roleBindingName", edpName+"-admin")
 		return nil
 	}
 	return h.ps.CreateRoleBinding(
@@ -83,16 +83,16 @@ func (h PutRoleBinding) createAdminRoleBinding(edpName, projectName, namespace s
 }
 
 func (h PutRoleBinding) createViewRoleBinding(edpName, projectName string) error {
-	rb, err := h.ps.GetRoleBinding(edpName + "-view", projectName)
+	rb, err := h.ps.GetRoleBinding(edpName+"-view", projectName)
 	if err != nil {
 		if k8sError.IsNotFound(err) == true {
-			log.V(2).Info("view RoleBinding not found, it will be created", "roleBindingName", edpName + "-view")
+			log.V(2).Info("view RoleBinding not found, it will be created", "roleBindingName", edpName+"-view")
 		} else {
 			return errors.Wrapf(err, "an error has been occurred while getting view RoleBinding")
 		}
 	}
 	if rb != nil {
-		log.V(2).Info("view RoleBinding already exist, its creation will be skipped", "roleBindingName", edpName + "-view")
+		log.V(2).Info("view RoleBinding already exist, its creation will be skipped", "roleBindingName", edpName+"-view")
 		return nil
 	}
 	return h.ps.CreateRoleBinding(
@@ -104,4 +104,3 @@ func (h PutRoleBinding) createViewRoleBinding(edpName, projectName string) error
 		},
 	)
 }
-

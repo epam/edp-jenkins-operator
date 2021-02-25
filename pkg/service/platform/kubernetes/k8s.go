@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsScriptV1Client "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript/client"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
+	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	edpCompApi "github.com/epmd-edp/edp-component-operator/pkg/apis/v1/v1alpha1"
 	edpCompClient "github.com/epmd-edp/edp-component-operator/pkg/client"
 	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsScriptV1Client "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsscript/client"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/model"
-	jenkinsDefaultSpec "github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
-	platformHelper "github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -501,7 +501,7 @@ func (s K8SService) CreateProject(name string) error {
 	_, err := s.coreClient.Namespaces().Create(
 		&coreV1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:            name,
+				Name: name,
 			},
 		},
 	)

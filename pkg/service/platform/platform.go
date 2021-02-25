@@ -1,10 +1,10 @@
 package platform
 
 import (
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
 	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/kubernetes"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform/openshift"
 	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"

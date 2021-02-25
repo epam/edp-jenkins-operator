@@ -1,7 +1,7 @@
 package client
 
 import (
-	jenkinsV1api "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsV1api "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

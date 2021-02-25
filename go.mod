@@ -1,4 +1,4 @@
-module github.com/epmd-edp/jenkins-operator/v2
+module github.com/epam/edp-jenkins-operator/v2
 
 go 1.14
 

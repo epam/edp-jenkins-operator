@@ -3,8 +3,8 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pkg/errors"
 	authV1Api "k8s.io/api/rbac/v1"

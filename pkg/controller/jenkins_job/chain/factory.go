@@ -1,11 +1,11 @@
 package chain
 
 import (
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
-	jobhandler "github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"

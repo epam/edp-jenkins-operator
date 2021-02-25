@@ -3,15 +3,15 @@ package jenkins
 import (
 	"context"
 	"fmt"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
-	v2v1alpha1 "github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	errorsf "github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/api/errors"

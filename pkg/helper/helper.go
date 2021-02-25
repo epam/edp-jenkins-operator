@@ -2,11 +2,10 @@ package helper
 
 import (
 	"fmt"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/service/jenkins/spec"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	"os"
 	"path/filepath"
 )
-
 
 func GetExecutableFilePath() (string, error) {
 	executableFilePath, err := os.Executable()
@@ -23,7 +22,6 @@ func FileExists(filename string) bool {
 	}
 	return !info.IsDir()
 }
-
 
 func GenerateAnnotationKey(entitySuffix string) string {
 	key := fmt.Sprintf("%v/%v", spec.EdpAnnotationsPrefix, entitySuffix)

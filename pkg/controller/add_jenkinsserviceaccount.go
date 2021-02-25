@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
 )
 
 func init() {

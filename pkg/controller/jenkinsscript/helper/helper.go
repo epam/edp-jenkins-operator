@@ -2,7 +2,7 @@ package helper
 
 import (
 	"context"
-	"github.com/epmd-edp/jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/pkg/errors"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +13,6 @@ import (
 )
 
 const JenkinsDefaultScriptConfigMapKey = "context"
-
 
 //TODO(Serhii_Shydlovskyi): Remove this, after refactoring in other operators.
 type K8sClient struct {
