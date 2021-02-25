@@ -1,0 +1,30 @@
+{{ if eq .Values.global.platform "kubernetes" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - adminconsoles
+  - cdpipelines
+  - codebasebranches
+  - codebaseimagestreams
+  - codebases
+  - edpcomponents
+  - gitservers
+  - jenkins
+  - jenkinses
+  - keycloakrealms
+  - stages
+  - jirafixversions
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+{{ end}}

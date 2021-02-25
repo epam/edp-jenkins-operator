@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-data
+  labels:
+    app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.jenkins.storage.size }}
+  storageClassName: {{ .Values.jenkins.storage.class }}
+  volumeMode: Filesystem

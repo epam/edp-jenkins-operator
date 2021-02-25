@@ -1,0 +1,22 @@
+{{ if eq .Values.global.platform "kubernetes" }}
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  {{- with .Values.jenkins.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ include "jenkins-operator.jenkinsBaseUrl" . }}
+      http:
+        paths:
+          - path: {{ include "jenkins-operator.jenkinsBasePath" . }}
+            backend:
+              serviceName: jenkins
+              servicePort: 8080
+{{ end }}

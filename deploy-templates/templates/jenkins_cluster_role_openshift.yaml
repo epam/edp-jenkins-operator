@@ -1,0 +1,24 @@
+{{ if eq .Values.global.platform "openshift" }}
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.global.edpName }}-jenkins
+rules:
+- apiGroups:
+    - "*"
+  resources:
+    - securitycontextconstraints
+  verbs:
+    - get
+    - list
+    - update
+- apiGroups:
+    - ""
+    - "project.openshift.io"
+  resources:
+    - projectrequests
+  verbs:
+    - create
+{{ end }}

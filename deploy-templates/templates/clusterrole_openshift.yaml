@@ -1,0 +1,86 @@
+{{ if eq .Values.global.platform "openshift" }}
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - '*'
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups:
+  - ""
+  - project.openshift.io
+  resources:
+  - projectrequests
+  verbs:
+  - create
+- apiGroups:
+    - '*'
+  resources:
+    - clusterrolebindings
+  verbs:
+    - get
+    - create
+    - delete
+- apiGroups:
+    - '*'
+  resources:
+    - keycloaks
+    - gerrits
+    - nexuses
+    - keycloaks/status
+    - keycloakclients
+    - keycloakclients/finalizers
+    - keycloakclients/status
+    - keycloakrealms
+    - keycloakrealms/status
+    - jenkins
+    - jenkins/finalizers
+    - jenkins/status
+    - jenkinses
+    - jenkinses/finalizers
+    - jenkinses/status
+    - jenkinsserviceaccounts
+    - jenkinsserviceaccounts/finalizers
+    - jenkinsserviceaccounts/status
+    - jenkinsscripts
+    - jenkinsscripts/finalizers
+    - jenkinsscripts/status
+    - jenkinsjobs
+    - jenkinsjobs/finalizers
+    - jenkinsjobs/status
+    - jenkinsfolders
+    - jenkinsfolders/finalizers
+    - jenkinsfolders/status
+    - edpcomponents
+    - stages
+    - stages/finalizers
+    - stages/status
+    - cdpipelines
+    - cdpipelines/finalizers
+    - cdpipelines/status
+    - projectrequests
+    - codebases
+    - codebases/finalizers
+    - codebasebranches
+    - codebaseimagestreams
+    - gitservers
+    - jirafixversions
+    - adminconsoles
+  verbs:
+    - '*'
+{{ end }}

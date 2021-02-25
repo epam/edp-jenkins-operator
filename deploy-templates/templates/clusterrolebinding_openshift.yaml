@@ -1,0 +1,17 @@
+{{ if eq .Values.global.platform "openshift" }}
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
+roleRef:
+  name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
+subjects:
+  - kind: ServiceAccount
+    name: "edp-{{ .Values.name }}"
+    namespace: {{ .Values.global.edpName }}
+userNames:
+  - system:serviceaccount:{{ .Values.global.edpName }}:edp-{{ .Values.name }}
+groupNames: []
+{{ end }}

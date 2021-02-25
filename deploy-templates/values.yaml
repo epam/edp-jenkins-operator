@@ -1,0 +1,58 @@
+global:
+  edpName: ""
+  platform: "openshift"
+  dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
+
+name: jenkins-operator
+annotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+image:
+  name: epamedp/jenkins-operator
+  # if not defined then .Chart.AppVersion is used
+  version:
+
+resources:
+  limits:
+    memory: 192Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+jenkins:
+  deploy: true
+  initImage: "busybox"
+  image: "epamedp/edp-jenkins"
+  version: "2.7.0-SNAPSHOT.2"
+  storage:
+    class: gp2
+    size: 10Gi
+  annotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ingress:
+    annotations: {}
+  sharedLibraries:
+    - name: "edp-library-stages"
+      url: "https://github.com/epam/edp-library-stages.git"
+      tag: "master"
+    - name: "edp-library-pipelines"
+      url: "https://github.com/epam/edp-library-pipelines.git"
+      tag: "master"
+# Example of using private repository:
+#    - name: "stub-name"
+#      url: "stub-url"
+#      tag: "stub-tag"
+#      secret: "stub-secret-name"
+#      type: "ssh" # can be "ssh", "password" or "token"
+  imagePullSecrets:
+# basePath: ""
+
+  resources:
+    limits:
+      memory: 3Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi

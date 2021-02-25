@@ -1,0 +1,130 @@
+{{if eq .Values.global.platform "kubernetes"}}
+{{if .Values.jenkins.deploy}}
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: jenkins
+    {{- include "jenkins-operator.labels" . | nindent 4 }}
+  {{- with .Values.jenkins.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      volumes:
+        - name: jenkins-jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins-data
+      initContainers:
+        - name: grant-permissions
+          image: {{.Values.jenkins.initImage}}
+          command:
+            - sh
+            - '-c'
+            - >-
+              JENKINS_HOME="/var/lib/jenkins"; mkdir -p $JENKINS_HOME/.ssh; if [
+              -d /tmp/ssh ];then chmod 777 -R $JENKINS_HOME/.ssh; cat
+              /tmp/ssh/id_rsa > $JENKINS_HOME/.ssh/id_rsa;chmod 400
+              $JENKINS_HOME/.ssh/id_rsa; if [ -e $JENKINS_HOME/.ssh/config ];
+              then chmod 400 -fR $JENKINS_HOME/.ssh/config; fi; fi
+          resources: {}
+          volumeMounts:
+            - name: jenkins-jenkins-data
+              mountPath: /var/lib/jenkins
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 998
+      containers:
+        - name: jenkins
+          image: {{.Values.jenkins.image}}:{{.Values.jenkins.version}}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: CI_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: OPENSHIFT_ENABLE_OAUTH
+              value: 'false'
+            - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+              value: 'true'
+            - name: KUBERNETES_MASTER
+              value: 'https://kubernetes.default:443'
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: 'true'
+            - name: JNLP_SERVICE_NAME
+              value: jenkins-jnlp
+            - name: JENKINS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-admin-password
+                  key: password
+            - name: JENKINS_UI_URL
+              value: https://{{ include "jenkins-operator.jenkinsBaseUrl" . }}
+            - name: JENKINS_OPTS
+              value: '--requestHeaderSize=32768'
+            - name: PLATFORM_TYPE
+              value: kubernetes
+          resources:
+{{ toYaml .Values.jenkins.resources | indent 12 }}
+      {{- with .Values.jenkins.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+          volumeMounts:
+            - name: jenkins-jenkins-data
+              mountPath: /var/lib/jenkins
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 998
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      serviceAccountName: jenkins
+      serviceAccount: jenkins
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 0
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+{{end}}
+{{end}}
