@@ -360,3 +360,14 @@ func (jc JenkinsClient) GetJobByName(jobName string) (*gojenkins.Job, error) {
 	log.V(2).Info("end getting jenkins job", "jobName", jobName)
 	return job, nil
 }
+
+func (jc JenkinsClient) TriggerJob(job string, parameters map[string]string) error {
+	vLog := log.WithValues("name", job)
+	vLog.Info("triggering jenkins job")
+	_, err := jc.GoJenkins.BuildJob(job, parameters)
+	if err != nil {
+		return err
+	}
+	vLog.Info("jenkins job has been triggered")
+	return nil
+}
