@@ -45,6 +45,7 @@ def gitCredentialsId = "${GIT_CREDENTIALS_ID}"
 def sourceType = "${SOURCE_TYPE}"
 def libraryURL = "${LIBRARY_URL}"
 def libraryBranch = "${LIBRARY_BRANCH}"
+def autodeploy = "${AUTODEPLOY}"
 def scriptPath = "Jenkinsfile"
 
 def stages = '[{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
@@ -55,10 +56,11 @@ if (codebaseFolder == null) {
 }
 
 createCdPipeline(pipelineName, stageName, stages, scriptPath, sourceType,
-        libraryURL, libraryBranch, gitCredentialsId, gitServerCrVersion)
+        libraryURL, libraryBranch, gitCredentialsId, gitServerCrVersion,
+        autodeploy)
 
 
-def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion) {
+def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion, autodeploy) {
     pipelineJob("${pipelineName}/${stageName}") {
         if (sourceType == "library") {
             definition {
@@ -86,6 +88,11 @@ def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType
         parameters {
             stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
             stringParam("STAGES", "${stages}", "Consequence of stages in JSON format to be run during execution")
+
+            if (autodeploy?.trim() && autodeploy.toBoolean()) {
+                stringParam("AUTODEPLOY", "${autodeploy}", "Is autodeploy enabled?")
+                stringParam("CODEBASE_VERSIONS", "${codebaseVersions}", "Codebase versions to deploy.")
+            }
         }
     }
 }'''
@@ -116,8 +123,9 @@ def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
                       new StringParameterDefinition("GIT_CREDENTIALS_ID", ""),
                       new StringParameterDefinition("SOURCE_TYPE", ""),
                       new StringParameterDefinition("LIBRARY_BRANCH", ""),
-                      new StringParameterDefinition("LIBRARY_URL", "")]
+                      new StringParameterDefinition("LIBRARY_URL", ""),
+                      new StringParameterDefinition("AUTODEPLOY", "")]
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
-project.setConcurrentBuild(true)
+project.setConcurrentBuild(false)
 project.save()
