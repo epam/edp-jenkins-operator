@@ -83,6 +83,9 @@ rules:
     - gitservers
     - jirafixversions
     - adminconsoles
+    - cdstagejenkinsdeployments
+    - cdstagejenkinsdeployments/finalizers
+    - cdstagejenkinsdeployments/status
   verbs:
     - '*'
 {{ end }}
