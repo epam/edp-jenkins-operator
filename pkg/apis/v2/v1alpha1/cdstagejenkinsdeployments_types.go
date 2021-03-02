@@ -7,6 +7,11 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+const (
+	failed  = "failed"
+	success = "success"
+)
+
 // CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment
 // +k8s:openapi-gen=true
 
@@ -29,7 +34,8 @@ type CDStageJenkinsDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Status string `json:"status,omitempty"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -43,6 +49,15 @@ type CDStageJenkinsDeployment struct {
 
 	Spec   CDStageJenkinsDeploymentSpec   `json:"spec,omitempty"`
 	Status CDStageJenkinsDeploymentStatus `json:"status,omitempty"`
+}
+
+func (in *CDStageJenkinsDeployment) SetFailedStatus(err error) {
+	in.Status.Status = failed
+	in.Status.Message = err.Error()
+}
+
+func (in *CDStageJenkinsDeployment) SetSuccessStatus() {
+	in.Status.Status = success
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

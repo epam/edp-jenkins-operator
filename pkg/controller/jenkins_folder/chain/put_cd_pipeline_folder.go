@@ -2,6 +2,7 @@ package chain
 
 import (
 	"context"
+	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
@@ -9,7 +10,6 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	pipe_v1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"

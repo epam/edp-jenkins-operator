@@ -17,11 +17,11 @@ import (
 
 	"reflect"
 
+	"github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	jf_handler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	"github.com/epmd-edp/codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

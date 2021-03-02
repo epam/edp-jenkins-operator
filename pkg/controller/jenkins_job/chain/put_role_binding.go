@@ -2,12 +2,12 @@ package chain
 
 import (
 	"fmt"
+	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/pkg/errors"
 	rbacV1 "k8s.io/api/rbac/v1"
 	k8sError "k8s.io/apimachinery/pkg/api/errors"

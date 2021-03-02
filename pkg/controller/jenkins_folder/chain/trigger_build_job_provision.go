@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"encoding/json"
+	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
@@ -10,7 +11,6 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	"github.com/epmd-edp/codebase-operator/v2/pkg/openshift"
 	"github.com/pkg/errors"
 	"time"
 )
