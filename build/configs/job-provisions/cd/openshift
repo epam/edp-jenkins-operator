@@ -85,6 +85,9 @@ def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType
                 }
             }
         }
+        properties {
+          disableConcurrentBuilds()
+        }
         parameters {
             stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
             stringParam("STAGES", "${stages}", "Consequence of stages in JSON format to be run during execution")
