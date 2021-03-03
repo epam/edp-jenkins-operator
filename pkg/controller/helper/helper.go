@@ -23,21 +23,21 @@ func NewTrue() *bool {
 	return &value
 }
 
-func generateCredentialsMap(rawData map[string][]byte) (map[string]string, error) {
+func generateCredentialsMap(rawData map[string][]byte, secretName string) (map[string]string, error) {
 	data := trimNewline(rawData)
 	if _, ok := data["id"]; ok {
 		return data, nil
-	} else if val, ok := data["username"]; ok {
-		data["id"] = val
+	} else if !ok {
+		data["id"] = secretName
 	} else {
 		return data, errors.New("Can't retrieve id from the secret, id or username should be specified mandatory")
 	}
 	return data, nil
 }
 
-func NewJenkinsUser(data map[string][]byte, credentialsType string) (JenkinsCredentials, error) {
+func NewJenkinsUser(data map[string][]byte, credentialsType, secretName string) (JenkinsCredentials, error) {
 	out := JenkinsCredentials{}
-	crMap, err := generateCredentialsMap(data)
+	crMap, err := generateCredentialsMap(data, secretName)
 	if err != nil {
 		return out, err
 	}

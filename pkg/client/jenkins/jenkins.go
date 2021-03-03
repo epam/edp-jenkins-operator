@@ -182,7 +182,7 @@ func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) erro
 		return errors.New(fmt.Sprintf("Couldn't get info from secret %v", instance.Spec.Credentials))
 	}
 
-	credentials, err := helper.NewJenkinsUser(secretData, instance.Spec.Type)
+	credentials, err := helper.NewJenkinsUser(secretData, instance.Spec.Type, instance.Spec.Credentials)
 	if err != nil {
 		return err
 	}
