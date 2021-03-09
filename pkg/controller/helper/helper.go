@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"regexp"
@@ -44,13 +43,13 @@ func NewJenkinsUser(data map[string][]byte, credentialsType, secretName string) 
 
 	switch credentialsType {
 	case SSHUserType:
-		params := createSshUserParams(crMap)
+		params := createSshUserParams(crMap, secretName)
 		return JenkinsCredentials{Credentials: params}, nil
 	case PasswordUserType:
-		params := createUserWithPassword(crMap)
+		params := createUserWithPassword(crMap, secretName)
 		return JenkinsCredentials{Credentials: params}, nil
 	case TokenUserType:
-		params := createStringCredentials(crMap)
+		params := createStringCredentials(crMap, secretName)
 		return JenkinsCredentials{Credentials: params}, nil
 	default:
 		return out, errors.New("Unknown credentials type!")
@@ -88,10 +87,13 @@ type PrivateKeySource struct {
 
 type StaplerClass string
 
-func createUserWithPassword(data map[string]string) JenkinsCredentialsParams {
+func createUserWithPassword(data map[string]string, secretName string) JenkinsCredentialsParams {
 	username := data["username"]
 	password := data["password"]
-	description := fmt.Sprintf("%s %s", data["first_name"], data["last_name"])
+	if data["id"] == "" {
+		data["id"] = secretName
+	}
+	description := data["id"]
 	return JenkinsCredentialsParams{
 		Id:           data["id"],
 		Scope:        GlobalScope,
@@ -102,10 +104,13 @@ func createUserWithPassword(data map[string]string) JenkinsCredentialsParams {
 	}
 }
 
-func createSshUserParams(data map[string]string) JenkinsCredentialsParams {
+func createSshUserParams(data map[string]string, secretName string) JenkinsCredentialsParams {
 	username := data["username"]
 	password := data["password"]
-	description := fmt.Sprintf("%s %s", data["first_name"], data["last_name"])
+	if data["id"] == "" {
+		data["id"] = secretName
+	}
+	description := data["id"]
 	return JenkinsCredentialsParams{
 		Id:          data["id"],
 		Scope:       GlobalScope,
@@ -120,9 +125,12 @@ func createSshUserParams(data map[string]string) JenkinsCredentialsParams {
 	}
 }
 
-func createStringCredentials(data map[string]string) JenkinsCredentialsParams {
+func createStringCredentials(data map[string]string, secretName string) JenkinsCredentialsParams {
 	secret := data["secret"]
-	description := data["username"]
+	if data["id"] == "" {
+		data["id"] = secretName
+	}
+	description := data["id"]
 	return JenkinsCredentialsParams{
 		Id:           data["id"],
 		Scope:        GlobalScope,
