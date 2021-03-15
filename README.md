@@ -56,7 +56,7 @@ In order to install the EDP Jenkins Operator, follow the steps below:
      - jenkins.sharedLibraries[i].url         # EDP shared-library repository link;
      - jenkins.sharedLibraries[i].tag         # EDP shared-library repository version;
      - jenkins.sharedLibraries[i].secret      # Name of Kubernetes secret which contains credentials to private repository. Use only if repo is private.;
-     - jenkins.sharedLibraries[i].type        # Type of connection to repository (eg ssh, password and token);
+     - jenkins.sharedLibraries[i].type        # Type of connection to repository (ssh or password);
      - jenkins.imagePullSecrets               # Secrets to pull from private Docker registry;
      - jenkins.basePath                       # Base path for Jenkins URL.
     ```
@@ -108,10 +108,11 @@ Token secret:
      name: <jenkins.sharedLibraries[i].secret>
      namespace: <edp_cicd_project>
    data:
-     secret: token
+     password: token
      username: username
    type: Opaque
   ```
+>_**NOTE**: Due to the unstable work of the Jenkins plugin with the "token" secret type, it is recommended to use the "password" secret type. Simply add the token into the Password field._
 
 4. Install operator in the <edp_cicd_project> namespace with the helm command; find below the installation command example:
     ```bash
