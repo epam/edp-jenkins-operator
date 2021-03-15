@@ -85,7 +85,7 @@ stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-versio
 
 stages['Create-release'] = '[{"name": "checkout"},{"name": "create-branch"},{"name": "trigger-job"}]'
 
-def defaultBuild = '[{"name": "checkout"}]'
+def defaultBuild = '[{"name": "checkout"}' + "${createJIMStage}" + ']'
 
 def codebaseName = "${NAME}"
 def gitServerCrName = "${GIT_SERVER_CR_NAME}"
