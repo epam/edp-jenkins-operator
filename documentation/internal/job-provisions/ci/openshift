@@ -44,10 +44,9 @@ def createJIMStage = jiraIntegrationEnabled ? ',{"name": "create-jira-issue-meta
 def buildTool = "${BUILD_TOOL}"
 def goBuildStage = buildTool.toString() == "go" ? ',{"name": "build"}' : ',{"name": "compile"}'
 def deploymentScript = "${DEPLOYMENT_SCRIPT}"
-def helmStage = deploymentScript.toString() == "helm-chart" ? ',{"name": "helm-verify"}' : ''
 
 stages['Code-review-application'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + goBuildStage +
-  ',{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"}]'
+  ',{"name": "tests"}' + ',{"name": "sonar"}]'
 stages['Code-review-library'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "compile"},{"name": "tests"},{"name": "sonar"}]'
 stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
@@ -66,20 +65,20 @@ stages['Build-library-python'] = '[{"name": "checkout"},{"name": "get-version"},
 stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"},{"name": "terraform-plan"},{"name": "terraform-apply"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
+        '{"name": "tests"}' + ',{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-npm'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
+        '{"name": "tests"}' + ',{"name": "sonar"},{"name": "build"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"},{"name": "build-image-from-dockerfile"},' +
+        '{"name": "tests"}' + ',{"name": "sonar"},{"name": "build-image-from-dockerfile"},' +
         '{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
-stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"},' +
+stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"}' + ',{"name": "sonar"},' +
                                     '{"name": "build"},{"name": "build-image-from-dockerfile"}' +
                                      "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-                                '{"name": "tests"}' + "${helmStage}" + ',{"name": "sonar"},' +
+                                '{"name": "tests"}' + ',{"name": "sonar"},' +
                                 '{"name": "build-image-from-dockerfile"},{"name": "push"}' + "${createJIMStage}" +
                                 ',{"name": "git-tag"}]'
 

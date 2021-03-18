@@ -66,18 +66,18 @@ stages['Build-library-python'] = '[{"name": "checkout"},{"name": "get-version"},
 stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "terraform-lint"},{"name": "terraform-plan"},{"name": "terraform-apply"}]'
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build"},{"name": "build-image-kaniko"},' +
+        '{"name": "tests"},[{"name": "sonar"}],{"name": "build"},{"name": "build-image-kaniko"},' +
         '{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-npm'] = stages['Build-application-maven']
 stages['Build-application-gradle'] = stages['Build-application-maven']
 stages['Build-application-dotnet'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-        '{"name": "tests"},[{"name": "sonar"},{"name": "helm-verify"}],{"name": "build-image-kaniko"},' +
+        '{"name": "tests"},[{"name": "sonar"}],{"name": "build-image-kaniko"},' +
         '{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-go'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "tests"},{"name": "sonar"},' +
-                                '{"name": "helm-verify"},{"name": "build"},{"name": "build-image-kaniko"}' +
+                                '{"name": "build"},{"name": "build-image-kaniko"}' +
                                 "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-application-python'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
-                                '{"name": "tests"},{"name": "helm-verify"},{"name": "sonar"},' +
+                                '{"name": "tests"},{"name": "sonar"},' +
                                 '{"name": "build-image-kaniko"},{"name": "push"}' + "${createJIMStage}" +
                                 ',{"name": "git-tag"}]'
 
