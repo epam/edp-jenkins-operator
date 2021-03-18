@@ -19,7 +19,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/edp-jenkins-helm-agent:1.0.4</image>
+      <image>epamedp/edp-jenkins-helm-agent:1.0.5</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
