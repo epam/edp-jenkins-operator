@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
+	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
+	edpCompClient "github.com/epam/edp-component-operator/pkg/client"
+	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsScriptV1Client "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	edpCompApi "github.com/epmd-edp/edp-component-operator/pkg/apis/v1/v1alpha1"
-	edpCompClient "github.com/epmd-edp/edp-component-operator/pkg/client"
-	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
-	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1 "k8s.io/api/core/v1"
@@ -30,13 +30,13 @@ import (
 	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 
-var log = logf.Log.WithName("platform")
+var log = ctrl.Log.WithName("platform")
 
 // K8SService struct for K8S platform service
 type K8SService struct {
@@ -95,7 +95,7 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 
 // GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
 func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(name, metav1.GetOptions{})
+	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		return "", "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
 	} else if err != nil {
@@ -114,7 +114,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return nil
 	}
 
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -135,7 +135,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return err
 	}
 
-	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(deployment.Name, types.StrategicMergePatchType, jsonDc)
+	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(context.TODO(), deployment.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 }
 
 func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -174,10 +174,10 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secretObject.Name)
 	}
 
-	secret, err := service.coreClient.Secrets(secretObject.Namespace).Get(secretObject.Name, metav1.GetOptions{})
+	secret, err := service.coreClient.Secrets(secretObject.Namespace).Get(context.TODO(), secretObject.Name, metav1.GetOptions{})
 
 	if err != nil && k8sErrors.IsNotFound(err) {
-		secret, err = service.coreClient.Secrets(secretObject.Namespace).Create(secretObject)
+		secret, err = service.coreClient.Secrets(secretObject.Namespace).Create(context.TODO(), secretObject, metav1.CreateOptions{})
 		if err != nil {
 			return errors.Wrapf(err, "Couldn't create Secret %v object", secret.Name)
 		}
@@ -191,7 +191,7 @@ func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, d
 
 // GetSecret return data field of Secret
 func (service K8SService) GetSecretData(namespace string, name string) (map[string][]byte, error) {
-	secret, err := service.coreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
+	secret, err := service.coreClient.Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		log.Info(fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
 		return nil, nil
@@ -219,10 +219,10 @@ func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapNa
 		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", configMapObject.Name)
 	}
 
-	cm, err := service.coreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
+	cm, err := service.coreClient.ConfigMaps(instance.Namespace).Get(context.TODO(), configMapObject.Name, metav1.GetOptions{})
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			cm, err = service.coreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
+			cm, err = service.coreClient.ConfigMaps(configMapObject.Namespace).Create(context.TODO(), configMapObject, metav1.CreateOptions{})
 			if err != nil {
 				return errors.Wrapf(err, "Couldn't create Config Map %v object", configMapObject.Name)
 			}
@@ -345,7 +345,7 @@ func (service K8SService) fillConfigMapFromDir(path string) (map[string]string, 
 
 // GetConfigMapData return data field of ConfigMap
 func (service K8SService) GetConfigMapData(namespace string, name string) (map[string]string, error) {
-	configMap, err := service.coreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
+	configMap, err := service.coreClient.ConfigMaps(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -404,10 +404,10 @@ func (service K8SService) CreateJenkinsScript(namespace string, configMap string
 		},
 	}
 
-	js, err := service.jenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
+	js, err := service.jenkinsScriptClient.Get(context.TODO(), configMap, namespace, metav1.GetOptions{})
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			js, err := service.jenkinsScriptClient.Create(jso, namespace)
+			js, err := service.jenkinsScriptClient.Create(context.TODO(), jso, namespace)
 			if err != nil {
 				return nil, err
 			}
@@ -498,12 +498,13 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 
 func (s K8SService) CreateProject(name string) error {
 	log.V(2).Info("start sending request to create namespace...", "name", name)
-	_, err := s.coreClient.Namespaces().Create(
+	_, err := s.coreClient.Namespaces().Create(context.TODO(),
 		&coreV1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	return err
 }
@@ -511,7 +512,7 @@ func (s K8SService) CreateProject(name string) error {
 // CreateRoleBinding creates RoleBinding
 func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error {
 	log.V(2).Info("start creating role binding", "edp name", edpName, "namespace", namespace, "role name", roleRef)
-	_, err := s.authClient.RoleBindings(namespace).Create(
+	_, err := s.authClient.RoleBindings(namespace).Create(context.TODO(),
 		&rbacV1.RoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: fmt.Sprintf("%s-%s", edpName, roleRef.Name),
@@ -519,11 +520,12 @@ func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef 
 			RoleRef:  roleRef,
 			Subjects: subjects,
 		},
+		metav1.CreateOptions{},
 	)
 	return err
 }
 
-func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
+func (s K8SService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
 			Name:     "deploy-helm",
@@ -531,7 +533,7 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 		},
 	}
 
-	for _, ps := range cr.Spec.QualityGates {
+	for _, ps := range stage.Spec.QualityGates {
 		i := model.PipelineStage{
 			Name:     ps.QualityGateType,
 			StepName: ps.StepName,
@@ -549,12 +551,15 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 }
 
 func (s K8SService) DeleteProject(name string) error {
-	return s.coreClient.Namespaces().Delete(name, metav1.NewDeleteOptions(0))
+	var grace int64 = 0
+	return s.coreClient.Namespaces().Delete(context.TODO(), name, metav1.DeleteOptions{
+		GracePeriodSeconds: &grace,
+	})
 }
 
 // GetRoleBinding get RoleBinding
 func (s K8SService) GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error) {
-	rb, err := s.authClient.RoleBindings(namespace).Get(roleBindingName, metav1.GetOptions{})
+	rb, err := s.authClient.RoleBindings(namespace).Get(context.TODO(), roleBindingName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

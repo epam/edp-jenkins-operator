@@ -2,89 +2,47 @@ package jenkins
 
 import (
 	"context"
+	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"strings"
 	"time"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 
 	"reflect"
 
-	"github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	jf_handler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_jenkins_folder")
-var SchemeGroupVersion = schema.GroupVersion{Group: "v2.edp.epam.com", Version: "v1alpha1"}
+const jenkinsFolderJenkinsFinalizerName = "jenkinsfolder.jenkins.finalizer.name"
 
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
-
-// Add creates a new Jenkins Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+type ReconcileJenkinsFolder struct {
+	Client   client.Client
+	Scheme   *runtime.Scheme
+	Platform platform.PlatformService
+	Log      logr.Logger
 }
 
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	scheme := mgr.GetScheme()
-	addKnownTypes(scheme)
-	client := mgr.GetClient()
-	pt := helper.GetPlatformTypeEnv()
-	ps, _ := platform.NewPlatformService(pt, scheme, &client)
-	return &ReconcileJenkinsFolder{
-		client:   client,
-		scheme:   scheme,
-		Platform: ps,
-	}
-}
-
-func addKnownTypes(scheme *runtime.Scheme) {
-	scheme.AddKnownTypes(SchemeGroupVersion,
-		&v1alpha1.Codebase{},
-		&v1alpha1.CodebaseList{},
-		&v1alpha1.GitServer{},
-		&v1alpha1.GitServerList{},
-	)
-	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New("jenkins-folder-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	pred := predicate.Funcs{
+func (r *ReconcileJenkinsFolder) SetupWithManager(mgr ctrl.Manager) error {
+	p := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			oo := e.ObjectOld.(*v2v1alpha1.JenkinsFolder)
-			no := e.ObjectNew.(*v2v1alpha1.JenkinsFolder)
+			oo := e.ObjectOld.(*jenkinsApi.JenkinsFolder)
+			no := e.ObjectNew.(*jenkinsApi.JenkinsFolder)
 			if !reflect.DeepEqual(oo.Spec, no.Spec) {
 				return true
 			}
@@ -95,35 +53,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		},
 	}
 
-	// Watch for changes to primary resource Jenkins
-	err = c.Watch(&source.Kind{Type: &v2v1alpha1.JenkinsFolder{}}, &handler.EnqueueRequestForObject{}, pred)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&jenkinsApi.JenkinsFolder{}, builder.WithPredicates(p)).
+		Complete(r)
 }
 
-// blank assignment to verify that ReconcileJenkins implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileJenkinsFolder{}
+func (r *ReconcileJenkinsFolder) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	log := r.Log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	log.V(2).Info("Reconciling JenkinsFolder has been started")
 
-const JenkinsFolderJenkinsFinalizerName = "jenkinsfolder.jenkins.finalizer.name"
-
-// ReconcileJenkinsFolder reconciles a Jenkins object
-type ReconcileJenkinsFolder struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
-	client   client.Client
-	scheme   *runtime.Scheme
-	Platform platform.PlatformService
-}
-
-func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.V(2).Info("Reconciling JenkinsFolder has been started")
-
-	i := &v2v1alpha1.JenkinsFolder{}
-	if err := r.client.Get(context.TODO(), request.NamespacedName, i); err != nil {
+	i := &jenkinsApi.JenkinsFolder{}
+	if err := r.Client.Get(ctx, request.NamespacedName, i); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
@@ -135,7 +75,7 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 		return reconcile.Result{}, errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
 
-	result, err := r.tryToDeleteJenkinsFolder(*jc, i)
+	result, err := r.tryToDeleteJenkinsFolder(ctx, *jc, i)
 	if err != nil || result != nil {
 		return *result, err
 	}
@@ -147,50 +87,50 @@ func (r *ReconcileJenkinsFolder) Reconcile(request reconcile.Request) (reconcile
 	if err := h.ServeRequest(i); err != nil {
 		return reconcile.Result{}, err
 	}
-	reqLogger.V(2).Info("Reconciling JenkinsFolder has been finished")
+	log.V(2).Info("Reconciling JenkinsFolder has been finished")
 	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileJenkinsFolder) createChain(flag bool) (jf_handler.JenkinsFolderHandler, error) {
 	if flag {
-		return chain.CreateTriggerBuildProvisionChain(r.scheme, &r.client)
+		return chain.CreateTriggerBuildProvisionChain(r.Scheme, &r.Client)
 	}
-	return chain.CreateCDPipelineFolderChain(r.scheme, &r.client)
+	return chain.CreateCDPipelineFolderChain(r.Scheme, &r.Client)
 }
 
-func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf v2v1alpha1.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
-	j, err := plutil.GetJenkinsInstanceOwner(r.client, jf.Name, jf.Namespace, jf.Spec.OwnerName, jf.GetOwnerReferences())
+func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf jenkinsApi.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
+	j, err := plutil.GetJenkinsInstanceOwner(r.Client, jf.Name, jf.Namespace, jf.Spec.OwnerName, jf.GetOwnerReferences())
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", jf.Name)
 	}
-	log.Info("Jenkins instance has been received", "name", j.Name)
+	r.Log.Info("Jenkins instance has been received", "name", j.Name)
 	return jenkinsClient.InitGoJenkinsClient(j, r.Platform)
 }
 
-func (r ReconcileJenkinsFolder) setStatus(jf *v2v1alpha1.JenkinsFolder, available bool, status string) error {
-	jf.Status = v2v1alpha1.JenkinsFolderStatus{
+func (r ReconcileJenkinsFolder) setStatus(ctx context.Context, jf *jenkinsApi.JenkinsFolder, available bool, status string) error {
+	jf.Status = jenkinsApi.JenkinsFolderStatus{
 		Available:                      available,
 		LastTimeUpdated:                time.Time{},
 		Status:                         status,
 		JenkinsJobProvisionBuildNumber: jf.Status.JenkinsJobProvisionBuildNumber,
 	}
-	return r.updateStatus(jf)
+	return r.updateStatus(ctx, jf)
 }
 
-func (r ReconcileJenkinsFolder) updateStatus(jf *v2v1alpha1.JenkinsFolder) error {
-	if err := r.client.Status().Update(context.TODO(), jf); err != nil {
-		if err := r.client.Update(context.TODO(), jf); err != nil {
+func (r ReconcileJenkinsFolder) updateStatus(ctx context.Context, jf *jenkinsApi.JenkinsFolder) error {
+	if err := r.Client.Status().Update(ctx, jf); err != nil {
+		if err := r.Client.Update(ctx, jf); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.JenkinsClient, jf *v2v1alpha1.JenkinsFolder) (*reconcile.Result, error) {
+func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(ctx context.Context, jc jenkinsClient.JenkinsClient, jf *jenkinsApi.JenkinsFolder) (*reconcile.Result, error) {
 	if jf.GetDeletionTimestamp().IsZero() {
-		if !finalizer.ContainsString(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName) {
-			jf.ObjectMeta.Finalizers = append(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName)
-			if err := r.client.Update(context.TODO(), jf); err != nil {
+		if !finalizer.ContainsString(jf.ObjectMeta.Finalizers, jenkinsFolderJenkinsFinalizerName) {
+			jf.ObjectMeta.Finalizers = append(jf.ObjectMeta.Finalizers, jenkinsFolderJenkinsFinalizerName)
+			if err := r.Client.Update(ctx, jf); err != nil {
 				return &reconcile.Result{}, err
 			}
 		}
@@ -202,40 +142,40 @@ func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(jc jenkinsClient.Jenkin
 		if err.Error() != "404" {
 			return &reconcile.Result{}, err
 		}
-		log.V(2).Info("404 code error when Jenkins job was deleted earlier during reconciliation", "jenkins folder", jf.Name)
+		r.Log.V(2).Info("404 code error when Jenkins job was deleted earlier during reconciliation", "jenkins folder", jf.Name)
 	}
 
-	jf.ObjectMeta.Finalizers = finalizer.RemoveString(jf.ObjectMeta.Finalizers, JenkinsFolderJenkinsFinalizerName)
-	if err := r.client.Update(context.TODO(), jf); err != nil {
+	jf.ObjectMeta.Finalizers = finalizer.RemoveString(jf.ObjectMeta.Finalizers, jenkinsFolderJenkinsFinalizerName)
+	if err := r.Client.Update(ctx, jf); err != nil {
 		return &reconcile.Result{}, err
 	}
 	return &reconcile.Result{}, nil
 }
 
-func (r ReconcileJenkinsFolder) getJenkinsFolderName(jf *v2v1alpha1.JenkinsFolder) string {
+func (r ReconcileJenkinsFolder) getJenkinsFolderName(jf *jenkinsApi.JenkinsFolder) string {
 	if jf.Spec.Job == nil {
 		return jf.Name
 	}
 	return strings.Replace(jf.Name, "-codebase", "", -1)
 }
 
-func (r *ReconcileJenkinsFolder) tryToSetJenkinsOwnerRef(jf *v2v1alpha1.JenkinsFolder) error {
+func (r *ReconcileJenkinsFolder) tryToSetJenkinsOwnerRef(ctx context.Context, jf *jenkinsApi.JenkinsFolder) error {
 	ow := plutil.GetOwnerReference(consts.JenkinsKind, jf.GetOwnerReferences())
 	if ow != nil {
-		log.V(2).Info("jenkins owner ref already exists", "jenkins folder", jf.Name)
+		r.Log.V(2).Info("jenkins owner ref already exists", "jenkins folder", jf.Name)
 		return nil
 	}
 
-	j, err := plutil.GetFirstJenkinsInstance(r.client, jf.Namespace)
+	j, err := plutil.GetFirstJenkinsInstance(r.Client, jf.Namespace)
 	if err != nil {
 		return err
 	}
 
-	if err := plutil.SetControllerReference(j, jf, r.scheme, false); err != nil {
+	if err := plutil.SetControllerReference(j, jf, r.Scheme, false); err != nil {
 		return errors.Wrap(err, "couldn't set jenkins owner ref")
 	}
 
-	if err := r.client.Update(context.TODO(), jf); err != nil {
+	if err := r.Client.Update(ctx, jf); err != nil {
 		return errors.Wrapf(err, "an error has been occurred while updating jenkins job %v", jf.Name)
 	}
 	return nil

@@ -11,21 +11,21 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Jenkins":                        schema_pkg_apis_v2_v1alpha1_Jenkins(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScript":                  schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus":            schema_pkg_apis_v2_v1alpha1_JenkinsScriptStatus(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccount":          schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec":      schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountSpec(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus":    schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountStatus(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus":                  schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolder":                  schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus":            schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJob":                     schema_pkg_apis_v2_v1alpha1_JenkinsJob(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec":                 schema_pkg_apis_v2_v1alpha1_JenkinsJobSpec(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsJobStatus(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeployment":       schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeployment(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeploymentSpec":   schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeploymentSpec(ref),
-		"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeploymentStatus": schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeploymentStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.Jenkins":                        schema_pkg_apis_v2_v1alpha1_Jenkins(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScript":                  schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus":            schema_pkg_apis_v2_v1alpha1_JenkinsScriptStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccount":          schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec":      schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountSpec(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus":    schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccountStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus":                  schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolder":                  schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus":            schema_pkg_apis_v2_v1alpha1_JenkinsFolderStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJob":                     schema_pkg_apis_v2_v1alpha1_JenkinsJob(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec":                 schema_pkg_apis_v2_v1alpha1_JenkinsJobSpec(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus":               schema_pkg_apis_v2_v1alpha1_JenkinsJobStatus(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeployment":       schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeployment(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeploymentSpec":   schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeploymentSpec(ref),
+		"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.CDStageJenkinsDeploymentStatus": schema_pkg_apis_edp_v1alpha1_CDStageJenkinsDeploymentStatus(ref),
 	}
 }
 
@@ -56,19 +56,19 @@ func schema_pkg_apis_v2_v1alpha1_Jenkins(ref common.ReferenceCallback) common.Op
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsSpec", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -99,19 +99,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsScript(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptSpec", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsScriptStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -174,19 +174,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsServiceAccount(ref common.ReferenceCallb
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountSpec", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsServiceAccountStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -291,7 +291,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref common.ReferenceCallback) com
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Slave"),
+										Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.Slave"),
 									},
 								},
 							},
@@ -303,7 +303,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref common.ReferenceCallback) com
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision"),
+										Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision"),
 									},
 								},
 							},
@@ -313,7 +313,7 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsStatus(ref common.ReferenceCallback) com
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.Slave"},
+			"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JobProvision", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.Slave"},
 	}
 }
 
@@ -344,19 +344,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsFolder(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderSpec", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsFolderStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -418,19 +418,19 @@ func schema_pkg_apis_v2_v1alpha1_JenkinsJob(ref common.ReferenceCallback) common
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"),
+							Ref: ref("github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec", "github.com/epmd-edp/jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"},
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobSpec", "github.com/epam/edp-jenkins-operator/pkg/apis/v2/v1alpha1.JenkinsJobStatus"},
 	}
 }
 

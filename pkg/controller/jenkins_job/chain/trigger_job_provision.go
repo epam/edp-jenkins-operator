@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
@@ -13,13 +12,14 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
 type TriggerJobProvision struct {
-	next handler.JenkinsJobHandler
-	cs   openshift.ClientSet
-	ps   platform.PlatformService
+	next   handler.JenkinsJobHandler
+	client client.Client
+	ps     platform.PlatformService
 }
 
 func (h TriggerJobProvision) ServeRequest(jj *v1alpha1.JenkinsJob) error {
@@ -51,8 +51,8 @@ func (h TriggerJobProvision) setStatus(jj *v1alpha1.JenkinsJob, status string, r
 }
 
 func (h TriggerJobProvision) updateStatus(jf *v1alpha1.JenkinsJob) error {
-	if err := h.cs.Client.Status().Update(context.TODO(), jf); err != nil {
-		if err := h.cs.Client.Update(context.TODO(), jf); err != nil {
+	if err := h.client.Status().Update(context.TODO(), jf); err != nil {
+		if err := h.client.Update(context.TODO(), jf); err != nil {
 			return err
 		}
 	}
@@ -60,7 +60,7 @@ func (h TriggerJobProvision) updateStatus(jf *v1alpha1.JenkinsJob) error {
 }
 
 func (h TriggerJobProvision) initGoJenkinsClient(jj v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {
-	j, err := plutil.GetJenkinsInstanceOwner(h.cs.Client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
+	j, err := plutil.GetJenkinsInstanceOwner(h.client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", jj.Name)
 	}

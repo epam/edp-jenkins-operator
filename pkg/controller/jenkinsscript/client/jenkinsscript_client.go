@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	jenkinsV1api "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -34,38 +35,38 @@ func NewForConfig(config *rest.Config) (*EdpV1Client, error) {
 	return &EdpV1Client{crClient: crClient}, nil
 }
 
-func (c *EdpV1Client) Get(name string, namespace string, options metav1.GetOptions) (result *jenkinsV1api.JenkinsScript, err error) {
+func (c *EdpV1Client) Get(ctx context.Context, name string, namespace string, options metav1.GetOptions) (result *jenkinsV1api.JenkinsScript, err error) {
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Get().
 		Namespace(namespace).
 		Resource("jenkinsscripts").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Create takes the representation of a jenkinsscripts and creates it.  Returns the server's representation of the jenkinsscripts, and an error, if there is any.
-func (c *EdpV1Client) Create(jsa *jenkinsV1api.JenkinsScript, namespace string) (result *jenkinsV1api.JenkinsScript, err error) {
+func (c *EdpV1Client) Create(ctx context.Context, jsa *jenkinsV1api.JenkinsScript, namespace string) (result *jenkinsV1api.JenkinsScript, err error) {
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Post().
 		Namespace(namespace).
 		Resource("jenkinsscripts").
 		Body(jsa).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
-func (c *EdpV1Client) Update(jsa *jenkinsV1api.JenkinsScript) (result *jenkinsV1api.JenkinsScript, err error) {
+func (c *EdpV1Client) Update(ctx context.Context, jsa *jenkinsV1api.JenkinsScript) (result *jenkinsV1api.JenkinsScript, err error) {
 	result = &jenkinsV1api.JenkinsScript{}
 	err = c.crClient.Put().
 		Namespace(jsa.Namespace).
 		Resource("jenkinsscripts").
 		Name(jsa.Name).
 		Body(jsa).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
@@ -80,7 +81,7 @@ func createCrdClient(cfg *rest.Config) error {
 	config.GroupVersion = &SchemeGroupVersion
 	config.APIPath = "/apis"
 	config.ContentType = runtime.ContentTypeJSON
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: serializer.NewCodecFactory(scheme)}
+	config.NegotiatedSerializer = serializer.NewCodecFactory(scheme)
 
 	return nil
 }
