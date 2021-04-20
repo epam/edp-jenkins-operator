@@ -284,6 +284,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420121821-9e3b3e777189 h1:Sliu5UdrZCNwJH8cQaKDk+5NRguMhORPj48psWIYXFQ=
 github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420121821-9e3b3e777189/go.mod h1:PSFSu9hqKujiGQsMp2dSyStx5GL6E6Lorw3lk9VNWvo=
+github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420123336-01337085eb1c h1:XH7cgzzDyMewV70V3wELQ7EpwJySufUMYXLj3HNSjKU=
+github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420123336-01337085eb1c/go.mod h1:rCnpqSkpH6rvUalobQGOykyg+C8aRbF1vlrM/xf9mx8=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-88 h1:Ssj1tSYMtItlkLfVIGRaN4+c3a3V5sf4glM2zmb8eLk=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-88/go.mod h1:MqnZsWXSdziAmOYznnMW+C3M160So5AMuJoCSL84t8M=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20200514095748-92497054f7da h1:Xc380z6el5EJ7yfbYySIOajdzmqcHjUz+Yn82faub1o=
@@ -311,6 +313,7 @@ github.com/epam/edp-jenkins-operator/v2 v2.1.0-61/go.mod h1:n5IZrwC++e8lEAxac12v
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20200416062406-16c330e09a19/go.mod h1:lhEvImddh3dQ60upbreE1/7GZUoe5pkFRQuxDs3vZFA=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210225152826-bea603cbdb79/go.mod h1:Qot8on9AIxZHtWrcPeXK7ItXQ9AFO7zUghTVicsTNo4=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420115929-136974b231dc/go.mod h1:AGR93jquEvqp6iukdBAtGIWLWB0VbueeHt6g7eSxoC4=
+github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420123052-c87ca00c62d4/go.mod h1:UjAgmQv7g0q8LOI+HiMNTn00NJv0JW2U+WjG8CZBzKM=
 github.com/epam/edp-keycloak-operator v1.0.18-alpha-39/go.mod h1:n78SGdVQhCkr29STKtz2qKDnYBiWk4TUoGATKF6nOH8=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56 h1:xVXmJ2hXrjGX3R/kSIhEPBuefLaHeHIcrof1mKBDTkg=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56/go.mod h1:uXEmg98UyXkMVe9deHTkz0wF7fb47geazmAoiQAb/Zw=
