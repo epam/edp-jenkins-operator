@@ -302,6 +302,8 @@ github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420131411-dbb514cb011d
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420131738-685e2b4e0def/go.mod h1:edif/4FJioi9L2sod/ZX32XsoAxWR6EndX3amHKZGx0=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132318-496bccd39817 h1:aI0t5n2En67gqwShroEmpTnTWVX2EzQx6zHukmqqD1M=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132318-496bccd39817/go.mod h1:fvwn3ewURl1kV9ipzlC4G2nHWAnzIFROla6USJMfdYk=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132935-d94e26c595a4 h1:IKbtYoSYnSsSXm85/W1qEjMpfxPtiNXB4C4+QOiOMKc=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132935-d94e26c595a4/go.mod h1:6bhnuG7CHMvSxnHG9/gUTlCA/GsY/CIciBvsIvPAl3E=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0 h1:86HuNjzzQm4skH//J31a6J6GDLEwemAh7jU3Fvrsz0I=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
 github.com/epam/edp-component-operator v0.0.1-2/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
@@ -323,6 +325,7 @@ github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210225152826-bea603cbdb79
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420115929-136974b231dc/go.mod h1:AGR93jquEvqp6iukdBAtGIWLWB0VbueeHt6g7eSxoC4=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420123052-c87ca00c62d4/go.mod h1:UjAgmQv7g0q8LOI+HiMNTn00NJv0JW2U+WjG8CZBzKM=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420131617-d87232c5a586/go.mod h1:1ROiB86a86VgmUtARbJ4P74v598URraYjJjqpoF5DBU=
+github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420132755-4de3673f7668/go.mod h1:CZNS3IyxBT+/WhzfwtEWimn8SQ3QN9+K3h/XoLrm/94=
 github.com/epam/edp-keycloak-operator v1.0.18-alpha-39/go.mod h1:n78SGdVQhCkr29STKtz2qKDnYBiWk4TUoGATKF6nOH8=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56 h1:xVXmJ2hXrjGX3R/kSIhEPBuefLaHeHIcrof1mKBDTkg=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56/go.mod h1:uXEmg98UyXkMVe9deHTkz0wF7fb47geazmAoiQAb/Zw=
