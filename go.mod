@@ -10,8 +10,8 @@ replace (
 )
 
 require (
-	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20201217130859-a9d5aeca1889
-	github.com/epam/edp-codebase-operator/v2 v2.0.1
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420115140-ab0265198403
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420114958-d7f00cec6fa6
 	github.com/epam/edp-component-operator v0.1.1-0.20210413101042-1d8f823f27cc
 	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210415124706-890aad49919c
