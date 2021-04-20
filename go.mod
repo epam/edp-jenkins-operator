@@ -12,10 +12,10 @@ replace (
 require (
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
-	//github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420123336-01337085eb1c
-	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420131411-dbb514cb011d
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210420131932-c2003069fbbd
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132318-496bccd39817
 	github.com/epam/edp-component-operator v0.1.1-0.20210413101042-1d8f823f27cc
-	//github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210420124637-92031988a21e
+	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210420132608-44be98d61e11
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210419073220-4d718f550d64
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
