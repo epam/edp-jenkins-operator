@@ -4,38 +4,38 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	codebasev1alpha1 "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
+	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	pipev1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"text/template"
 )
 
 type PutJenkinsPipeline struct {
-	next jobhandler.JenkinsJobHandler
-	cs   openshift.ClientSet
-	ps   platform.PlatformService
+	next   jobhandler.JenkinsJobHandler
+	client client.Client
+	ps     platform.PlatformService
 }
 
 func (h PutJenkinsPipeline) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 	log.V(2).Info("start creating Jenkins CD Pipeline")
-	if err := setIntermediateStatus(h.cs.Client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
+	if err := setIntermediateStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
 		return err
 	}
 	if err := h.tryToCreateJob(jj); err != nil {
-		if err := setFailStatus(h.cs.Client, jj, v1alpha1.CreateJenkinsPipeline, err.Error()); err != nil {
+		if err := setFailStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline, err.Error()); err != nil {
 			return err
 		}
 		return err
 	}
-	if err := setFinishStatus(h.cs.Client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
+	if err := setFinishStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
 		return err
 	}
 	log.V(2).Info("end creating Jenkins CD Pipeline")
@@ -48,7 +48,7 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 		return err
 	}
 
-	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
+	s, err := plutil.GetStageInstanceOwner(h.client, *jj)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *str
 }
 
 func (h PutJenkinsPipeline) initGoJenkinsClient(jj *v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {
-	j, err := plutil.GetJenkinsInstanceOwner(h.cs.Client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
+	j, err := plutil.GetJenkinsInstanceOwner(h.client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", jj.Name)
 	}
@@ -98,7 +98,7 @@ func (h PutJenkinsPipeline) initGoJenkinsClient(jj *v1alpha1.JenkinsJob) (*jenki
 	return jenkinsClient.InitGoJenkinsClient(j, h.ps)
 }
 
-func (h PutJenkinsPipeline) createStageConfig(s *pipev1alpha1.Stage, ps, conf string) (*string, error) {
+func (h PutJenkinsPipeline) createStageConfig(s *cdPipeApi.Stage, ps, conf string) (*string, error) {
 	pipeSrc := map[string]interface{}{
 		"type":    "default",
 		"library": map[string]string{},
@@ -127,7 +127,7 @@ func (h PutJenkinsPipeline) createStageConfig(s *pipev1alpha1.Stage, ps, conf st
 	return &pipeConf, nil
 }
 
-func (h PutJenkinsPipeline) setPipeSrcParams(stage *pipev1alpha1.Stage, pipeSrc map[string]interface{}) {
+func (h PutJenkinsPipeline) setPipeSrcParams(stage *cdPipeApi.Stage, pipeSrc map[string]interface{}) {
 	cb, err := h.getLibraryParams(stage.Spec.Source.Library.Name, stage.Namespace)
 	if err != nil {
 		log.Error(err, "couldn't retrieve parameters for pipeline's library, default source type will be used",
@@ -148,25 +148,25 @@ func (h PutJenkinsPipeline) setPipeSrcParams(stage *pipev1alpha1.Stage, pipeSrc 
 	}
 }
 
-func (h PutJenkinsPipeline) getLibraryParams(name, ns string) (*codebasev1alpha1.Codebase, error) {
+func (h PutJenkinsPipeline) getLibraryParams(name, ns string) (*codebaseApi.Codebase, error) {
 	nsn := types.NamespacedName{
 		Namespace: ns,
 		Name:      name,
 	}
-	i := &codebasev1alpha1.Codebase{}
-	if err := h.cs.Client.Get(context.TODO(), nsn, i); err != nil {
+	i := &codebaseApi.Codebase{}
+	if err := h.client.Get(context.TODO(), nsn, i); err != nil {
 		return nil, err
 	}
 	return i, nil
 }
 
-func (h PutJenkinsPipeline) getGitServerParams(name string, ns string) (*codebasev1alpha1.GitServer, error) {
+func (h PutJenkinsPipeline) getGitServerParams(name string, ns string) (*codebaseApi.GitServer, error) {
 	nsn := types.NamespacedName{
 		Namespace: ns,
 		Name:      name,
 	}
-	i := &codebasev1alpha1.GitServer{}
-	if err := h.cs.Client.Get(context.TODO(), nsn, i); err != nil {
+	i := &codebaseApi.GitServer{}
+	if err := h.client.Get(context.TODO(), nsn, i); err != nil {
 		return nil, err
 	}
 	return i, nil

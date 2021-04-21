@@ -4,19 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
+	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
+	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsScriptV1Client "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript/client"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	edpCompApi "github.com/epmd-edp/edp-component-operator/pkg/apis/v1/v1alpha1"
-	edpCompClient "github.com/epmd-edp/edp-component-operator/pkg/client"
-	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
-	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	coreV1 "k8s.io/api/core/v1"
 	coreV1Api "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -24,54 +21,38 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	appsV1Client "k8s.io/client-go/kubernetes/typed/apps/v1"
-	coreV1Client "k8s.io/client-go/kubernetes/typed/core/v1"
 	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 )
 
-var log = logf.Log.WithName("platform")
+var log = ctrl.Log.WithName("platform")
 
 // K8SService struct for K8S platform service
 type K8SService struct {
-	Scheme                *runtime.Scheme
-	coreClient            coreV1Client.CoreV1Client
-	jenkinsScriptClient   jenkinsScriptV1Client.EdpV1Client
-	k8sUnstructuredClient client.Client
-	authClient            authV1Client.RbacV1Client
-	extensionsV1Client    extensionsV1Client.ExtensionsV1beta1Client
-	appsV1Client          appsV1Client.AppsV1Client
-	edpCompClient         edpCompClient.EDPComponentV1Client
+	Scheme             *runtime.Scheme
+	client             client.Client
+	authClient         authV1Client.RbacV1Client
+	extensionsV1Client extensionsV1Client.ExtensionsV1beta1Client
+	appsV1Client       appsV1Client.AppsV1Client
 }
 
 // Init initializes K8SService
 func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
-	coreClient, err := coreV1Client.NewForConfig(config)
-	if err != nil {
-		return errors.Wrap(err, "Failed to init core client for K8S")
-	}
-
-	jenkinsScriptClient, err := jenkinsScriptV1Client.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
 	authClient, err := authV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init auth V1 client for K8S")
 	}
 
-	service.jenkinsScriptClient = *jenkinsScriptClient
-	service.coreClient = *coreClient
-	service.k8sUnstructuredClient = *k8sClient
 	service.Scheme = Scheme
 	service.authClient = *authClient
+	service.client = *k8sClient
 
 	extensionsClient, err := extensionsV1Client.NewForConfig(config)
 	if err != nil {
@@ -85,17 +66,12 @@ func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8s
 	}
 	service.appsV1Client = *appsClient
 
-	compCl, err := edpCompClient.NewForConfig(config)
-	if err != nil {
-		return errors.Wrap(err, "failed to init edp component client")
-	}
-	service.edpCompClient = *compCl
 	return nil
 }
 
 // GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
 func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(name, metav1.GetOptions{})
+	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		return "", "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
 	} else if err != nil {
@@ -114,7 +90,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return nil
 	}
 
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -135,7 +111,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return err
 	}
 
-	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(deployment.Name, types.StrategicMergePatchType, jsonDc)
+	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(context.TODO(), deployment.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -143,7 +119,7 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 }
 
 func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -156,80 +132,108 @@ func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, er
 }
 
 //CreateSecret creates secret object in K8s cluster
-func (service K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error {
-	reqLogger := log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name)
-	labels := platformHelper.GenerateLabels(instance.Name)
-
-	secretObject := &coreV1Api.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: instance.Namespace,
-			Labels:    labels,
-		},
-		Data: data,
-		Type: "Opaque",
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, secretObject, service.Scheme); err != nil {
-		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secretObject.Name)
-	}
-
-	secret, err := service.coreClient.Secrets(secretObject.Namespace).Get(secretObject.Name, metav1.GetOptions{})
-
-	if err != nil && k8sErrors.IsNotFound(err) {
-		secret, err = service.coreClient.Secrets(secretObject.Namespace).Create(secretObject)
-		if err != nil {
-			return errors.Wrapf(err, "Couldn't create Secret %v object", secret.Name)
+func (s K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error {
+	_, err := s.getSecret(name, instance.Namespace)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			secret := &coreV1Api.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: instance.Namespace,
+					Labels:    platformHelper.GenerateLabels(instance.Name),
+				},
+				Data: data,
+				Type: "Opaque",
+			}
+			return s.createSecret(instance, secret)
 		}
-		reqLogger.Info(fmt.Sprintf("Secret %v has been created", secret.Name))
-	} else if err != nil {
-		return errors.Wrapf(err, "Couldn't get Secret %v object", secretObject.Name)
+		return errors.Wrapf(err, "Couldn't get Secret %v object", name)
+	}
+	return nil
+}
+
+func (s K8SService) getSecret(name, namespace string) (*coreV1Api.Secret, error) {
+	secret := &coreV1Api.Secret{}
+	err := s.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}, secret)
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
+}
+
+func (s K8SService) createSecret(jenkins v1alpha1.Jenkins, secret *coreV1Api.Secret) error {
+	if err := controllerutil.SetControllerReference(&jenkins, secret, s.Scheme); err != nil {
+		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secret.Name)
 	}
 
+	if err := s.client.Create(context.TODO(), secret); err != nil {
+		return errors.Wrapf(err, "Couldn't create Secret %v object", secret.Name)
+	}
+	log.Info(fmt.Sprintf("Secret %v has been created", secret.Name))
 	return nil
 }
 
 // GetSecret return data field of Secret
-func (service K8SService) GetSecretData(namespace string, name string) (map[string][]byte, error) {
-	secret, err := service.coreClient.Secrets(namespace).Get(name, metav1.GetOptions{})
-	if err != nil && k8sErrors.IsNotFound(err) {
-		log.Info(fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
-		return nil, nil
-	} else if err != nil {
+func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, error) {
+	secret, err := s.getSecret(name, namespace)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			log.Info(fmt.Sprintf("Secret %v in namespace %v not found", name, namespace))
+			return nil, nil
+		}
 		return nil, err
 	}
 	return secret.Data, nil
 }
 
-func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error {
-	resultLabels := platformHelper.GenerateLabels(instance.Name)
-	if len(labels) != 0 {
-		resultLabels = labels[0]
-	}
-	configMapObject := &coreV1Api.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      configMapName,
-			Namespace: instance.Namespace,
-			Labels:    resultLabels,
-		},
-		Data: configMapData,
-	}
-
-	if err := controllerutil.SetControllerReference(&instance, configMapObject, service.Scheme); err != nil {
-		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", configMapObject.Name)
-	}
-
-	cm, err := service.coreClient.ConfigMaps(instance.Namespace).Get(configMapObject.Name, metav1.GetOptions{})
+func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string, labels ...map[string]string) error {
+	_, err := service.getConfigMap(name, instance.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			cm, err = service.coreClient.ConfigMaps(configMapObject.Namespace).Create(configMapObject)
-			if err != nil {
-				return errors.Wrapf(err, "Couldn't create Config Map %v object", configMapObject.Name)
+			resultLabels := platformHelper.GenerateLabels(instance.Name)
+			if len(labels) != 0 {
+				resultLabels = labels[0]
 			}
-			log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, configMapObject.Name))
+			cm := &coreV1Api.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: instance.Namespace,
+					Labels:    resultLabels,
+				},
+				Data: data,
+			}
+
+			return service.createConfigMap(instance, cm)
 		}
-		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMapObject.Name)
+		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
 	}
+	return nil
+}
+
+func (s K8SService) getConfigMap(name, namespace string) (*coreV1Api.ConfigMap, error) {
+	cm := &coreV1Api.ConfigMap{}
+	err := s.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cm, nil
+}
+
+func (s K8SService) createConfigMap(jenkins v1alpha1.Jenkins, cm *coreV1Api.ConfigMap) error {
+	if err := controllerutil.SetControllerReference(&jenkins, cm, s.Scheme); err != nil {
+		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", cm.Name)
+	}
+
+	if err := s.client.Create(context.TODO(), cm); err != nil {
+		return errors.Wrapf(err, "Couldn't create Config Map %v object", cm.Name)
+	}
+	log.Info(fmt.Sprintf("ConfigMap %s/%s has been created", cm.Namespace, cm.Name))
 	return nil
 }
 
@@ -256,24 +260,35 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 	return nil
 }
 
-func (service K8SService) CreateEDPComponentIfNotExist(jen v1alpha1.Jenkins, url string, icon string) error {
-	comp, err := service.edpCompClient.
-		EDPComponents(jen.Namespace).
-		Get(jen.Name, metav1.GetOptions{})
-	if err == nil {
-		log.V(1).Info("edp component already exists", "name", comp.Name)
-		return nil
+func (s K8SService) CreateEDPComponentIfNotExist(jen v1alpha1.Jenkins, url string, icon string) error {
+	c, err := s.getEDPComponent(jen.Name, jen.Namespace)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return s.createEDPComponent(jen, url, icon)
+		}
+		return errors.Wrapf(err, "failed to get edp component: %v", jen.Name)
 	}
-	if k8sErrors.IsNotFound(err) {
-		return service.createEDPComponent(jen, url, icon)
-	}
-	return errors.Wrapf(err, "failed to get edp component: %v", jen.Name)
+
+	log.V(1).Info("edp component already exists", "name", c.Name)
+	return nil
 }
 
-func (service K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, icon string) error {
-	obj := &edpCompApi.EDPComponent{
+func (s K8SService) getEDPComponent(name, namespace string) (*edpCompApi.EDPComponent, error) {
+	c := &edpCompApi.EDPComponent{}
+	err := s.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}, c)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+func (s K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, icon string) error {
+	c := &edpCompApi.EDPComponent{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: jen.Name,
+			Name:      jen.Name,
+			Namespace: jen.Namespace,
 		},
 		Spec: edpCompApi.EDPComponentSpec{
 			Type:    "jenkins",
@@ -282,13 +297,11 @@ func (service K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, i
 			Visible: true,
 		},
 	}
-	if err := controllerutil.SetControllerReference(&jen, obj, service.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(&jen, c, s.Scheme); err != nil {
 		return err
 	}
-	_, err := service.edpCompClient.
-		EDPComponents(jen.Namespace).
-		Create(obj)
-	return err
+
+	return s.client.Create(context.TODO(), c)
 }
 
 func (service K8SService) fillConfigMapData(path string, configMapKey *string) (map[string]string, error) {
@@ -344,16 +357,15 @@ func (service K8SService) fillConfigMapFromDir(path string) (map[string]string, 
 }
 
 // GetConfigMapData return data field of ConfigMap
-func (service K8SService) GetConfigMapData(namespace string, name string) (map[string]string, error) {
-	configMap, err := service.coreClient.ConfigMaps(namespace).Get(name, metav1.GetOptions{})
-
+func (s K8SService) GetConfigMapData(namespace, name string) (map[string]string, error) {
+	cm, err := s.getConfigMap(name, namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, errors.Wrapf(err, "Config map %v in namespace %v not found", name, namespace)
 		}
-		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", configMap.Name)
+		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
 	}
-	return configMap.Data, nil
+	return cm.Data, nil
 }
 
 func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
@@ -362,14 +374,15 @@ func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient)
 		Name:      kc.Name,
 	}
 
-	err := service.k8sUnstructuredClient.Get(context.TODO(), nsn, kc)
+	err := service.client.Get(context.TODO(), nsn, kc)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			err := service.k8sUnstructuredClient.Create(context.TODO(), kc)
+			err := service.client.Create(context.TODO(), kc)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
 			}
 			log.Info(fmt.Sprintf("Keycloak client %s/%s created", kc.Namespace, kc.Name))
+			return nil
 		}
 		return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
 	}
@@ -377,14 +390,14 @@ func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient)
 	return nil
 }
 
-func (service K8SService) GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error) {
+func (service K8SService) GetKeycloakClient(name, namespace string) (keycloakV1Api.KeycloakClient, error) {
 	out := keycloakV1Api.KeycloakClient{}
 	nsn := types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,
 	}
 
-	err := service.k8sUnstructuredClient.Get(context.TODO(), nsn, &out)
+	err := service.client.Get(context.TODO(), nsn, &out)
 	if err != nil {
 		return out, err
 	}
@@ -392,34 +405,39 @@ func (service K8SService) GetKeycloakClient(name string, namespace string) (keyc
 	return out, nil
 }
 
-func (service K8SService) CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error) {
-	jso := &v1alpha1.JenkinsScript{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      configMap,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.JenkinsScriptSpec{
-			SourceCmName: configMap,
-		},
-	}
-
-	js, err := service.jenkinsScriptClient.Get(configMap, namespace, metav1.GetOptions{})
+func (s K8SService) CreateJenkinsScript(namespace, name string) (*v1alpha1.JenkinsScript, error) {
+	js, err := s.getJenkinsScript(name, namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			js, err := service.jenkinsScriptClient.Create(jso, namespace)
-			if err != nil {
+			js := &v1alpha1.JenkinsScript{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace,
+				},
+				Spec: v1alpha1.JenkinsScriptSpec{
+					SourceCmName: name,
+				},
+			}
+			if err := s.client.Create(context.TODO(), js); err != nil {
 				return nil, err
 			}
-			// Success
 			return js, nil
 		}
-		// Error occurred
 		return nil, err
 	}
-	// Nothing to do
 	return js, nil
+}
 
+func (s K8SService) getJenkinsScript(name, namespace string) (*v1alpha1.JenkinsScript, error) {
+	js := &v1alpha1.JenkinsScript{}
+	err := s.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}, js)
+	if err != nil {
+		return nil, err
+	}
+	return js, nil
 }
 
 func selectContainer(containers []coreV1Api.Container, name string) (coreV1Api.Container, error) {
@@ -498,20 +516,17 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 
 func (s K8SService) CreateProject(name string) error {
 	log.V(2).Info("start sending request to create namespace...", "name", name)
-	_, err := s.coreClient.Namespaces().Create(
-		&coreV1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
+	return s.client.Create(context.TODO(), &coreV1Api.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
 		},
-	)
-	return err
+	})
 }
 
 // CreateRoleBinding creates RoleBinding
 func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error {
 	log.V(2).Info("start creating role binding", "edp name", edpName, "namespace", namespace, "role name", roleRef)
-	_, err := s.authClient.RoleBindings(namespace).Create(
+	_, err := s.authClient.RoleBindings(namespace).Create(context.TODO(),
 		&rbacV1.RoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: fmt.Sprintf("%s-%s", edpName, roleRef.Name),
@@ -519,11 +534,12 @@ func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef 
 			RoleRef:  roleRef,
 			Subjects: subjects,
 		},
+		metav1.CreateOptions{},
 	)
 	return err
 }
 
-func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
+func (s K8SService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
 			Name:     "deploy-helm",
@@ -531,7 +547,7 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 		},
 	}
 
-	for _, ps := range cr.Spec.QualityGates {
+	for _, ps := range stage.Spec.QualityGates {
 		i := model.PipelineStage{
 			Name:     ps.QualityGateType,
 			StepName: ps.StepName,
@@ -549,12 +565,17 @@ func (s K8SService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
 }
 
 func (s K8SService) DeleteProject(name string) error {
-	return s.coreClient.Namespaces().Delete(name, metav1.NewDeleteOptions(0))
+	var grace int64 = 0
+	return s.client.Delete(context.TODO(), &coreV1Api.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}, &client.DeleteOptions{GracePeriodSeconds: &grace})
 }
 
 // GetRoleBinding get RoleBinding
 func (s K8SService) GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error) {
-	rb, err := s.authClient.RoleBindings(namespace).Get(roleBindingName, metav1.GetOptions{})
+	rb, err := s.authClient.RoleBindings(namespace).Get(context.TODO(), roleBindingName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

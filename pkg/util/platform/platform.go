@@ -3,10 +3,10 @@ package platform
 import (
 	"context"
 	"fmt"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
-	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,15 +14,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var plog = logf.Log.WithName("platform_util")
+var plog = ctrl.Log.WithName("platform_util")
 
-func GetStageInstanceOwner(c client.Client, jj v1alpha1.JenkinsJob) (*edpv1alpha1.Stage, error) {
+func GetStageInstanceOwner(c client.Client, jj v1alpha1.JenkinsJob) (*cdPipeApi.Stage, error) {
 	plog.V(2).Info("start getting stage owner cr", "stage", jj.Name)
 	if ow := GetOwnerReference(consts.StageKind, jj.GetOwnerReferences()); ow != nil {
 		plog.V(2).Info("trying to fetch stage owner from reference", "stage", ow.Name)
@@ -48,12 +48,12 @@ func GetOwnerReference(ownerKind string, ors []metav1.OwnerReference) *metav1.Ow
 	return nil
 }
 
-func GetStageInstance(c client.Client, name, namespace string) (*edpv1alpha1.Stage, error) {
+func GetStageInstance(c client.Client, name, namespace string) (*cdPipeApi.Stage, error) {
 	nsn := types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,
 	}
-	i := &edpv1alpha1.Stage{}
+	i := &cdPipeApi.Stage{}
 	if err := c.Get(context.TODO(), nsn, i); err != nil {
 		return nil, errors.Wrapf(err, "failed to get instance by name %v", name)
 	}
@@ -93,7 +93,7 @@ func GetJenkinsInstance(c client.Client, name, namespace string) (*v2v1alpha1.Je
 
 func GetFirstJenkinsInstance(c client.Client, namespace string) (*v2v1alpha1.Jenkins, error) {
 	list := &v2v1alpha1.JenkinsList{}
-	if err := c.List(context.TODO(), &client.ListOptions{Namespace: namespace}, list); err != nil {
+	if err := c.List(context.TODO(), list, &client.ListOptions{Namespace: namespace}); err != nil {
 		return nil, errors.Wrapf(err, "couldn't get Jenkins instances in namespace %v", namespace)
 	}
 	if len(list.Items) == 0 {

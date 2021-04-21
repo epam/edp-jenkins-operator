@@ -3,13 +3,11 @@ package chain
 import (
 	"context"
 	"fmt"
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
-	"github.com/epam/edp-codebase-operator/v2/pkg/util"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	pipev1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,18 +15,18 @@ import (
 )
 
 type PutClusterProject struct {
-	next jobhandler.JenkinsJobHandler
-	cs   openshift.ClientSet
-	ps   platform.PlatformService
+	next   jobhandler.JenkinsJobHandler
+	client client.Client
+	ps     platform.PlatformService
 }
 
 func (h PutClusterProject) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 	log.V(2).Info("start creating project in cluster")
-	if err := setIntermediateStatus(h.cs.Client, jj, v1alpha1.PlatformProjectCreation); err != nil {
+	if err := setIntermediateStatus(h.client, jj, v1alpha1.PlatformProjectCreation); err != nil {
 		return err
 	}
 	if err := h.tryToCreateProject(jj); err != nil {
-		if err := setFailStatus(h.cs.Client, jj, v1alpha1.PlatformProjectCreation, err.Error()); err != nil {
+		if err := setFailStatus(h.client, jj, v1alpha1.PlatformProjectCreation, err.Error()); err != nil {
 			return err
 		}
 		return err
@@ -42,19 +40,21 @@ func (h PutClusterProject) tryToCreateProject(jj *v1alpha1.JenkinsJob) error {
 	if err != nil {
 		return err
 	}
-	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
+
+	s, err := plutil.GetStageInstanceOwner(h.client, *jj)
 	if err != nil {
 		return err
 	}
+
 	pn := fmt.Sprintf("%v-%v", d["edp_name"], s.Name)
-	if err := h.createProject(*s, pn); err != nil {
+	if err := h.createProject(pn); err != nil {
 		return err
 	}
 	log.Info("project has been created", "name", pn)
 	return nil
 }
 
-func (h PutClusterProject) createProject(s pipev1alpha1.Stage, name string) error {
+func (h PutClusterProject) createProject(name string) error {
 	if err := h.ps.CreateProject(name); err != nil {
 		if k8serrors.IsAlreadyExists(err) {
 			log.V(2).Info("project already exists. skip creating...", "name", name)
@@ -67,7 +67,7 @@ func (h PutClusterProject) createProject(s pipev1alpha1.Stage, name string) erro
 
 func setIntermediateStatus(c client.Client, jj *v1alpha1.JenkinsJob, action v1alpha1.ActionType) error {
 	jj.Status = v1alpha1.JenkinsJobStatus{
-		Status:          util.StatusInProgress,
+		Status:          consts.StatusInProgress,
 		Available:       false,
 		LastTimeUpdated: time.Now(),
 		Action:          action,
@@ -80,7 +80,7 @@ func setIntermediateStatus(c client.Client, jj *v1alpha1.JenkinsJob, action v1al
 
 func setFailStatus(c client.Client, jj *v1alpha1.JenkinsJob, action v1alpha1.ActionType, msg string) error {
 	jj.Status = v1alpha1.JenkinsJobStatus{
-		Status:          util.StatusFailed,
+		Status:          consts.StatusFailed,
 		Available:       false,
 		LastTimeUpdated: time.Now(),
 		Username:        "system",
@@ -95,7 +95,7 @@ func setFailStatus(c client.Client, jj *v1alpha1.JenkinsJob, action v1alpha1.Act
 
 func setFinishStatus(c client.Client, jj *v1alpha1.JenkinsJob, action v1alpha1.ActionType) error {
 	jj.Status = v1alpha1.JenkinsJobStatus{
-		Status:          util.StatusFinished,
+		Status:          consts.StatusFinished,
 		Available:       true,
 		LastTimeUpdated: time.Now(),
 		Action:          action,

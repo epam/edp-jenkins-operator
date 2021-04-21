@@ -1,15 +1,16 @@
 package openshift
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
+	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
-	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epmd-edp/gerrit-operator/v2/pkg/service/helpers"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
@@ -19,8 +20,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"strings"
 
 	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
@@ -28,7 +29,7 @@ import (
 	projectV1 "github.com/openshift/api/project/v1"
 )
 
-var log = logf.Log.WithName("platform")
+var log = ctrl.Log.WithName("platform")
 
 // OpenshiftService struct for Openshift platform service
 type OpenshiftService struct {
@@ -70,7 +71,7 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 
 // GetExternalEndpoint returns hostname and protocol for Route
 func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	route, err := service.routeClient.Routes(namespace).Get(name, metav1.GetOptions{})
+	route, err := service.routeClient.Routes(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		return "", "", "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
 	} else if err != nil {
@@ -85,7 +86,7 @@ func (service OpenshiftService) GetExternalEndpoint(namespace string, name strin
 }
 
 func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -104,7 +105,7 @@ func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenki
 		return nil
 	}
 
-	dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(instance.Name, metav1.GetOptions{})
+	dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -125,7 +126,7 @@ func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenki
 		return err
 	}
 
-	_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(dc.Name, types.StrategicMergePatchType, jsonDc)
+	_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(context.TODO(), dc.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -206,7 +207,7 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 	return coreV1Api.Volume{}, false
 }
 
-func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) {
+func (s OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
 			Name:     "deploy",
@@ -214,7 +215,7 @@ func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) 
 		},
 	}
 
-	for _, ps := range cr.Spec.QualityGates {
+	for _, ps := range stage.Spec.QualityGates {
 		i := model.PipelineStage{
 			Name:     ps.QualityGateType,
 			StepName: ps.StepName,
@@ -233,17 +234,21 @@ func (s OpenshiftService) CreateStageJSON(cr edpv1alpha1.Stage) (string, error) 
 
 func (s OpenshiftService) CreateProject(name string) error {
 	log.V(2).Info("start sending request to create project...", "name", name)
-	_, err := s.projectClient.ProjectRequests().Create(
+	_, err := s.projectClient.ProjectRequests().Create(context.TODO(),
 		&projectV1.ProjectRequest{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
 			Description: "deploy project for stage",
 		},
+		metav1.CreateOptions{},
 	)
 	return err
 }
 
 func (s OpenshiftService) DeleteProject(name string) error {
-	return s.projectClient.Projects().Delete(name, metav1.NewDeleteOptions(0))
+	var grace int64 = 0
+	return s.projectClient.Projects().Delete(context.TODO(), name, metav1.DeleteOptions{
+		GracePeriodSeconds: &grace,
+	})
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 	defaultJobProvisionsFolder  = "job-provisions"
 )
 
-var log = logf.Log.WithName("jenkins_client")
+var log = ctrl.Log.WithName("jenkins_client")
 
 // JenkinsClient abstraction fo Jenkins client
 type JenkinsClient struct {

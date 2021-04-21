@@ -6,25 +6,26 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
 
 	"github.com/dchest/uniuri"
+	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
+	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	jenkinsScriptHelper "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	gerritApi "github.com/epmd-edp/gerrit-operator/v2/pkg/apis/v2/v1alpha1"
-	gerritSpec "github.com/epmd-edp/gerrit-operator/v2/pkg/service/gerrit/spec"
-	keycloakApi "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
-	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
-	keycloakControllerHelper "github.com/epmd-edp/keycloak-operator/pkg/controller/helper"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -32,7 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
@@ -58,7 +58,7 @@ const (
 	jenIcon   = "jenkins.svg"
 )
 
-var log = logf.Log.WithName("jenkins_service")
+var log = ctrl.Log.WithName("jenkins_service")
 
 // JenkinsService interface for Jenkins EDP component
 type JenkinsService interface {
@@ -70,8 +70,14 @@ type JenkinsService interface {
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
-func NewJenkinsService(platformService platform.PlatformService, k8sClient client.Client, k8sScheme *runtime.Scheme) JenkinsService {
-	return JenkinsServiceImpl{platformService: platformService, k8sClient: k8sClient, k8sScheme: k8sScheme}
+func NewJenkinsService(ps platform.PlatformService, client client.Client, scheme *runtime.Scheme) JenkinsService {
+	helper := keycloakControllerHelper.MakeHelper(client, scheme)
+	return JenkinsServiceImpl{
+		platformService: ps,
+		k8sClient:       client,
+		k8sScheme:       scheme,
+		keycloakHelper:  helper,
+	}
 }
 
 // JenkinsServiceImpl struct fo Jenkins EDP Component
@@ -79,6 +85,7 @@ type JenkinsServiceImpl struct {
 	platformService platform.PlatformService
 	k8sClient       client.Client
 	k8sScheme       *runtime.Scheme
+	keycloakHelper  *keycloakControllerHelper.Helper
 }
 
 func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *v1alpha1.Jenkins, value string) (*v1alpha1.Jenkins, error) {
@@ -135,7 +142,7 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 	options := client.ListOptions{Namespace: instance.Namespace}
 	list := &gerritApi.GerritList{}
 
-	err := j.k8sClient.List(context.TODO(), &options, list)
+	err := j.k8sClient.List(context.TODO(), list, &options)
 	if err != nil {
 		log.V(1).Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
 		return nil
@@ -252,7 +259,7 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 			return &instance, false, errors.Wrap(err, "Failed to get Keycloak Client CR!")
 		}
 
-		keycloakRealm, err := keycloakControllerHelper.GetOwnerKeycloakRealm(j.k8sClient, keycloakClient.ObjectMeta)
+		keycloakRealm, err := j.keycloakHelper.GetOwnerKeycloakRealm(keycloakClient.ObjectMeta)
 		if err != nil {
 			return &instance, false, errors.Wrapf(err, "Failed to get Keycloak Realm for %s client!", keycloakClient.Name)
 		}
@@ -261,7 +268,7 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 			return &instance, false, errors.New("Keycloak Realm CR in not created yet!")
 		}
 
-		keycloak, err := keycloakControllerHelper.GetOwnerKeycloak(j.k8sClient, keycloakRealm.ObjectMeta)
+		keycloak, err := j.keycloakHelper.GetOwnerKeycloak(keycloakRealm.ObjectMeta)
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to get owner for %s/%s", keycloakClient.Namespace, keycloakClient.Name)
 			return &instance, false, errors.Wrap(err, errMsg)
@@ -446,7 +453,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	for _, file := range directory {
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
-		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+		configMapKey := consts.JenkinsDefaultScriptConfigMapKey
 
 		path := filepath.FromSlash(fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name()))
 		err = j.createScript(instance, configMapName, configMapKey, path)
@@ -515,7 +522,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			return &instance, false, err
 		}
 
-		configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: context.String()}
+		configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: context.String()}
 		err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
 		if err != nil {
 			return &instance, false, err
@@ -545,7 +552,7 @@ func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClien
 		return err
 	}
 	configMapName := strings.ReplaceAll(fmt.Sprintf("%v-%v", instance.Name, jobPath), "/", "-")
-	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+	configMapKey := consts.JenkinsDefaultScriptConfigMapKey
 	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
 	err = j.createScript(instance, configMapName, configMapKey, path)
 	return err

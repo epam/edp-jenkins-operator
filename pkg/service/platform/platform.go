@@ -1,11 +1,11 @@
 package platform
 
 import (
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
-	edpv1alpha1 "github.com/epmd-edp/cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	keycloakV1Api "github.com/epmd-edp/keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
@@ -32,7 +32,7 @@ type PlatformService interface {
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
 	CreateProject(name string) error
 	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
-	CreateStageJSON(cr edpv1alpha1.Stage) (string, error)
+	CreateStageJSON(stage cdPipeApi.Stage) (string, error)
 	DeleteProject(name string) error
 	GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error)
 }

@@ -1,17 +1,16 @@
 package chain
 
 import (
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("jenkins_folder_handler")
+var log = ctrl.Log.WithName("jenkins-folder-chain")
 
 func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.JenkinsFolderHandler, error) {
 	pt := helper.GetPlatformTypeEnv()
@@ -19,11 +18,9 @@ func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.J
 	if err != nil {
 		return nil, err
 	}
-	cs := openshift.CreateOpenshiftClients()
-	cs.Client = *c
 
 	return PutCDPipelineJenkinsFolder{
-		cs:     *cs,
+		client: *c,
 		ps:     ps,
 		scheme: s,
 	}, nil
@@ -35,12 +32,10 @@ func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c *client.Client) (hand
 	if err != nil {
 		return nil, err
 	}
-	cs := openshift.CreateOpenshiftClients()
-	cs.Client = *c
 
 	return TriggerBuildJobProvision{
-		cs: *cs,
-		ps: ps,
+		client: *c,
+		ps:     ps,
 	}, nil
 }
 
