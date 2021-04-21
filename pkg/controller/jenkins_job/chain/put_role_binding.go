@@ -2,7 +2,6 @@ package chain
 
 import (
 	"fmt"
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -11,21 +10,22 @@ import (
 	"github.com/pkg/errors"
 	rbacV1 "k8s.io/api/rbac/v1"
 	k8sError "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type PutRoleBinding struct {
-	next jobhandler.JenkinsJobHandler
-	cs   openshift.ClientSet
-	ps   platform.PlatformService
+	next   jobhandler.JenkinsJobHandler
+	client client.Client
+	ps     platform.PlatformService
 }
 
 func (h PutRoleBinding) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 	log.V(2).Info("start creating role binding")
-	if err := setIntermediateStatus(h.cs.Client, jj, v1alpha1.RoleBinding); err != nil {
+	if err := setIntermediateStatus(h.client, jj, v1alpha1.RoleBinding); err != nil {
 		return err
 	}
 	if err := h.tryToCreateRoleBinding(jj); err != nil {
-		if err := setFailStatus(h.cs.Client, jj, v1alpha1.RoleBinding, err.Error()); err != nil {
+		if err := setFailStatus(h.client, jj, v1alpha1.RoleBinding, err.Error()); err != nil {
 			return err
 		}
 		return err
@@ -39,7 +39,7 @@ func (h PutRoleBinding) tryToCreateRoleBinding(jj *v1alpha1.JenkinsJob) error {
 	if err != nil {
 		return err
 	}
-	s, err := plutil.GetStageInstanceOwner(h.cs.Client, *jj)
+	s, err := plutil.GetStageInstanceOwner(h.client, *jj)
 	if err != nil {
 		return err
 	}

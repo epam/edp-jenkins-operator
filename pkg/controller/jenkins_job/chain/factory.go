@@ -1,17 +1,16 @@
 package chain
 
 import (
-	"github.com/epam/edp-codebase-operator/v2/pkg/openshift"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("jenkins_job_handler")
+var log = ctrl.Log.WithName("jenkins_job_handler")
 
 func CreateDefChain(s *runtime.Scheme, c *client.Client) (jobhandler.JenkinsJobHandler, error) {
 	pt := helper.GetPlatformTypeEnv()
@@ -19,20 +18,18 @@ func CreateDefChain(s *runtime.Scheme, c *client.Client) (jobhandler.JenkinsJobH
 	if err != nil {
 		return nil, err
 	}
-	cs := openshift.CreateOpenshiftClients()
-	cs.Client = *c
 
 	return PutClusterProject{
 		next: PutRoleBinding{
 			next: PutJenkinsPipeline{
-				cs: *cs,
-				ps: ps,
+				client: *c,
+				ps:     ps,
 			},
-			cs: *cs,
-			ps: ps,
+			client: *c,
+			ps:     ps,
 		},
-		cs: *cs,
-		ps: ps,
+		client: *c,
+		ps:     ps,
 	}, nil
 
 }
@@ -43,20 +40,18 @@ func CreateTriggerJobProvisionChain(s *runtime.Scheme, c *client.Client) (jobhan
 	if err != nil {
 		return nil, err
 	}
-	cs := openshift.CreateOpenshiftClients()
-	cs.Client = *c
 
 	return PutClusterProject{
 		next: PutRoleBinding{
 			next: TriggerJobProvision{
-				cs: *cs,
-				ps: ps,
+				client: *c,
+				ps:     ps,
 			},
-			cs: *cs,
-			ps: ps,
+			client: *c,
+			ps:     ps,
 		},
-		cs: *cs,
-		ps: ps,
+		client: *c,
+		ps:     ps,
 	}, nil
 
 }
