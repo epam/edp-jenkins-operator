@@ -3,8 +3,8 @@ description: A Helm chart for EDP Jenkins Operator
 home: https://solutionshub.epam.com/solution/epam-delivery-platform
 name: jenkins-operator
 type: application
-version: 2.7.2
-appVersion: v2.7.2
+version: 2.7.3
+appVersion: v2.7.3
 maintainers:
   - name: EPAM EDP Team
 sources:
