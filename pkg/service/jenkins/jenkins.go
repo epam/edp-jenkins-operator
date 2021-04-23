@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,7 +20,6 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	jenkinsScriptHelper "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript/helper"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
@@ -453,7 +453,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 
 	for _, file := range directory {
 		configMapName := fmt.Sprintf("%v-%v", instance.Name, file.Name())
-		configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+		configMapKey := consts.JenkinsDefaultScriptConfigMapKey
 
 		path := filepath.FromSlash(fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name()))
 		err = j.createScript(instance, configMapName, configMapKey, path)
@@ -522,7 +522,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 			return &instance, false, err
 		}
 
-		configMapData := map[string]string{jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey: context.String()}
+		configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: context.String()}
 		err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
 		if err != nil {
 			return &instance, false, err
@@ -552,7 +552,7 @@ func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClien
 		return err
 	}
 	configMapName := strings.ReplaceAll(fmt.Sprintf("%v-%v", instance.Name, jobPath), "/", "-")
-	configMapKey := jenkinsScriptHelper.JenkinsDefaultScriptConfigMapKey
+	configMapKey := consts.JenkinsDefaultScriptConfigMapKey
 	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
 	err = j.createScript(instance, configMapName, configMapKey, path)
 	return err

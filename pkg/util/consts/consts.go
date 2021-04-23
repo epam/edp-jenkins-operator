@@ -9,7 +9,6 @@ const (
 	StatusInProgress = "in progress"
 
 	JenkinsKind       = "Jenkins"
-	CodebaseKind      = "Codebase"
 	StageKind         = "Stage"
 	JenkinsFolderKind = "JenkinsFolder"
 	CDPipelineKind    = "CDPipeline"
@@ -21,4 +20,6 @@ const (
 	EdpAdminConsoleServiceAccount = "edp-admin-console"
 
 	LibraryCodebase = "library"
+
+	JenkinsDefaultScriptConfigMapKey = "context"
 )
