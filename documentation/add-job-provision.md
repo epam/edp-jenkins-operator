@@ -31,6 +31,8 @@ stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"}' + "${commitVali
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + ']'
 stages['Code-review-library-terraform'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + 
  ',{"name": "terraform-lint"}]'
+stages['Code-review-library-opa'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
+ ',{"name": "tests"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
@@ -42,6 +44,9 @@ stages['Build-library-python'] = '[{"name": "checkout"},{"name": "get-version"},
         '{"name": "tests"},{"name": "sonar"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "terraform-lint"}' +
  ',{"name": "terraform-plan"},{"name": "terraform-apply"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
+stages['Build-library-opa'] = '[{"name": "checkout"},{"name": "get-version"}' +
+ ',{"name": "tests"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
+
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},[{"name": "sonar"}],{"name": "build"},{"name": "build-image-kaniko"},' +
@@ -152,6 +157,9 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineScript,
 def getStageKeyName(buildTool) {
     if (buildTool.toString().equalsIgnoreCase('terraform')) {
         return "Code-review-library-terraform"
+    }
+    if (buildTool.toString().equalsIgnoreCase('opa')) {
+        return "Code-review-library-opa"
     }
     def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
     def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
