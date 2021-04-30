@@ -40,7 +40,7 @@ jenkins:
       tag: "build/2.8.0-RC.3"
     - name: "edp-library-pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
-      tag: "build/2.8.0-RC.2"
+      tag: "build/2.8.0-RC.4"
 # Example of using private repository:
 #    - name: "stub-name"
 #      url: "stub-url"
