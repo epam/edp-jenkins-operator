@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
-	rbacV1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -514,31 +513,6 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 	return coreV1Api.Volume{}, false
 }
 
-func (s K8SService) CreateProject(name string) error {
-	log.V(2).Info("start sending request to create namespace...", "name", name)
-	return s.client.Create(context.TODO(), &coreV1Api.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-	})
-}
-
-// CreateRoleBinding creates RoleBinding
-func (s K8SService) CreateRoleBinding(edpName string, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error {
-	log.V(2).Info("start creating role binding", "edp name", edpName, "namespace", namespace, "role name", roleRef)
-	_, err := s.authClient.RoleBindings(namespace).Create(context.TODO(),
-		&rbacV1.RoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: fmt.Sprintf("%s-%s", edpName, roleRef.Name),
-			},
-			RoleRef:  roleRef,
-			Subjects: subjects,
-		},
-		metav1.CreateOptions{},
-	)
-	return err
-}
-
 func (s K8SService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
@@ -562,22 +536,4 @@ func (s K8SService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 		return "", err
 	}
 	return string(o), err
-}
-
-func (s K8SService) DeleteProject(name string) error {
-	var grace int64 = 0
-	return s.client.Delete(context.TODO(), &coreV1Api.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-	}, &client.DeleteOptions{GracePeriodSeconds: &grace})
-}
-
-// GetRoleBinding get RoleBinding
-func (s K8SService) GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error) {
-	rb, err := s.authClient.RoleBindings(namespace).Get(context.TODO(), roleBindingName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return rb, nil
 }

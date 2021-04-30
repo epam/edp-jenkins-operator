@@ -7,13 +7,6 @@ metadata:
   name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterroles
-  verbs:
-  - create
-  - delete
-- apiGroups:
   - '*'
   resources:
   - securitycontextconstraints
@@ -28,14 +21,6 @@ rules:
   - projectrequests
   verbs:
   - create
-- apiGroups:
-    - '*'
-  resources:
-    - clusterrolebindings
-  verbs:
-    - get
-    - create
-    - delete
 - apiGroups:
     - '*'
   resources:

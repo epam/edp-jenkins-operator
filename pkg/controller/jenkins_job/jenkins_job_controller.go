@@ -7,7 +7,6 @@ import (
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain"
-	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
@@ -99,30 +98,30 @@ func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.R
 		return reconcile.Result{}, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", i.Name)
 	}
 
-	var ch jobhandler.JenkinsJobHandler
 	jc, err := jenkinsClient.InitGoJenkinsClient(j, r.platform)
 	jobExist, err := isJenkinsJobExist(jc, i.Spec.Job.Name)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "an error has occurred while retrieving jenkins job %v", i.Spec.Job.Name)
 	}
-	if jobExist {
-		ch, err = chain.CreateTriggerJobProvisionChain(r.scheme, &r.client)
-		if err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
-		}
-	} else {
-		ch, err = chain.CreateDefChain(r.scheme, &r.client)
-		if err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
-		}
+
+	ch, err := r.getChain(jobExist)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "an error has occurred while selecting chain")
 	}
 
-	if err := ch.ServeRequest(i); err != nil {
+	if err := chain.NewChain(ch).ServeRequest(i); err != nil {
 		return reconcile.Result{}, err
 	}
 
 	log.V(2).Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileJenkinsJob) getChain(jobExist bool) (chain.Chain, error) {
+	if jobExist {
+		return chain.InitTriggerJobProvisionChain(r.scheme, r.client)
+	}
+	return chain.InitDefChain(r.scheme, r.client)
 }
 
 func isJenkinsJobExist(jc *jenkinsClient.JenkinsClient, jp string) (bool, error) {
@@ -160,10 +159,6 @@ func (r ReconcileJenkinsJob) tryToDeleteJob(ctx context.Context, jj *jenkinsApi.
 		return &reconcile.Result{}, err
 	}
 
-	if err := r.deleteProject(jj); err != nil {
-		return &reconcile.Result{}, err
-	}
-
 	jj.ObjectMeta.Finalizers = finalizer.RemoveString(jj.ObjectMeta.Finalizers, jenkinsJobFinalizerName)
 	if err := r.client.Update(ctx, jj); err != nil {
 		return &reconcile.Result{}, err
@@ -197,28 +192,6 @@ func (r ReconcileJenkinsJob) getJobName(jj *jenkinsApi.JenkinsJob) string {
 		return fmt.Sprintf("%v-cd-pipeline/job/%v", *jj.Spec.JenkinsFolder, jobName)
 	}
 	return jj.Spec.Job.Name
-}
-
-func (r ReconcileJenkinsJob) deleteProject(jj *jenkinsApi.JenkinsJob) error {
-	d, err := r.platform.GetConfigMapData(jj.Namespace, "edp-config")
-	if err != nil {
-		return err
-	}
-
-	s, err := plutil.GetStageInstanceOwner(r.client, *jj)
-	if err != nil {
-		return err
-	}
-
-	pn := fmt.Sprintf("%v-%v", d["edp_name"], s.Name)
-	if err := r.platform.DeleteProject(pn); err != nil {
-		if k8serrors.IsNotFound(err) {
-			r.log.V(2).Info("project doesn't exist. skip deleting", "name", pn)
-			return nil
-		}
-		return errors.Wrapf(err, "couldn't delete project %v", pn)
-	}
-	return nil
 }
 
 func (r *ReconcileJenkinsJob) setOwners(ctx context.Context, jj *jenkinsApi.JenkinsJob) error {

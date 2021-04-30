@@ -8,7 +8,6 @@ import (
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
-	rbacV1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
@@ -30,11 +29,7 @@ type PlatformService interface {
 	CreateJenkinsScript(namespace string, configMap string) (*v1alpha1.JenkinsScript, error)
 	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) error
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
-	CreateProject(name string) error
-	CreateRoleBinding(edpName, namespace string, roleRef rbacV1.RoleRef, subjects []rbacV1.Subject) error
 	CreateStageJSON(stage cdPipeApi.Stage) (string, error)
-	DeleteProject(name string) error
-	GetRoleBinding(roleBindingName, namespace string) (*rbacV1.RoleBinding, error)
 }
 
 // NewPlatformService returns platform service interface implementation

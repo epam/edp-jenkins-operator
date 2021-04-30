@@ -12,33 +12,36 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"text/template"
+	"time"
 )
 
 type PutJenkinsPipeline struct {
 	next   jobhandler.JenkinsJobHandler
 	client client.Client
 	ps     platform.PlatformService
+	log    logr.Logger
 }
 
 func (h PutJenkinsPipeline) ServeRequest(jj *v1alpha1.JenkinsJob) error {
-	log.V(2).Info("start creating Jenkins CD Pipeline")
-	if err := setIntermediateStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
+	h.log.Info("start creating Jenkins CD Pipeline")
+	if err := h.setStatus(jj, consts.StatusInProgress, v1alpha1.CreateJenkinsPipeline, nil); err != nil {
 		return err
 	}
 	if err := h.tryToCreateJob(jj); err != nil {
-		if err := setFailStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline, err.Error()); err != nil {
+		if err := h.setStatus(jj, consts.StatusFailed, v1alpha1.CreateJenkinsPipeline, &err); err != nil {
 			return err
 		}
 		return err
 	}
-	if err := setFinishStatus(h.client, jj, v1alpha1.CreateJenkinsPipeline); err != nil {
+	if err := h.setStatus(jj, consts.StatusFinished, v1alpha1.CreateJenkinsPipeline, nil); err != nil {
 		return err
 	}
-	log.V(2).Info("end creating Jenkins CD Pipeline")
+	h.log.Info("end creating Jenkins CD Pipeline")
 	return nextServeOrNil(h.next, jj)
 }
 
@@ -67,7 +70,7 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 		return errors.Wrap(err, "couldn't create jenkins job")
 	}
 
-	log.Info("job has been created", "name", jj.Spec.Job.Name)
+	h.log.Info("job has been created", "name", jj.Spec.Job.Name)
 	return nil
 }
 
@@ -78,14 +81,14 @@ func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *str
 		if err != nil {
 			return err
 		}
-		log.V(2).Info("job has been created",
+		h.log.Info("job has been created",
 			"name", fmt.Sprintf("%v/%v", pfn, jj.Spec.Job.Name))
 		return nil
 	}
 	if _, err := jc.GoJenkins.CreateJob(*conf, jj.Spec.Job.Name); err != nil {
 		return err
 	}
-	log.V(2).Info("job has been created", "name", jj.Spec.Job.Name)
+	h.log.Info("job has been created", "name", jj.Spec.Job.Name)
 	return nil
 }
 
@@ -94,7 +97,7 @@ func (h PutJenkinsPipeline) initGoJenkinsClient(jj *v1alpha1.JenkinsJob) (*jenki
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", jj.Name)
 	}
-	log.V(2).Info("Jenkins instance has been created", "name", j.Name)
+	h.log.Info("Jenkins instance has been created", "name", j.Name)
 	return jenkinsClient.InitGoJenkinsClient(j, h.ps)
 }
 
@@ -130,12 +133,12 @@ func (h PutJenkinsPipeline) createStageConfig(s *cdPipeApi.Stage, ps, conf strin
 func (h PutJenkinsPipeline) setPipeSrcParams(stage *cdPipeApi.Stage, pipeSrc map[string]interface{}) {
 	cb, err := h.getLibraryParams(stage.Spec.Source.Library.Name, stage.Namespace)
 	if err != nil {
-		log.Error(err, "couldn't retrieve parameters for pipeline's library, default source type will be used",
+		h.log.Error(err, "couldn't retrieve parameters for pipeline's library, default source type will be used",
 			"Library name", stage.Spec.Source.Library.Name)
 	}
 	gs, err := h.getGitServerParams(cb.Spec.GitServer, stage.Namespace)
 	if err != nil {
-		log.Error(err, "couldn't retrieve parameters for git server, default source type will be used",
+		h.log.Error(err, "couldn't retrieve parameters for git server, default source type will be used",
 			"Git server", cb.Spec.GitServer)
 	} else {
 		pipeSrc["type"] = "library"
@@ -177,4 +180,51 @@ func getPathToRepository(strategy, name string, url *string) string {
 		return *url
 	}
 	return "/" + name
+}
+
+func (h PutJenkinsPipeline) setStatus(jj *v1alpha1.JenkinsJob, status string, action v1alpha1.ActionType, err *error) error {
+	jj.Status = v1alpha1.JenkinsJobStatus{
+		Status:          status,
+		Available:       status == consts.StatusFinished,
+		LastTimeUpdated: time.Now(),
+		Action:          action,
+		Result:          getResult(status),
+		Username:        "system",
+		Value:           getValue(status),
+	}
+
+	if err != nil {
+		errV := *err
+		jj.Status.DetailedMessage = errV.Error()
+	}
+
+	return updateStatus(h.client, jj)
+}
+
+func getResult(status string) v1alpha1.Result {
+	if status == consts.StatusFinished {
+		return v1alpha1.Success
+	} else if status == consts.StatusFailed {
+		return v1alpha1.Error
+	}
+	return "success"
+}
+
+func getValue(status string) string {
+	if status == consts.StatusFinished {
+		return "active"
+	} else if status == consts.StatusFailed {
+		return "failed"
+	}
+	return "inactive"
+}
+
+func updateStatus(c client.Client, jj *v1alpha1.JenkinsJob) error {
+	if err := c.Status().Update(context.TODO(), jj); err != nil {
+		if err := c.Update(context.TODO(), jj); err != nil {
+			return errors.Wrap(err, "couldn't update jenkins job status")
+		}
+	}
+	log.Info("JenkinsJob status has been updated", "name", jj.Name)
+	return nil
 }
