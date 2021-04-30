@@ -11,6 +11,7 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
@@ -20,10 +21,11 @@ type TriggerJobProvision struct {
 	next   handler.JenkinsJobHandler
 	client client.Client
 	ps     platform.PlatformService
+	log    logr.Logger
 }
 
 func (h TriggerJobProvision) ServeRequest(jj *v1alpha1.JenkinsJob) error {
-	log.V(2).Info("start triggering job provision")
+	h.log.Info("start triggering job provision")
 
 	if err := h.triggerJobProvision(jj); err != nil {
 		if err := h.setStatus(jj, consts.StatusFailed, v1alpha1.Error); err != nil {
@@ -64,12 +66,12 @@ func (h TriggerJobProvision) initGoJenkinsClient(jj v1alpha1.JenkinsJob) (*jenki
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", jj.Name)
 	}
-	log.Info("Jenkins instance has been received", "name", j.Name)
+	h.log.Info("Jenkins instance has been received", "name", j.Name)
 	return jenkinsClient.InitGoJenkinsClient(j, h.ps)
 }
 
 func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) error {
-	log.V(2).Info("start triggering job provision", "name", jj.Spec.Job.Name)
+	h.log.Info("start triggering job provision", "name", jj.Spec.Job.Name)
 	jc, err := h.initGoJenkinsClient(*jj)
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
@@ -79,7 +81,7 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 		return errors.Wrapf(err, "couldn't check build status for job %v", jj.Spec.Job.Name)
 	}
 	if success {
-		log.V(2).Info("last build was successful. triggering of job provision is skipped")
+		h.log.Info("last build was successful. triggering of job provision is skipped")
 		return nil
 	}
 
@@ -98,13 +100,13 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 	job, err := jc.GetJobByName(jenkinsJobName)
 	if err != nil {
 		if err.Error() == "404" {
-			log.V(2).Info("job not found, need job provisioning", "jenkinsJob", jenkinsJobName)
+			h.log.Info("job not found, need job provisioning", "jenkinsJob", jenkinsJobName)
 		} else {
 			return errors.Wrapf(err, "an error has been occurred while getting job %v", jenkinsJobName)
 		}
 	}
 	if job != nil {
-		log.V(2).Info("job already exist, job provisioning will be skipped", "jenkinsJob", jenkinsJobName)
+		h.log.Info("job already exist, job provisioning will be skipped", "jenkinsJob", jenkinsJobName)
 		return nil
 	}
 
@@ -113,7 +115,7 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
 	}
 	jj.Status.JenkinsJobProvisionBuildNumber = *bn
-	log.Info("end triggering build job", "name", jj.Spec.Job.Name)
+	h.log.Info("end triggering build job", "name", jj.Spec.Job.Name)
 	return nil
 }
 

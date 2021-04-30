@@ -10,6 +10,7 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins"
@@ -109,45 +110,53 @@ func main() {
 		os.Exit(1)
 	}
 
+	cl, err := client.New(mgr.GetConfig(), client.Options{
+		Scheme: mgr.GetScheme(),
+		Mapper: mgr.GetRESTMapper(),
+	})
+	if err != nil {
+		setupLog.Error(err, "unable to create uncached client")
+		os.Exit(1)
+	}
+
 	ctrlLog := ctrl.Log.WithName("controllers")
 
-	cdStageJd := jenkinsdeployment.NewReconcileCDStageJenkinsDeployment(mgr.GetClient(), mgr.GetScheme(), ctrlLog)
+	cdStageJd := jenkinsdeployment.NewReconcileCDStageJenkinsDeployment(cl, mgr.GetScheme(), ctrlLog)
 	if err := cdStageJd.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "cd-stage-jenkins-deployment")
 		os.Exit(1)
 	}
 
-	cl := mgr.GetClient()
 	ps, err := platform.NewPlatformService(helper.GetPlatformTypeEnv(), mgr.GetScheme(), &cl)
 	if err != nil {
 		setupLog.Error(err, "unable to create platform service")
 	}
 
-	jenkinsCtrl := jenkins.NewReconcileJenkins(mgr.GetClient(), mgr.GetScheme(), ctrlLog, ps)
+	jenkinsCtrl := jenkins.NewReconcileJenkins(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jenkinsCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins")
 		os.Exit(1)
 	}
 
-	jfCtrl := jenkinsFolder.NewReconcileJenkinsFolder(mgr.GetClient(), mgr.GetScheme(), ctrlLog, ps)
+	jfCtrl := jenkinsFolder.NewReconcileJenkinsFolder(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jfCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-folder")
 		os.Exit(1)
 	}
 
-	jjCtrl := jenkinsJob.NewReconcileJenkinsJob(mgr.GetClient(), mgr.GetScheme(), ctrlLog, ps)
+	jjCtrl := jenkinsJob.NewReconcileJenkinsJob(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jjCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-job")
 		os.Exit(1)
 	}
 
-	jsCtrl := jenkinsscript.NewReconcileJenkinsScript(mgr.GetClient(), mgr.GetScheme(), ctrlLog, ps)
+	jsCtrl := jenkinsscript.NewReconcileJenkinsScript(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jsCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-script")
 		os.Exit(1)
 	}
 
-	jsaCtrl := jenkinsserviceaccount.NewReconcileJenkinsServiceAccount(mgr.GetClient(), mgr.GetScheme(), ctrlLog, ps)
+	jsaCtrl := jenkinsserviceaccount.NewReconcileJenkinsServiceAccount(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jsaCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-service-account")
 		os.Exit(1)

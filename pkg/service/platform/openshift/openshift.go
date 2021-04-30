@@ -25,8 +25,6 @@ import (
 	"strings"
 
 	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
-
-	projectV1 "github.com/openshift/api/project/v1"
 )
 
 var log = ctrl.Log.WithName("platform")
@@ -230,25 +228,4 @@ func (s OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, error)
 		return "", err
 	}
 	return string(o), err
-}
-
-func (s OpenshiftService) CreateProject(name string) error {
-	log.V(2).Info("start sending request to create project...", "name", name)
-	_, err := s.projectClient.ProjectRequests().Create(context.TODO(),
-		&projectV1.ProjectRequest{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
-			Description: "deploy project for stage",
-		},
-		metav1.CreateOptions{},
-	)
-	return err
-}
-
-func (s OpenshiftService) DeleteProject(name string) error {
-	var grace int64 = 0
-	return s.projectClient.Projects().Delete(context.TODO(), name, metav1.DeleteOptions{
-		GracePeriodSeconds: &grace,
-	})
 }

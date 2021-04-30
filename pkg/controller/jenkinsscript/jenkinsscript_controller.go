@@ -207,14 +207,7 @@ func (r *ReconcileJenkinsScript) getJenkinsInstance(ctx context.Context, namespa
 	if len(list.Items) == 0 {
 		return nil, nil
 	}
-	jenkins := list.Items[0]
-	nsn := types.NamespacedName{
-		Namespace: jenkins.Namespace,
-		Name:      jenkins.Name,
-	}
-	jenkinsInstance := &jenkinsApi.Jenkins{}
-	err = r.client.Get(ctx, nsn, jenkinsInstance)
-	return jenkinsInstance, err
+	return &list.Items[0], nil
 }
 
 func (r *ReconcileJenkinsScript) setOwnerReference(owner *jenkinsApi.Jenkins, jenkinsScript *jenkinsApi.JenkinsScript) *jenkinsApi.JenkinsScript {
