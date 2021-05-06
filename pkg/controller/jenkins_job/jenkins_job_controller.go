@@ -66,7 +66,7 @@ func (r *ReconcileJenkinsJob) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	log.V(2).Info("reconciling JenkinsJob has been started")
+	log.Info("reconciling JenkinsJob has been started")
 
 	i := &jenkinsApi.JenkinsJob{}
 	if err := r.client.Get(ctx, request.NamespacedName, i); err != nil {
@@ -122,7 +122,7 @@ func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.R
 		}, nil
 	}
 
-	log.V(2).Info("reconciling JenkinsJob has been finished")
+	log.Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
 }
 

@@ -3,7 +3,6 @@ package chain
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
@@ -76,38 +75,10 @@ func (h TriggerJobProvision) triggerJobProvision(jj *v2v1alpha1.JenkinsJob) erro
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
-	success, err := jc.IsBuildSuccessful(jj.Spec.Job.Name, jj.Status.JenkinsJobProvisionBuildNumber)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't check build status for job %v", jj.Spec.Job.Name)
-	}
-	if success {
-		h.log.Info("last build was successful. triggering of job provision is skipped")
-		return nil
-	}
 
 	var jpc map[string]string
-	err = json.Unmarshal([]byte(jj.Spec.Job.Config), &jpc)
-
-	pn, err := h.getParamFromJenkinsJobConfig("PIPELINE_NAME", jj.Spec.Job.Config)
-	if err != nil {
-		return errors.Wrapf(err, "an error has been occurred while getting parameter PIPELINE_NAME from Jenkins job config")
-	}
-	sn, err := h.getParamFromJenkinsJobConfig("STAGE_NAME", jj.Spec.Job.Config)
-	if err != nil {
-		return errors.Wrapf(err, "an error has been occurred while getting parameter STAGE_NAME from Jenkins job config")
-	}
-	jenkinsJobName := fmt.Sprintf("%v-cd-pipeline/job/%v", *pn, *sn)
-	job, err := jc.GetJobByName(jenkinsJobName)
-	if err != nil {
-		if err.Error() == "404" {
-			h.log.Info("job not found, need job provisioning", "jenkinsJob", jenkinsJobName)
-		} else {
-			return errors.Wrapf(err, "an error has been occurred while getting job %v", jenkinsJobName)
-		}
-	}
-	if job != nil {
-		h.log.Info("job already exist, job provisioning will be skipped", "jenkinsJob", jenkinsJobName)
-		return nil
+	if err := json.Unmarshal([]byte(jj.Spec.Job.Config), &jpc); err != nil {
+		return err
 	}
 
 	bn, err := jc.BuildJob(jj.Spec.Job.Name, jpc)
