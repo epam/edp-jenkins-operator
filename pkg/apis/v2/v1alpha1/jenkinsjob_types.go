@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
 
@@ -10,6 +11,18 @@ import (
 
 // JenkinsJobSpec defines the desired state of Jenkins job
 // +k8s:openapi-gen=true
+
+type ActionType string
+type Result string
+
+const (
+	RoleBinding           ActionType = "role_binding"
+	CreateJenkinsPipeline ActionType = "create_jenkins_pipeline"
+	TriggerJobProvision   ActionType = "trigger_job_provision"
+
+	Success Result = "success"
+	Error   Result = "error"
+)
 
 type JenkinsJobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -22,22 +35,10 @@ type JenkinsJobSpec struct {
 }
 
 type Job struct {
-	Name   string `json:"name"`
-	Config string `json:"config"`
+	Name              string `json:"name"`
+	Config            string `json:"config"`
+	AutoTriggerPeriod *int32 `json:"autoTriggerPeriod,omitempty"`
 }
-
-type ActionType string
-type Result string
-
-const (
-	PlatformProjectCreation ActionType = "platform_project_creation"
-	RoleBinding             ActionType = "role_binding"
-	CreateJenkinsPipeline   ActionType = "create_jenkins_pipeline"
-	TriggerJobProvision     ActionType = "trigger_job_provision"
-
-	Success Result = "success"
-	Error   Result = "error"
-)
 
 // JenkinsFolderStatus defines the observed state of Jenkins
 // +k8s:openapi-gen=true
@@ -67,6 +68,19 @@ type JenkinsJob struct {
 
 	Spec   JenkinsJobSpec   `json:"spec,omitempty"`
 	Status JenkinsJobStatus `json:"status,omitempty"`
+}
+
+func (jj JenkinsJob) IsAutoTriggerEnabled() bool {
+	period := jj.Spec.Job.AutoTriggerPeriod
+	if period == nil || *period == 0 {
+		return false
+	}
+	if *period < 5 || *period > 7200 {
+		ctrl.Log.WithName("jenkins-job-api").Info("autoTriggerPeriod value is incorrect. disable auto trigger",
+			"value", *period)
+		return false
+	}
+	return true
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

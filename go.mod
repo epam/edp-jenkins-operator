@@ -10,6 +10,7 @@ replace (
 )
 
 require (
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
 	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210427081757-d4e86349ad18

@@ -53,6 +53,11 @@ spec:
                 config:
                   description: 'Contains config template to create pipeline in Jenkins.'
                   type: string
+                autoTriggerPeriod:
+                  description: 'Specifies reconciliation period (in minutes) of Jenkins Job resource to trigger job provision.'
+                  anyOf:
+                    - type: null
+                    - type: integer
               required:
                 - name
                 - config

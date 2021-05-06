@@ -113,6 +113,15 @@ func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.R
 		return reconcile.Result{}, err
 	}
 
+	if jobExist && i.IsAutoTriggerEnabled() {
+		period := time.Duration(*i.Spec.Job.AutoTriggerPeriod) * time.Minute
+		r.log.Info("the next job provision will be triggered in few minutes", "minutes", period)
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: period,
+		}, nil
+	}
+
 	log.V(2).Info("reconciling JenkinsJob has been finished")
 	return reconcile.Result{}, nil
 }
