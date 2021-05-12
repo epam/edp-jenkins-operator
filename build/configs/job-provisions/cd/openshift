@@ -1,4 +1,4 @@
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2021 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import javaposse.jobdsl.plugin.*
 import com.cloudbees.hudson.plugins.folder.*
 
 def scriptText = '''
-/* Copyright 2019 EPAM Systems.
+/* Copyright 2021 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,20 +47,31 @@ def libraryURL = "${LIBRARY_URL}"
 def libraryBranch = "${LIBRARY_BRANCH}"
 def autodeploy = "${AUTODEPLOY}"
 def scriptPath = "Jenkinsfile"
+def containerDeploymentType = "container"
+def deploymentType = "${DEPLOYMENT_TYPE}"
 
-def stages = '[{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
+def stages = buildStages(deploymentType, containerDeploymentType, qgStages)
 
 def codebaseFolder = jenkins.getItem(pipelineName)
 if (codebaseFolder == null) {
     folder(pipelineName)
 }
 
-createCdPipeline(pipelineName, stageName, stages, scriptPath, sourceType,
-        libraryURL, libraryBranch, gitCredentialsId, gitServerCrVersion,
-        autodeploy)
+if (deploymentType == containerDeploymentType) {
+    createContainerizedCdPipeline(pipelineName, stageName, stages, scriptPath, sourceType,
+            libraryURL, libraryBranch, gitCredentialsId, gitServerCrVersion,
+            autodeploy)
+} else {
+    createCustomCdPipeline(pipelineName, stageName)
+}
 
+def buildStages(deploymentType, containerDeploymentType, qgStages) {
+    return deploymentType == containerDeploymentType
+    ? '[{"name":"init","step_name":"init"},{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images-ecr","step_name":"promote-images"}]'
+    : ''
+}
 
-def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion, autodeploy) {
+def createContainerizedCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion, autodeploy) {
     pipelineJob("${pipelineName}/${stageName}") {
         if (sourceType == "library") {
             definition {
@@ -98,6 +109,14 @@ def createCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType
             }
         }
     }
+}
+
+def createCustomCdPipeline(pipelineName, stageName) {
+    pipelineJob("${pipelineName}/${stageName}") {
+        properties {
+          disableConcurrentBuilds()
+        }
+    }
 }'''
 def jobName = "default"
 def folderName = "job-provisions"
@@ -127,7 +146,8 @@ def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
                       new StringParameterDefinition("SOURCE_TYPE", ""),
                       new StringParameterDefinition("LIBRARY_BRANCH", ""),
                       new StringParameterDefinition("LIBRARY_URL", ""),
-                      new StringParameterDefinition("AUTODEPLOY", "")]
+                      new StringParameterDefinition("AUTODEPLOY", ""),
+                      new StringParameterDefinition("DEPLOYMENT_TYPE", "")]
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(false)
