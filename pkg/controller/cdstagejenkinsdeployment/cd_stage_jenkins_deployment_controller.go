@@ -3,7 +3,6 @@ package cdstagejenkinsdeployment
 import (
 	"context"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	chain "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/factory"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
@@ -14,6 +13,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,12 +44,21 @@ type ReconcileCDStageJenkinsDeployment struct {
 
 func (r *ReconcileCDStageJenkinsDeployment) SetupWithManager(mgr ctrl.Manager) error {
 	p := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oo := e.ObjectOld.(*jenkinsApi.CDStageJenkinsDeployment)
+			no := e.ObjectNew.(*jenkinsApi.CDStageJenkinsDeployment)
+			if !reflect.DeepEqual(oo.Spec.Tags, no.Spec.Tags) {
+				return true
+			}
+			return false
+		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			return false
 		},
 	}
+
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.CDStageJenkinsDeployment{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.CDStageJenkinsDeployment{}, builder.WithPredicates(p)).
 		Complete(r)
 }
 
@@ -57,7 +66,7 @@ func (r *ReconcileCDStageJenkinsDeployment) Reconcile(ctx context.Context, reque
 	log := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	log.Info("reconciling has been started")
 
-	i := &v1alpha1.CDStageJenkinsDeployment{}
+	i := &jenkinsApi.CDStageJenkinsDeployment{}
 	if err := r.client.Get(ctx, request.NamespacedName, i); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -101,7 +110,7 @@ func (r *ReconcileCDStageJenkinsDeployment) Reconcile(ctx context.Context, reque
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileCDStageJenkinsDeployment) setFinalizer(ctx context.Context, jd *v1alpha1.CDStageJenkinsDeployment) error {
+func (r *ReconcileCDStageJenkinsDeployment) setFinalizer(ctx context.Context, jd *jenkinsApi.CDStageJenkinsDeployment) error {
 	if !jd.GetDeletionTimestamp().IsZero() {
 		return nil
 	}
@@ -111,7 +120,7 @@ func (r *ReconcileCDStageJenkinsDeployment) setFinalizer(ctx context.Context, jd
 	return r.client.Update(ctx, jd)
 }
 
-func (r *ReconcileCDStageJenkinsDeployment) updateStatus(ctx context.Context, jenkinsDeployment *v1alpha1.CDStageJenkinsDeployment) error {
+func (r *ReconcileCDStageJenkinsDeployment) updateStatus(ctx context.Context, jenkinsDeployment *jenkinsApi.CDStageJenkinsDeployment) error {
 	if err := r.client.Status().Update(ctx, jenkinsDeployment); err != nil {
 		if err := r.client.Update(ctx, jenkinsDeployment); err != nil {
 			return err
