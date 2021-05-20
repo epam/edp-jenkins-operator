@@ -4,6 +4,10 @@ go 1.14
 
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+	github.com/epam/edp-cd-pipeline-operator/v2 => github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210427081757-d4e86349ad18
+	github.com/epam/edp-codebase-operator/v2 => github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520145849-0e47a9089ef6
+	github.com/epam/edp-gerrit-operator/v2 => github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210505081511-94421d72acf6
+	github.com/epam/edp-keycloak-operator => github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210416130433-86964261530c
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	k8s.io/api => k8s.io/api v0.20.7-rc.0
@@ -13,10 +17,11 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210519064332-021c2b1539f2
 	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210427081757-d4e86349ad18
-	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210426125026-571bd859bdf0
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520145849-0e47a9089ef6
 	github.com/epam/edp-component-operator v0.1.1-0.20210427065236-c7dce7f4ea2b
-	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210427073621-8b07da9960b2
+	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210505081511-94421d72acf6
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
