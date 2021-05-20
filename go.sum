@@ -314,6 +314,8 @@ github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520145849-0e47a9089ef6
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520145849-0e47a9089ef6/go.mod h1:o9ac4JiP5OGBaMx8tK1ORYPxLwNlgMgh+sNPVu8Q4Xg=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520182756-7a216ea8871c h1:uE+dqurF1Owmw2Jb6QoZ4DZl6LCMMTG7lYqEPdI5yDU=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520182756-7a216ea8871c/go.mod h1:lz88E17t1r0uYgpAAym275qriAQm7XCVqrBnSP5V+ZA=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520185000-528df6916f71 h1:ZZsdFxdL7PcxFZyHj2bNEWr4Wo7qd31Cq65D/NkVMAo=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210520185000-528df6916f71/go.mod h1:Qo4qFaaIaqYDgFag156R2E3N5792RGB6b9cBepNSqLU=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0 h1:86HuNjzzQm4skH//J31a6J6GDLEwemAh7jU3Fvrsz0I=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
 github.com/epam/edp-component-operator v0.0.1-2/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
@@ -355,6 +357,7 @@ github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72
 github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684/go.mod h1:DdqP20bkxXiS1c8NTgc4qbrI1alCH1Kzy/2ie4JmenU=
 github.com/epam/edp-perf-operator/v2 v2.0.0-20210420132104-20958a66482a/go.mod h1:KyEAF7OCx/5rPZ29BAeCFV1mez66sxFMf94cZ/IeyVc=
 github.com/epam/edp-perf-operator/v2 v2.0.0-20210427075221-451577e1e5f2/go.mod h1:buOpUkjbWkwJe449ZLRJR8choZ9cGFamIdCaOO8VBy4=
+github.com/epam/edp-perf-operator/v2 v2.0.0-20210520184654-9732018da977/go.mod h1:sUnbjjjHTGjIzZIHj49OgZleruOmmsTdtmwd2Gj/g2M=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50 h1:2a+EYbwYjhwJa0MAd4lsq1/LmTAqPp8/G9yAeheYPuQ=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50/go.mod h1:ygALtMzvxjLfbXLfGqZ+eGjsARgBdyf6IvoTl5NF5Kk=
 github.com/epmd-edp/codebase-operator/v2 v2.3.0-88/go.mod h1:MqnZsWXSdziAmOYznnMW+C3M160So5AMuJoCSL84t8M=
