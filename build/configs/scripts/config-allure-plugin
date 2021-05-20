@@ -15,8 +15,8 @@ limitations under the License. */
 import ru.yandex.qatools.allure.jenkins.tools.*
 import hudson.tools.*
 
-def allureDescriptor = Jenkins.instance.getDescriptor("ru.yandex.qatools.allure.jenkins.tools.AllureCommandlineInstallation")
-def allureInstaller = new AllureCommandlineInstaller("2.6.0")
+def allureDescriptor = Jenkins.instance.getDescriptor("hudson.tools.ZipExtractionInstaller")
+def allureInstaller = new AllureCommandlineInstaller("https://github.com/allure-framework/allure2/releases/download/2.6.0/allure-2.6.0.zip")
 def allureInstallerProps = new InstallSourceProperty([allureInstaller])
 def allureInstallation = new AllureCommandlineInstallation("Allure", "", [allureInstallerProps])
 allureDescriptor.setInstallations(allureInstallation)
