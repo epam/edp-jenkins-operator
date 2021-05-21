@@ -5,6 +5,10 @@
     "name": "kaniko"
   },
   "spec": {
+    "serviceAccountName": "edp-kaniko",
+    "securityContext": {
+      "fsGroup": 65534
+    },
     "initContainers": [
       {
         "name": "init-kaniko",
