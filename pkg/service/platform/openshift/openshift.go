@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -37,6 +38,11 @@ type OpenshiftService struct {
 	routeClient   routeV1Client.RouteV1Client
 	projectClient projectV1Client.ProjectV1Client
 }
+
+const (
+	deploymentTypeEnvName           = "DEPLOYMENT_TYPE"
+	deploymentConfigsDeploymentType = "deploymentConfigs"
+)
 
 // Init initializes OpenshiftService
 func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme, k8sClient *client.Client) error {
@@ -84,51 +90,57 @@ func (service OpenshiftService) GetExternalEndpoint(namespace string, name strin
 }
 
 func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
-	if err != nil {
-		return false, err
-	}
+	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {
+		deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
 
-	if deploymentConfig.Status.UpdatedReplicas == 1 && deploymentConfig.Status.AvailableReplicas == 1 {
-		return true, nil
-	}
+		if deploymentConfig.Status.UpdatedReplicas == 1 && deploymentConfig.Status.AvailableReplicas == 1 {
+			return true, nil
+		}
 
-	return false, nil
+		return false, nil
+	}
+	return service.K8SService.IsDeploymentReady(instance)
 }
 
 func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins,
 	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
-	if len(vol) == 0 || len(volMount) == 0 {
+	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {
+		if len(vol) == 0 || len(volMount) == 0 {
+			return nil
+		}
+
+		dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+
+		initContainer, err := selectContainer(dc.Spec.Template.Spec.InitContainers, containerName)
+		if err != nil {
+			return err
+		}
+
+		initContainer.VolumeMounts = updateVolumeMounts(initContainer.VolumeMounts, volMount)
+		dc.Spec.Template.Spec.InitContainers = append(dc.Spec.Template.Spec.InitContainers, initContainer)
+		volumes := dc.Spec.Template.Spec.Volumes
+		volumes = updateVolumes(volumes, vol)
+		dc.Spec.Template.Spec.Volumes = volumes
+
+		jsonDc, err := json.Marshal(dc)
+		if err != nil {
+			return err
+		}
+
+		_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(context.TODO(), dc.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
+		if err != nil {
+			return err
+		}
 		return nil
 	}
-
-	dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
-	if err != nil {
-		return nil
-	}
-
-	initContainer, err := selectContainer(dc.Spec.Template.Spec.InitContainers, containerName)
-	if err != nil {
-		return err
-	}
-
-	initContainer.VolumeMounts = updateVolumeMounts(initContainer.VolumeMounts, volMount)
-	dc.Spec.Template.Spec.InitContainers = append(dc.Spec.Template.Spec.InitContainers, initContainer)
-	volumes := dc.Spec.Template.Spec.Volumes
-	volumes = updateVolumes(volumes, vol)
-	dc.Spec.Template.Spec.Volumes = volumes
-
-	jsonDc, err := json.Marshal(dc)
-	if err != nil {
-		return err
-	}
-
-	_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(context.TODO(), dc.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	return nil
+	return service.K8SService.AddVolumeToInitContainer(instance, containerName, vol, volMount)
 }
 
 func selectContainer(containers []coreV1Api.Container, name string) (coreV1Api.Container, error) {
