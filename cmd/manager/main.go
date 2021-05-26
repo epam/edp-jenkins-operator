@@ -8,6 +8,7 @@ import (
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_jobbuildrun"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -159,6 +160,12 @@ func main() {
 	jsaCtrl := jenkinsserviceaccount.NewReconcileJenkinsServiceAccount(cl, mgr.GetScheme(), ctrlLog, ps)
 	if err := jsaCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-service-account")
+		os.Exit(1)
+	}
+
+	jjbr := jenkins_jobbuildrun.NewReconciler(cl, ctrlLog, ps)
+	if err := jjbr.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "jenkins-job-build-run")
 		os.Exit(1)
 	}
 

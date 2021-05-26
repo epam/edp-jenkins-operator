@@ -371,3 +371,11 @@ func (jc JenkinsClient) TriggerJob(job string, parameters map[string]string) err
 	vLog.Info("jenkins job has been triggered")
 	return nil
 }
+
+func (jc JenkinsClient) GetLastBuild(job *gojenkins.Job) (*gojenkins.Build, error) {
+	return job.GetLastBuild()
+}
+
+func (jc JenkinsClient) BuildIsRunning(build *gojenkins.Build) bool {
+	return build.IsRunning()
+}

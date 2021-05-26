@@ -20,12 +20,13 @@ require (
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
-	github.com/openshift/api v3.9.0+incompatible
+	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/operator-framework/operator-sdk v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.10.0
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/testify v1.6.1
 	gopkg.in/resty.v1 v1.12.0
 	k8s.io/api v0.21.0-rc.0
 	k8s.io/apimachinery v0.21.0-rc.0

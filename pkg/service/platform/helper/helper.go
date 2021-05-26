@@ -3,17 +3,18 @@ package helper
 import (
 	"bytes"
 	"fmt"
+	"text/template"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util"
 	"github.com/pkg/errors"
 	authV1Api "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"text/template"
 )
 
 const (
-	defaultConfigsAbsolutePath = "/usr/local/configs/"
+	defaultConfigsAbsolutePath = "/usr/local/configs"
 	localConfigsRelativePath   = "configs"
 	UrlCutset                  = "!\"#$%&'()*+,-./@:;<=>[\\]^_`{|}~"
 )
@@ -88,7 +89,7 @@ func createPath(directory string, localRun bool) (string, error) {
 }
 
 func checkIfRunningLocally() bool {
-	return util.RunningInCluster()
+	return !util.RunningInCluster()
 }
 
 func CreatePathToTemplateDirectory(directory string) (string, error) {

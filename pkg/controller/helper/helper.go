@@ -164,3 +164,7 @@ func GetSlavesList(slaves string) []string {
 
 	return nil
 }
+
+func JenkinsIsNotFoundErr(err error) bool {
+	return err.Error() == "404"
+}
