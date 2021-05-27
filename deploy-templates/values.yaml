@@ -37,7 +37,7 @@ jenkins:
   sharedLibraries:
     - name: "edp-library-stages"
       url: "https://github.com/epam/edp-library-stages.git"
-      tag: "build/2.8.0-RC.5"
+      tag: "build/2.8.0-RC.6"
     - name: "edp-library-pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
       tag: "build/2.8.0-RC.4"
