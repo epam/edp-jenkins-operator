@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/dchest/uniuri"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
@@ -247,6 +248,9 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 				Name:      "jenkins-users",
 				Composite: "developer",
 			},
+		}
+		if instance.Spec.KeycloakSpec.Realm != "" {
+			keycloakClient.Spec.TargetRealm = instance.Spec.KeycloakSpec.Realm
 		}
 
 		err = j.platformService.CreateKeycloakClient(&keycloakClient)
