@@ -57,6 +57,8 @@ stages['Code-review-library-terraform'] = '[{"name": "gerrit-checkout"}' + "${co
  ',{"name": "terraform-lint"}]'
 stages['Code-review-library-opa'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "tests"}]'
+stages['Code-review-library-codenarc'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
+ ',{"name": "sonar"},{"name": "build"}]'
 
 stages['Build-library-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
         '{"name": "tests"},{"name": "sonar"},{"name": "build"},{"name": "push"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
@@ -70,6 +72,8 @@ stages['Build-library-terraform'] = '[{"name": "checkout"},{"name": "get-version
  ',{"name": "terraform-plan"},{"name": "terraform-apply"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-opa'] = '[{"name": "checkout"},{"name": "get-version"}' +
  ',{"name": "tests"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
+stages['Build-library-codenarc'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "sonar"},{"name": "build"}' +
+    "${createJIMStage}" + ',{"name": "git-tag"}]'
 
 
 stages['Build-application-maven'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "compile"},' +
@@ -184,6 +188,9 @@ def getStageKeyName(buildTool) {
     }
     if (buildTool.toString().equalsIgnoreCase('opa')) {
         return "Code-review-library-opa"
+    }
+    if (buildTool.toString().equalsIgnoreCase('codenarc')) {
+        return "Code-review-library-codenarc"
     }
     def buildToolsOutOfTheBox = ["maven","npm","gradle","dotnet","none","go","python"]
     def supBuildTool = buildToolsOutOfTheBox.contains(buildTool.toString())
