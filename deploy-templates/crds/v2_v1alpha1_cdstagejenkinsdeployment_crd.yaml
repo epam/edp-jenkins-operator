@@ -17,18 +17,17 @@ spec:
               properties:
                 job:
                   type: string
-                tags:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - codebase
-                      - tag
-                    properties:
-                      codebase:
-                        type: string
-                      tag:
-                        type: string
+                tag:
+                  type: object
+                  properties:
+                    codebase:
+                      type: string
+                    tag:
+                      type: string
+                  required:
+                    - codebase
+                    - tag
+
   conversion:
     strategy: None
   scope: Namespaced
