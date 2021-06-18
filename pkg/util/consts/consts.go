@@ -13,13 +13,9 @@ const (
 	JenkinsFolderKind = "JenkinsFolder"
 	CDPipelineKind    = "CDPipeline"
 
-	AuthorizationApiGroup = "rbac.authorization.k8s.io"
-	ClusterRoleKind       = "ClusterRole"
-
-	JenkinsServiceAccount         = "jenkins"
-	EdpAdminConsoleServiceAccount = "edp-admin-console"
-
 	LibraryCodebase = "library"
 
 	JenkinsDefaultScriptConfigMapKey = "context"
+
+	CdStageDeployKey = "cdStageDeployName"
 )

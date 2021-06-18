@@ -1,9 +1,10 @@
-package triggerjenkinsdeployjob
+package chain
 
 import (
 	"encoding/json"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/handler"
 	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/go-logr/logr"
@@ -12,15 +13,16 @@ import (
 )
 
 type TriggerJenkinsDeployJob struct {
-	Client   client.Client
-	Platform ps.PlatformService
-	Log      logr.Logger
+	next     handler.CDStageJenkinsDeploymentHandler
+	client   client.Client
+	platform ps.PlatformService
+	log      logr.Logger
 }
 
 const jenkinsKey = "jenkinsName"
 
 func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) error {
-	log := h.Log.WithValues("job", jenkinsDeploy.Spec.Job)
+	log := h.log.WithValues("job", jenkinsDeploy.Spec.Job)
 	log.Info("triggering deploy job.")
 
 	jc, err := h.initJenkinsClient(jenkinsDeploy)
@@ -28,31 +30,31 @@ func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJen
 		return errors.Wrap(err, "couldn't create jenkins client")
 	}
 
-	codebases, err := json.Marshal(jenkinsDeploy.Spec.Tags)
+	c, err := json.Marshal(jenkinsDeploy.Spec.Tag)
 	if err != nil {
 		return err
 	}
 
 	jobParameters := map[string]string{
-		"AUTODEPLOY":        "true",
-		"CODEBASE_VERSIONS": string(codebases),
+		"AUTODEPLOY":       "true",
+		"CODEBASE_VERSION": string(c),
 	}
 
 	if err := jc.TriggerJob(jenkinsDeploy.Spec.Job, jobParameters); err != nil {
-		return errors.Wrapf(err, "couldn't trigger jenkins job %v", jenkinsDeploy.Spec.Job)
+		return err
 	}
 
 	log.Info("deploy job has been triggered.")
-	return nil
+	return nextServeOrNil(h.next, jenkinsDeploy)
 }
 func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) (*jenkinsClient.JenkinsClient, error) {
 	j, err := h.getJenkins(jenkinsDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't get jenkins")
 	}
-	return jenkinsClient.InitGoJenkinsClient(j, h.Platform)
+	return jenkinsClient.InitGoJenkinsClient(j, h.platform)
 }
 
 func (h TriggerJenkinsDeployJob) getJenkins(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) (*v1alpha1.Jenkins, error) {
-	return platform.GetJenkinsInstance(h.Client, jenkinsDeploy.Labels[jenkinsKey], jenkinsDeploy.Namespace)
+	return platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[jenkinsKey], jenkinsDeploy.Namespace)
 }

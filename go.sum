@@ -427,6 +427,11 @@ github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132935-d94e26c595a4
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210420132935-d94e26c595a4/go.mod h1:6bhnuG7CHMvSxnHG9/gUTlCA/GsY/CIciBvsIvPAl3E=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210426125026-571bd859bdf0 h1:+x2zZ+TqDx1abWOWgFSODhCVRqi2t7zA9kupkF0ibls=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210426125026-571bd859bdf0/go.mod h1:6bhnuG7CHMvSxnHG9/gUTlCA/GsY/CIciBvsIvPAl3E=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210611080055-9f3a3a271e99/go.mod h1:6tnAoX5VBOmRbufutBrT5U6e66tiQLaY4HLC/FbVO7g=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210617081726-27d02e510f5a h1:k3Jri+hF4QUc+5RLuMLuQWwjv7KVIMPFSmE8udQeD6c=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210617081726-27d02e510f5a/go.mod h1:H/1y6WzQimeVsRQ6uUs0gp5IWYQ20Y4aTEubwUuzLqQ=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210618082456-07096065e4b6 h1:7TS9kzup5rF2dMrmLuuvGCxM6K06tQa6SGAzjdR+xVg=
+github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210618082456-07096065e4b6/go.mod h1:4WXRZRQFAhkyZ4zM37551hROW+B194HQw3F8q2b5J88=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0 h1:86HuNjzzQm4skH//J31a6J6GDLEwemAh7jU3Fvrsz0I=
 github.com/epam/edp-component-operator v0.0.0-20191029131047-d87b7a6d3bb0/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
 github.com/epam/edp-component-operator v0.0.1-2/go.mod h1:k4OqvjIznqyXgdpp1iuuSdSk4BdjiJ3j3eesPIIqO+s=
@@ -450,6 +455,8 @@ github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210225152826-bea603cbdb79
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420131617-d87232c5a586/go.mod h1:1ROiB86a86VgmUtARbJ4P74v598URraYjJjqpoF5DBU=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210420132755-4de3673f7668/go.mod h1:CZNS3IyxBT+/WhzfwtEWimn8SQ3QN9+K3h/XoLrm/94=
 github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210426124415-1871a8ff05c7/go.mod h1:0/A46l/qeEJraaVoRCdlflIZJQ0CEFdozOmUKGRK+UM=
+github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210427082830-e7849a9d1254/go.mod h1:/o/GFvbJkFCPO+MAiB4NltkJGeP5kHMQ45SUg3OTf1c=
+github.com/epam/edp-jenkins-operator/v2 v2.3.0-130.0.20210618082119-d397894f98e0/go.mod h1:T7CfsgGR8Bb7BQeqQyTeYXgfM1K8fjWUuCm16NP6wyI=
 github.com/epam/edp-keycloak-operator v1.0.18-alpha-39/go.mod h1:n78SGdVQhCkr29STKtz2qKDnYBiWk4TUoGATKF6nOH8=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56 h1:xVXmJ2hXrjGX3R/kSIhEPBuefLaHeHIcrof1mKBDTkg=
 github.com/epam/edp-keycloak-operator v1.0.31-alpha-56/go.mod h1:uXEmg98UyXkMVe9deHTkz0wF7fb47geazmAoiQAb/Zw=
@@ -461,6 +468,8 @@ github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72
 github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684/go.mod h1:DdqP20bkxXiS1c8NTgc4qbrI1alCH1Kzy/2ie4JmenU=
 github.com/epam/edp-perf-operator/v2 v2.0.0-20210420132104-20958a66482a h1:cwTZbiMx0WNK/28ulzoTjYqNGNviKbzxzTKtnAXSavQ=
 github.com/epam/edp-perf-operator/v2 v2.0.0-20210420132104-20958a66482a/go.mod h1:KyEAF7OCx/5rPZ29BAeCFV1mez66sxFMf94cZ/IeyVc=
+github.com/epam/edp-perf-operator/v2 v2.0.0-20210427075221-451577e1e5f2/go.mod h1:buOpUkjbWkwJe449ZLRJR8choZ9cGFamIdCaOO8VBy4=
+github.com/epam/edp-perf-operator/v2 v2.0.0-20210615084859-4e4202d10e93/go.mod h1:V04hAXIN/w/bO4tW0Dy5DJV0Y3ZvbnNPvuSLu95Nk00=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50 h1:2a+EYbwYjhwJa0MAd4lsq1/LmTAqPp8/G9yAeheYPuQ=
 github.com/epmd-edp/cd-pipeline-operator/v2 v2.2.0-50/go.mod h1:ygALtMzvxjLfbXLfGqZ+eGjsARgBdyf6IvoTl5NF5Kk=
 github.com/epmd-edp/codebase-operator/v2 v2.3.0-88/go.mod h1:MqnZsWXSdziAmOYznnMW+C3M160So5AMuJoCSL84t8M=
