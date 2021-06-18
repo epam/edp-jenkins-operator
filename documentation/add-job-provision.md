@@ -26,8 +26,8 @@ stages['Code-review-application'] = '[{"name": "gerrit-checkout"}' + "${commitVa
 stages['Code-review-library'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
  ',{"name": "compile"},{"name": "tests"},' +
         '{"name": "sonar"}]'
-stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" +
- ',{"name": "tests"},{"name": "sonar"}]'
+stages['Code-review-autotests'] = '[{"name": "gerrit-checkout"},{"name": "get-version"}' + "${commitValidateStage}" +
+ ',{"name": "tests"},{"name": "sonar"}' + "${createJIMStage}" + ']'
 stages['Code-review-default'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + ']'
 stages['Code-review-library-terraform'] = '[{"name": "gerrit-checkout"}' + "${commitValidateStage}" + 
  ',{"name": "terraform-lint"}]'
