@@ -72,6 +72,8 @@ rules:
     - cdstagedeployments
     - cdstagedeployments/finalizers
     - cdstagedeployments/status
+    - jenkinsjobbuildruns
+    - jenkinsjobbuildruns/status
   verbs:
     - '*'
 - apiGroups:
