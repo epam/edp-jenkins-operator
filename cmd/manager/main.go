@@ -2,37 +2,39 @@ package main
 
 import (
 	"flag"
+	"os"
+	"strconv"
+
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_jobbuildrun"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins"
 	jenkinsFolder "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder"
 	jenkinsJob "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_jobbuildrun"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	clusterUtil "github.com/epam/edp-jenkins-operator/v2/pkg/util"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/rest"
-	"os"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	//+kubebuilder:scaffold:imports
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
@@ -42,7 +44,10 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const jenkinsOperatorLock = "edp-jenkins-operator-lock"
+const (
+	jenkinsOperatorLock                  = "edp-jenkins-operator-lock"
+	jenkinsJobMaxConcurrentReconcilesEnv = "JENKINS_JOB_MAX_CONCURRENT_RECONCILES"
+)
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -146,7 +151,8 @@ func main() {
 	}
 
 	jjCtrl := jenkinsJob.NewReconcileJenkinsJob(cl, mgr.GetScheme(), ctrlLog, ps)
-	if err := jjCtrl.SetupWithManager(mgr); err != nil {
+	if err := jjCtrl.SetupWithManager(mgr,
+		getMaxConcurrentReconciles(jenkinsJobMaxConcurrentReconcilesEnv)); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-job")
 		os.Exit(1)
 	}
@@ -184,4 +190,18 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func getMaxConcurrentReconciles(envVar string) int {
+	val, exists := os.LookupEnv(envVar)
+	if !exists {
+		return 1
+	}
+
+	n, err := strconv.ParseInt(val, 10, 32)
+	if err != nil {
+		return 1
+	}
+
+	return int(n)
 }
