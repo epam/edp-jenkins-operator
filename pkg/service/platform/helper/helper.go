@@ -23,6 +23,8 @@ type JenkinsScriptData struct {
 	RealmName              string
 	KeycloakUrl            string
 	KeycloakClientName     string
+	KeycloakIsPrivate      bool
+	KeycloakClientSecret   string
 	JenkinsUrl             string
 	JenkinsSharedLibraries []v1alpha1.JenkinsSharedLibraries
 }

@@ -43,6 +43,12 @@ spec:
               properties:
                 enabled:
                   type: boolean
+                realm:
+                  type: string
+                isPrivate:
+                  type: boolean
+                secretName:
+                  type: string
               required:
               - enabled
               type: object
