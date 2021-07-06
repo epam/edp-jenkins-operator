@@ -19,7 +19,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/edp-jenkins-gradle-java8-agent:1.0.1</image>
+      <image>epamedp/edp-jenkins-codenarc-agent:0.0.1-SNAPSHOT.5</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
