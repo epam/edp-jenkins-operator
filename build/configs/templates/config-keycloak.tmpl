@@ -39,7 +39,11 @@ def keycloak_json ='''\
   "auth-server-url": "{{ .KeycloakUrl }}/auth",
   "ssl-required": "external",
   "resource": "{{ .KeycloakClientName }}",
+  {{if .KeycloakIsPrivate}}
+  "credentials": {"secret": "{{ .KeycloakClientSecret }}"},
+  {{else}}
   "public-client": true,
+  {{end}}
   "confidential-port": 0
 }'''.stripIndent()
 

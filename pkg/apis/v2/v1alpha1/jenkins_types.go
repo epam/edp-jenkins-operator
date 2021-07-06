@@ -70,8 +70,10 @@ type JobProvision struct {
 }
 
 type KeycloakSpec struct {
-	Enabled bool   `json:"enabled"`
-	Realm   string `json:"realm,omitempty"`
+	Enabled    bool   `json:"enabled"`
+	Realm      string `json:"realm,omitempty"`
+	IsPrivate  bool   `json:"isPrivate,omitempty"`
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

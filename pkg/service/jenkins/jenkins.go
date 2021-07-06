@@ -237,7 +237,8 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		keycloakClient.Name = instance.Name
 		keycloakClient.Namespace = instance.Namespace
 		keycloakClient.Spec.ClientId = instance.Name
-		keycloakClient.Spec.Public = true
+		keycloakClient.Spec.Public = !instance.Spec.KeycloakSpec.IsPrivate
+		keycloakClient.Spec.Secret = instance.Spec.KeycloakSpec.SecretName
 		keycloakClient.Spec.WebUrl = webUrl
 		keycloakClient.Spec.RealmRoles = &[]keycloakV1Api.RealmRole{
 			{
@@ -289,6 +290,16 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		jenkinsScriptData.RealmName = keycloakRealm.Spec.RealmName
 		jenkinsScriptData.KeycloakClientName = keycloakClient.Spec.ClientId
 		jenkinsScriptData.KeycloakUrl = keycloak.Spec.Url
+		jenkinsScriptData.KeycloakIsPrivate = instance.Spec.KeycloakSpec.IsPrivate
+
+		if instance.Spec.KeycloakSpec.IsPrivate {
+			dt, err := j.platformService.GetSecretData(instance.Namespace, keycloakClient.Spec.Secret)
+			if err != nil {
+				return &instance, false, errors.Wrap(err, "unable to get keycloak client secret data")
+			}
+
+			jenkinsScriptData.KeycloakClientSecret = string(dt["clientSecret"])
+		}
 
 		scriptContext, err := platformHelper.ParseTemplate(jenkinsScriptData, keycloakCfgFilePath, keycloakConfigTemplateName)
 		if err != nil {
