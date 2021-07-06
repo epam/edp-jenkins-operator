@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
+
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain"
@@ -15,15 +18,14 @@ import (
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 const jenkinsJobFinalizerName = "jenkinsjob.finalizer.name"
@@ -44,7 +46,7 @@ type ReconcileJenkinsJob struct {
 	log      logr.Logger
 }
 
-func (r *ReconcileJenkinsJob) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ReconcileJenkinsJob) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int) error {
 	p := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oo := e.ObjectOld.(*jenkinsApi.JenkinsJob)
@@ -60,7 +62,9 @@ func (r *ReconcileJenkinsJob) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&jenkinsApi.JenkinsJob{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.JenkinsJob{}, builder.WithPredicates(p)).WithOptions(controller.Options{
+		MaxConcurrentReconciles: maxConcurrentReconciles,
+	}).
 		Complete(r)
 }
 
