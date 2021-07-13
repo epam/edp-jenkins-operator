@@ -5,8 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+
 	"github.com/bndr/gojenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,15 +42,15 @@ func TestReconcile_ReconcileJobNotFound(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jbr)
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
-	jClient := jenkinsClientMock{}
-	jBuilder := jenkinsClientBuilderMock{}
-	jBuilder.On("MakeNewJenkinsClient", &jbr).Return(&jClient, nil)
+	jClient := jenkins.ClientMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
 	jClient.On("GetJobByName", "path/job").Return(nil, errors.New("404"))
 
 	r := Reconcile{
 		client:               k8sClient,
 		jenkinsClientFactory: &jBuilder,
-		log:                  &logger{},
+		log:                  &helper.LoggerMock{},
 	}
 
 	req := reconcile.Request{
@@ -96,9 +99,9 @@ func TestReconcile_ReconcileNewBuild(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jbr)
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
-	jClient := jenkinsClientMock{}
-	jBuilder := jenkinsClientBuilderMock{}
-	jBuilder.On("MakeNewJenkinsClient", &jbr).Return(&jClient, nil)
+	jClient := jenkins.ClientMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -121,7 +124,7 @@ func TestReconcile_ReconcileNewBuild(t *testing.T) {
 	r := Reconcile{
 		client:               k8sClient,
 		jenkinsClientFactory: &jBuilder,
-		log:                  &logger{},
+		log:                  &helper.LoggerMock{},
 	}
 
 	req := reconcile.Request{
@@ -170,9 +173,9 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jbr)
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
-	jClient := jenkinsClientMock{}
-	jBuilder := jenkinsClientBuilderMock{}
-	jBuilder.On("MakeNewJenkinsClient", &jbr).Return(&jClient, nil)
+	jClient := jenkins.ClientMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -195,7 +198,7 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 	r := Reconcile{
 		client:               k8sClient,
 		jenkinsClientFactory: &jBuilder,
-		log:                  &logger{},
+		log:                  &helper.LoggerMock{},
 	}
 
 	req := reconcile.Request{
@@ -220,7 +223,7 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 
-	jBuilder.On("MakeNewJenkinsClient", &checkJenkinsJobBuildRun).Return(&jClient, nil)
+	jBuilder.On("MakeNewClient", &checkJenkinsJobBuildRun.ObjectMeta, checkJenkinsJobBuildRun.Spec.OwnerName).Return(&jClient, nil)
 
 	_, err = r.Reconcile(context.Background(), req)
 	if err != nil {
@@ -262,9 +265,9 @@ func TestReconcile_ReconcileDeleteExpiredBuilds(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jbr)
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
-	jClient := jenkinsClientMock{}
-	jBuilder := jenkinsClientBuilderMock{}
-	jBuilder.On("MakeNewJenkinsClient", &jbr).Return(&jClient, nil)
+	jClient := jenkins.ClientMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -288,7 +291,7 @@ func TestReconcile_ReconcileDeleteExpiredBuilds(t *testing.T) {
 	r := Reconcile{
 		client:               k8sClient,
 		jenkinsClientFactory: &jBuilder,
-		log:                  &logger{},
+		log:                  &helper.LoggerMock{},
 	}
 
 	req := reconcile.Request{

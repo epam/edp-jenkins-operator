@@ -7,6 +7,7 @@ import (
 
 	"github.com/bndr/gojenkins"
 	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/go-logr/logr"
@@ -27,7 +28,7 @@ const (
 type Reconcile struct {
 	client               client.Client
 	log                  logr.Logger
-	jenkinsClientFactory jenkinsClientFactory
+	jenkinsClientFactory jenkins.ClientFactory
 }
 
 func NewReconciler(k8sCl client.Client, logf logr.Logger,
@@ -36,7 +37,7 @@ func NewReconciler(k8sCl client.Client, logf logr.Logger,
 	return &Reconcile{
 		client:               k8sCl,
 		log:                  logf.WithName("controller_jenkins_jobbuildrun"),
-		jenkinsClientFactory: makeJenkinsClientBuilder(ps, k8sCl),
+		jenkinsClientFactory: jenkins.MakeClientBuilder(ps, k8sCl),
 	}
 }
 
@@ -77,7 +78,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 		return
 	}
 
-	jc, err := r.jenkinsClientFactory.MakeNewJenkinsClient(&instance)
+	jc, err := r.jenkinsClientFactory.MakeNewClient(&instance.ObjectMeta, instance.Spec.OwnerName)
 	if err != nil {
 		return reconcile.Result{},
 			errors.Wrap(err, "an error has been occurred while creating gojenkins client")
@@ -99,7 +100,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	return
 }
 
-func tryToReconcile(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkinsClient) (time.Duration, error) {
+func tryToReconcile(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientInterface) (time.Duration, error) {
 	//check if job exists
 	job, err := jc.GetJobByName(instance.Spec.JobPath)
 	if err != nil {
@@ -127,7 +128,7 @@ func tryToReconcile(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkinsClient) (
 }
 
 func checkLastBuild(job *gojenkins.Job, instance *v2v1alpha1.JenkinsJobBuildRun,
-	jc jenkinsClient) (time.Duration, error) {
+	jc jenkins.ClientInterface) (time.Duration, error) {
 	build, err := jc.GetLastBuild(job)
 	if err != nil {
 		//job does not have any builds so we can trigger new one
@@ -161,7 +162,7 @@ func checkLastBuild(job *gojenkins.Job, instance *v2v1alpha1.JenkinsJobBuildRun,
 	return retryInterval, triggerNewBuild(instance, jc, v2v1alpha1.JobBuildRunStatusCreated)
 }
 
-func triggerNewBuild(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkinsClient,
+func triggerNewBuild(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientInterface,
 	status string) error {
 	buildNumber, err := jc.BuildJob(instance.Spec.JobPath, instance.Spec.Params)
 	if err != nil {

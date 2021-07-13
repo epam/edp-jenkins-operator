@@ -13,6 +13,8 @@ import (
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_authorizationrole"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_authorizationrolemapping"
 	jenkinsFolder "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder"
 	jenkinsJob "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_jobbuildrun"
@@ -172,6 +174,16 @@ func main() {
 	jjbr := jenkins_jobbuildrun.NewReconciler(cl, ctrlLog, ps)
 	if err := jjbr.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-job-build-run")
+		os.Exit(1)
+	}
+
+	if err := jenkins_authorizationrole.NewReconciler(cl, ctrlLog, ps).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "jenkins-auth-role")
+		os.Exit(1)
+	}
+
+	if err := jenkins_authorizationrolemapping.NewReconciler(cl, ctrlLog, ps).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "jenkins-auth-role")
 		os.Exit(1)
 	}
 
