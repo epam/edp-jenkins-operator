@@ -2,10 +2,11 @@ package helper
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 	PasswordUserType   string = "password"
 	TokenUserType      string = "token"
 	platformType       string = "PLATFORM_TYPE"
+	StatusSuccess             = "success"
 )
 
 func NewTrue() *bool {

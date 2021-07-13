@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
 	"time"
+
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/bndr/gojenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
@@ -75,8 +76,11 @@ func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Pl
 		return nil, err
 	}
 	log.Info("Jenkins client is initialized", "url", url)
+
 	return &JenkinsClient{
-		GoJenkins: jenkins,
+		GoJenkins:       jenkins,
+		PlatformService: platformService,
+		resty:           *resty.SetHostURL(url).SetBasicAuth(string(s["username"]), string(s["password"])),
 	}, nil
 }
 
