@@ -67,6 +67,10 @@ rules:
     - cdstagedeployments/status
     - jenkinsjobbuildruns
     - jenkinsjobbuildruns/status
+    - jenkinsauthorizationroles
+    - jenkinsauthorizationroles/status
+    - jenkinsauthorizationrolemappings
+    - jenkinsauthorizationrolemappings/status
   verbs:
     - '*'
 - apiGroups:
