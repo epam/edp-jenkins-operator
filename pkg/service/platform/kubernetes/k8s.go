@@ -4,6 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
 	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
@@ -13,7 +19,6 @@ import (
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	coreV1Api "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,12 +28,9 @@ import (
 	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
-	"os"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strings"
 )
 
 var log = ctrl.Log.WithName("platform")
@@ -188,8 +190,10 @@ func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, er
 	return secret.Data, nil
 }
 
-func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string, labels ...map[string]string) error {
-	_, err := service.getConfigMap(name, instance.Namespace)
+func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+	labels ...map[string]string) (isUpdated bool, err error) {
+
+	currentConfigMap, err := service.getConfigMap(name, instance.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			resultLabels := platformHelper.GenerateLabels(instance.Name)
@@ -205,11 +209,26 @@ func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string
 				Data: data,
 			}
 
-			return service.createConfigMap(instance, cm)
+			if err := service.createConfigMap(instance, cm); err != nil {
+				return false, errors.Wrap(err, "unable to create config map")
+			}
+
+			return false, nil
 		}
-		return errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
+
+		return false, errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
 	}
-	return nil
+
+	if reflect.DeepEqual(data, currentConfigMap.Data) {
+		return false, nil
+	}
+
+	currentConfigMap.Data = data
+	if err := service.client.Update(context.TODO(), currentConfigMap); err != nil {
+		return false, errors.Wrap(err, "unable to update config map")
+	}
+
+	return true, nil
 }
 
 func (s K8SService) getConfigMap(name, namespace string) (*coreV1Api.ConfigMap, error) {
@@ -251,7 +270,7 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 		}
 	}
 
-	err = service.CreateConfigMap(instance, configMapName, configMapData, labels)
+	_, err = service.CreateConfigMap(instance, configMapName, configMapData, labels)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
 	}
@@ -404,7 +423,7 @@ func (service K8SService) GetKeycloakClient(name, namespace string) (keycloakV1A
 	return out, nil
 }
 
-func (s K8SService) CreateJenkinsScript(namespace, name string) (*v1alpha1.JenkinsScript, error) {
+func (s K8SService) CreateJenkinsScript(namespace, name string, forceRecreate bool) (*v1alpha1.JenkinsScript, error) {
 	js, err := s.getJenkinsScript(name, namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -418,12 +437,33 @@ func (s K8SService) CreateJenkinsScript(namespace, name string) (*v1alpha1.Jenki
 				},
 			}
 			if err := s.client.Create(context.TODO(), js); err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "unable to create jenkins script")
 			}
 			return js, nil
 		}
 		return nil, err
 	}
+
+	if forceRecreate {
+		if err := s.client.Delete(context.TODO(), js); err != nil {
+			return nil, errors.Wrap(err, "unable to delete jenkins script")
+		}
+
+		js = &v1alpha1.JenkinsScript{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Spec: v1alpha1.JenkinsScriptSpec{
+				SourceCmName: name,
+			},
+		}
+
+		if err := s.client.Create(context.TODO(), js); err != nil {
+			return nil, errors.Wrap(err, "unable to create jenkins script")
+		}
+	}
+
 	return js, nil
 }
 

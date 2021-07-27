@@ -308,12 +308,12 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 
 		configKeycloakName := fmt.Sprintf("%v-%v", instance.Name, "config-keycloak")
 		configMapData := map[string]string{defaultScriptConfigMapKey: scriptContext.String()}
-		err = j.platformService.CreateConfigMap(instance, configKeycloakName, configMapData)
+		_, err = j.platformService.CreateConfigMap(instance, configKeycloakName, configMapData)
 		if err != nil {
 			return &instance, false, err
 		}
 
-		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configKeycloakName)
+		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configKeycloakName, false)
 		if err != nil {
 			return &instance, false, err
 		}
@@ -523,24 +523,9 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	jenkinsScriptData.JenkinsUrl = fmt.Sprintf("http://%v:%v/%v", instance.Name, jenkinsDefaultSpec.JenkinsDefaultUiPort, instance.Spec.BasePath)
 
 	for _, template := range templatesList {
-		templateFilePath := fmt.Sprintf("%v/%v", templatesDirectoryPath, template)
-		context, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
-		if err != nil {
+		if err := createTemplateScript(templatesDirectoryPath, template, j.platformService, jenkinsScriptData,
+			instance); err != nil {
 			return &instance, false, nil
-		}
-
-		jenkinsScriptName := strings.Split(template, ".")[0]
-		configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
-
-		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
-		if err != nil {
-			return &instance, false, err
-		}
-
-		configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: context.String()}
-		err = j.platformService.CreateConfigMap(instance, configMapName, configMapData)
-		if err != nil {
-			return &instance, false, err
 		}
 	}
 
@@ -561,6 +546,31 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	return &instance, true, nil
 }
 
+func createTemplateScript(templatesDirectoryPath, template string, platformService platform.PlatformService,
+	jenkinsScriptData platformHelper.JenkinsScriptData, instance v1alpha1.Jenkins) error {
+	templateFilePath := fmt.Sprintf("%v/%v", templatesDirectoryPath, template)
+	ctx, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
+	if err != nil {
+		return errors.Wrapf(err, "unable to parse template %s", template)
+	}
+
+	jenkinsScriptName := strings.Split(template, ".")[0]
+	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
+
+	configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: ctx.String()}
+	isUpdated, err := platformService.CreateConfigMap(instance, configMapName, configMapData)
+	if err != nil {
+		return errors.Wrap(err, "unable to create config map")
+	}
+
+	_, err = platformService.CreateJenkinsScript(instance.Namespace, configMapName, isUpdated)
+	if err != nil {
+		return errors.Wrap(err, "unable to create jenkins script")
+	}
+
+	return nil
+}
+
 func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance v1alpha1.Jenkins) error {
 	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(jobPath)
 	if err != nil {
@@ -579,7 +589,7 @@ func (j JenkinsServiceImpl) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, 
 }
 
 func (j JenkinsServiceImpl) createScript(instance v1alpha1.Jenkins, configMapName string, configMapKey string, contextPath string) error {
-	jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName)
+	jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName, false)
 	if err != nil {
 		return err
 	}
