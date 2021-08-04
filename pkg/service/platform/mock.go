@@ -23,7 +23,12 @@ func (m *Mock) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMap
 }
 
 func (m *Mock) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	panic("not implemented")
+	called := m.Called(namespace, name)
+	if err := called.Error(3); err != nil {
+		return "", "", "", err
+	}
+
+	return called.String(0), called.String(1), called.String(2), nil
 }
 
 func (m *Mock) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
@@ -43,11 +48,16 @@ func (m *Mock) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName
 }
 
 func (m *Mock) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
-	panic("not implemented")
+	return m.Called(kc).Error(0)
 }
 
 func (m *Mock) GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error) {
-	panic("not implemented")
+	called := m.Called(name, namespace)
+	if err := called.Error(1); err != nil {
+		return keycloakV1Api.KeycloakClient{}, err
+	}
+
+	return called.Get(0).(keycloakV1Api.KeycloakClient), nil
 }
 
 func (m *Mock) CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*v1alpha1.JenkinsScript, error) {
@@ -59,9 +69,19 @@ func (m *Mock) CreateJenkinsScript(namespace string, configMap string, forceExec
 	return called.Get(0).(*v1alpha1.JenkinsScript), nil
 }
 
-func (m *Mock) CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string,
-	labels ...map[string]string) (bool, error) {
-	called := m.Called(instance, configMapName, configMapData)
+func (m *Mock) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+	labels ...map[string]string) (*coreV1Api.ConfigMap, error) {
+	called := m.Called(instance, name)
+	if err := called.Error(1); err != nil {
+		return nil, err
+	}
+
+	return called.Get(0).(*coreV1Api.ConfigMap), nil
+}
+
+func (m *Mock) CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name string, data map[string]string,
+	labels ...map[string]string) (isUpdated bool, err error) {
+	called := m.Called(instance, name)
 	if err := called.Error(1); err != nil {
 		return false, err
 	}

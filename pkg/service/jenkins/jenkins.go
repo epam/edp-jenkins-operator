@@ -11,19 +11,17 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
-	ctrl "sigs.k8s.io/controller-runtime"
-
 	"github.com/dchest/uniuri"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
@@ -33,6 +31,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -44,7 +43,7 @@ const (
 	defaultCiJobProvisionsDirectory = "ci"
 	defaultCdJobProvisionsDirectory = "cd"
 	defaultTemplatesDirectory       = "templates"
-	slavesTemplateName              = "jenkins-slaves"
+	SlavesTemplateName              = "jenkins-slaves"
 	sharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
 	kubernetesPluginTemplateName    = "config-kubernetes-plugin.tmpl"
 	keycloakConfigTemplateName      = "config-keycloak.tmpl"
@@ -499,11 +498,11 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		"role": "jenkins-slave",
 	}
 
-	err = j.platformService.CreateConfigMapFromFileOrDir(instance, slavesTemplateName, nil,
+	err = j.platformService.CreateConfigMapFromFileOrDir(instance, SlavesTemplateName, nil,
 		slavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
-			slavesTemplateName, instance.Namespace)
+			SlavesTemplateName, instance.Namespace)
 	}
 
 	templatesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
@@ -558,7 +557,7 @@ func createTemplateScript(templatesDirectoryPath, template string, platformServi
 	configMapName := fmt.Sprintf("%v-%v", instance.Name, jenkinsScriptName)
 
 	configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: ctx.String()}
-	isUpdated, err := platformService.CreateConfigMap(instance, configMapName, configMapData)
+	isUpdated, err := platformService.CreateConfigMapWithUpdate(instance, configMapName, configMapData)
 	if err != nil {
 		return errors.Wrap(err, "unable to create config map")
 	}

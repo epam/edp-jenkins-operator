@@ -43,20 +43,20 @@ func NewReconciler(k8sCl client.Client, logf logr.Logger,
 
 func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 	p := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			oo := e.ObjectOld.(*v2v1alpha1.JenkinsJobBuildRun)
-			no := e.ObjectNew.(*v2v1alpha1.JenkinsJobBuildRun)
-			if !reflect.DeepEqual(oo.Spec, no.Spec) {
-				return true
-			}
-
-			return false
-		},
+		UpdateFunc: specUpdated,
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v2v1alpha1.JenkinsJobBuildRun{}, builder.WithPredicates(p)).
 		Complete(r)
+}
+
+func specUpdated(e event.UpdateEvent) bool {
+	oo := e.ObjectOld.(*v2v1alpha1.JenkinsJobBuildRun)
+	no := e.ObjectNew.(*v2v1alpha1.JenkinsJobBuildRun)
+
+	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
+		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
 }
 
 func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (result reconcile.Result, resError error) {

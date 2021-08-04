@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"sigs.k8s.io/controller-runtime/pkg/event"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 
 	"github.com/bndr/gojenkins"
@@ -44,7 +46,7 @@ func TestReconcile_ReconcileJobNotFound(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
+	jBuilder.On("MakeNewClient", jbr.Spec.OwnerName).Return(&jClient, nil)
 	jClient.On("GetJobByName", "path/job").Return(nil, errors.New("404"))
 
 	r := Reconcile{
@@ -101,7 +103,7 @@ func TestReconcile_ReconcileNewBuild(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
+	jBuilder.On("MakeNewClient", jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -175,7 +177,7 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
+	jBuilder.On("MakeNewClient", jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -267,7 +269,7 @@ func TestReconcile_ReconcileDeleteExpiredBuilds(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jbr).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", &jbr.ObjectMeta, jbr.Spec.OwnerName).Return(&jClient, nil)
+	jBuilder.On("MakeNewClient", jbr.Spec.OwnerName).Return(&jClient, nil)
 
 	job := gojenkins.Job{
 		Raw: &gojenkins.JobResponse{
@@ -326,4 +328,41 @@ func TestReconcile_ReconcileDeleteExpiredBuilds(t *testing.T) {
 	if err := k8sClient.Get(context.Background(), req.NamespacedName, &checkJenkinsJobBuildRun); err == nil {
 		t.Fatal("build is not deleted")
 	}
+}
+
+func TestSpecUpdate(t *testing.T) {
+	jbr1 := v1alpha1.JenkinsJobBuildRun{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "run1",
+			Namespace: "ns",
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "JenkinsJobBuildRun",
+			APIVersion: "apps/v1",
+		},
+		Spec: v1alpha1.JenkinsJobBuildRunSpec{
+			JobPath: "path/job",
+			Retry:   1,
+		},
+	}
+
+	jbr2 := v1alpha1.JenkinsJobBuildRun{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "run1",
+			Namespace: "ns",
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "JenkinsJobBuildRun",
+			APIVersion: "apps/v1",
+		},
+		Spec: v1alpha1.JenkinsJobBuildRunSpec{
+			JobPath: "path/job",
+			Retry:   2,
+		},
+	}
+
+	if !specUpdated(event.UpdateEvent{ObjectNew: &jbr1, ObjectOld: &jbr2}) {
+		t.Fatal("spec is updated")
+	}
+
 }

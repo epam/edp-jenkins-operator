@@ -71,7 +71,7 @@ type ClientBuilderMock struct {
 }
 
 func (j *ClientBuilderMock) MakeNewClient(om *metav1.ObjectMeta, ownerName *string) (ClientInterface, error) {
-	called := j.Called(om, ownerName)
+	called := j.Called(ownerName)
 	if err := called.Error(1); err != nil {
 		return nil, err
 	}

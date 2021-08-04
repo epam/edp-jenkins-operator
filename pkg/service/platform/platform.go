@@ -28,7 +28,10 @@ type PlatformService interface {
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
 	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
 	CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*v1alpha1.JenkinsScript, error)
-	CreateConfigMap(instance v1alpha1.Jenkins, configMapName string, configMapData map[string]string, labels ...map[string]string) (bool, error)
+	CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+		labels ...map[string]string) (*coreV1Api.ConfigMap, error)
+	CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name string, data map[string]string,
+		labels ...map[string]string) (isUpdated bool, err error)
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
 	CreateStageJSON(stage cdPipeApi.Stage) (string, error)
 }

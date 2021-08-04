@@ -18,6 +18,7 @@ import (
 	jenkinsFolder "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder"
 	jenkinsJob "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_jobbuildrun"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsagent"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -184,6 +185,11 @@ func main() {
 
 	if err := jenkins_authorizationrolemapping.NewReconciler(cl, ctrlLog, ps).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-auth-role")
+		os.Exit(1)
+	}
+
+	if err := jenkinsagent.NewReconciler(cl, ctrlLog).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "jenkins-agent")
 		os.Exit(1)
 	}
 

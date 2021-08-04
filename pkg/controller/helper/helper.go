@@ -6,7 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -169,4 +171,27 @@ func GetSlavesList(slaves string) []string {
 
 func JenkinsIsNotFoundErr(err error) bool {
 	return err.Error() == "404"
+}
+
+func TryToDelete(instance client.Object, finalizerName string, deleteFunc func() error) (needUpdate bool, err error) {
+	if instance.GetDeletionTimestamp().IsZero() {
+		finalizers := instance.GetFinalizers()
+		if !finalizer.ContainsString(finalizers, finalizerName) {
+			finalizers = append(finalizers, finalizerName)
+			instance.SetFinalizers(finalizers)
+			needUpdate = true
+		}
+
+		return
+	}
+
+	if err := deleteFunc(); err != nil {
+		return false, errors.Wrap(err, "unable to perform delete function")
+	}
+
+	finalizers := instance.GetFinalizers()
+	finalizers = finalizer.RemoveString(finalizers, finalizerName)
+	instance.SetFinalizers(finalizers)
+
+	return true, nil
 }

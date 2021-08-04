@@ -5,11 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/pkg/errors"
 )
 
 func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
@@ -36,7 +35,7 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 		}
 	}()
 
-	platformMock.On("CreateConfigMap", ji, "-temp", map[string]string{"context": "lol"}).Return(false, nil)
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").Return(false, nil)
 	platformMock.On("CreateJenkinsScript", "", "-temp", false).Return(&v1alpha1.JenkinsScript{}, nil)
 
 	if err := createTemplateScript("/tmp", "temp.tpl", &platformMock, jenkinsScriptData, ji); err != nil {
@@ -45,7 +44,11 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
-	ji := v1alpha1.Jenkins{}
+	ji := v1alpha1.Jenkins{
+		Spec: v1alpha1.JenkinsSpec{
+			Version: "0",
+		},
+	}
 	platformMock := platform.Mock{}
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 
@@ -79,7 +82,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 		}
 	}()
 
-	platformMock.On("CreateConfigMap", ji, "-temp", map[string]string{"context": "lol"}).
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").
 		Return(false, errors.New("CreateConfigMap fatal"))
 
 	err = createTemplateScript("/tmp", "temp.tpl", &platformMock, jenkinsScriptData, ji)
@@ -94,7 +97,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 	}
 
 	ji.Spec.Version = "2"
-	platformMock.On("CreateConfigMap", ji, "-temp", map[string]string{"context": "lol"}).
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").
 		Return(false, nil)
 	platformMock.On("CreateJenkinsScript", "", "-temp", false).
 		Return(nil, errors.New("CreateJenkinsScript fatal"))

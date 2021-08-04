@@ -27,12 +27,17 @@ func TestMock_All(t *testing.T) {
 		t.Fatal("no error")
 	}
 
-	m.On("CreateConfigMap", v1alpha1.Jenkins{}, "", map[string]string{}).Return(false, nil)
+	m.On("CreateConfigMap", v1alpha1.Jenkins{}, "").Return(&coreV1Api.ConfigMap{}, nil)
 	if _, err := m.CreateConfigMap(v1alpha1.Jenkins{}, "", map[string]string{}); err != nil {
 		t.Fatal(err)
 	}
 
-	m.On("CreateConfigMap", v1alpha1.Jenkins{}, "2", map[string]string{}).Return(false, errors.New("fatal"))
+	m.On("CreateConfigMapWithUpdate", v1alpha1.Jenkins{}, "").Return(false, nil)
+	if _, err := m.CreateConfigMapWithUpdate(v1alpha1.Jenkins{}, "", map[string]string{}); err != nil {
+		t.Fatal(err)
+	}
+
+	m.On("CreateConfigMap", v1alpha1.Jenkins{}, "2").Return(false, errors.New("fatal"))
 	if _, err := m.CreateConfigMap(v1alpha1.Jenkins{}, "2", map[string]string{}); err == nil {
 		t.Fatal("no error")
 	}

@@ -31,12 +31,12 @@ func TestK8SService_CreateConfigMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = svc.CreateConfigMap(ji, "test", map[string]string{"bar": "baz"})
+	_, err = svc.CreateConfigMapWithUpdate(ji, "test", map[string]string{"bar": "baz"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = svc.CreateConfigMap(ji, "test", map[string]string{"foo": "bar"})
+	_, err = svc.CreateConfigMapWithUpdate(ji, "test", map[string]string{"foo": "bar"})
 	if err != nil {
 		t.Fatal(err)
 	}

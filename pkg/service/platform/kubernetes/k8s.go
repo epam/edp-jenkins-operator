@@ -190,10 +190,29 @@ func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, er
 	return secret.Data, nil
 }
 
-func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+func (s K8SService) CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name string, data map[string]string,
 	labels ...map[string]string) (isUpdated bool, err error) {
+	currentConfigMap, err := s.CreateConfigMap(instance, name, data, labels...)
+	if err != nil {
+		return false, errors.Wrap(err, "unable to create configmap")
+	}
 
-	currentConfigMap, err := service.getConfigMap(name, instance.Namespace)
+	if reflect.DeepEqual(data, currentConfigMap.Data) {
+		return false, nil
+	}
+
+	currentConfigMap.Data = data
+	if err := s.client.Update(context.TODO(), currentConfigMap); err != nil {
+		return false, errors.Wrap(err, "unable to update config map")
+	}
+
+	return true, nil
+}
+
+func (s K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+	labels ...map[string]string) (*coreV1Api.ConfigMap, error) {
+
+	currentConfigMap, err := s.getConfigMap(name, instance.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			resultLabels := platformHelper.GenerateLabels(instance.Name)
@@ -209,26 +228,17 @@ func (service K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string
 				Data: data,
 			}
 
-			if err := service.createConfigMap(instance, cm); err != nil {
-				return false, errors.Wrap(err, "unable to create config map")
+			if err := s.createConfigMap(instance, cm); err != nil {
+				return nil, errors.Wrap(err, "unable to create config map")
 			}
 
-			return false, nil
+			return currentConfigMap, nil
 		}
 
-		return false, errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
+		return nil, errors.Wrapf(err, "Couldn't get ConfigMap %v object", name)
 	}
 
-	if reflect.DeepEqual(data, currentConfigMap.Data) {
-		return false, nil
-	}
-
-	currentConfigMap.Data = data
-	if err := service.client.Update(context.TODO(), currentConfigMap); err != nil {
-		return false, errors.Wrap(err, "unable to update config map")
-	}
-
-	return true, nil
+	return currentConfigMap, nil
 }
 
 func (s K8SService) getConfigMap(name, namespace string) (*coreV1Api.ConfigMap, error) {

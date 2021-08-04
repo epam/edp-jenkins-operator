@@ -76,8 +76,13 @@ rules:
     - jenkinsjobbuildruns/status
     - jenkinsauthorizationroles
     - jenkinsauthorizationroles/status
+    - jenkinsauthorizationroles/finalizers
     - jenkinsauthorizationrolemappings
     - jenkinsauthorizationrolemappings/status
+    - jenkinsauthorizationrolemappings/finalizers
+    - jenkinsagents
+    - jenkinsagents/status
+    - jenkinsagents/finalizers
   verbs:
     - '*'
 - apiGroups:

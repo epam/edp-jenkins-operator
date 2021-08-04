@@ -4,9 +4,12 @@ import "github.com/go-logr/logr"
 
 type LoggerMock struct {
 	errors []error
+	infos  []string
 }
 
-func (l *LoggerMock) Info(msg string, keysAndValues ...interface{}) {}
+func (l *LoggerMock) Info(msg string, keysAndValues ...interface{}) {
+	l.infos = append(l.infos, msg)
+}
 
 func (l *LoggerMock) Enabled() bool { return true }
 
@@ -20,6 +23,18 @@ func (l *LoggerMock) LastError() error {
 	}
 
 	return l.errors[len(l.errors)-1]
+}
+
+func (l *LoggerMock) Infos() []string {
+	return l.infos
+}
+
+func (l *LoggerMock) LastInfo() string {
+	if len(l.infos) == 0 {
+		return ""
+	}
+
+	return l.infos[len(l.infos)-1]
 }
 
 func (l *LoggerMock) V(level int) logr.InfoLogger {
