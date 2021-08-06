@@ -22,6 +22,7 @@ require (
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210719103751-659797a2dead
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
+	github.com/jarcoal/httpmock v1.0.8
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.10.0

@@ -6,22 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/event"
-
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func TestReconcile_Reconcile(t *testing.T) {
-	jarm := v1alpha1.JenkinsAuthorizationRoleMapping{
+func getTestJenkinsAuthorizationRoleMapping() *v1alpha1.JenkinsAuthorizationRoleMapping {
+	return &v1alpha1.JenkinsAuthorizationRoleMapping{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
 			Namespace: "nss",
@@ -36,11 +36,15 @@ func TestReconcile_Reconcile(t *testing.T) {
 			Roles:    []string{"tolr1", "tooo2"},
 		},
 	}
+}
+
+func TestReconcile_Reconcile(t *testing.T) {
+	jarm := getTestJenkinsAuthorizationRoleMapping()
 
 	s := scheme.Scheme
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jarm)
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
 
-	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jarm).Build()
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(&jClient, nil)
@@ -64,27 +68,13 @@ func TestReconcile_Reconcile(t *testing.T) {
 }
 
 func TestReconcile_Reconcile_Delete(t *testing.T) {
-	jarm := v1alpha1.JenkinsAuthorizationRoleMapping{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "test",
-			Namespace:         "nss",
-			DeletionTimestamp: &metav1.Time{Time: time.Now()},
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "JenkinsAuthorizationRoleMapping",
-			APIVersion: "apps/v1",
-		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleMappingSpec{
-			RoleType: "rt",
-			Group:    "mke@test.com",
-			Roles:    []string{"tolr1", "tooo2"},
-		},
-	}
+	jarm := getTestJenkinsAuthorizationRoleMapping()
+	jarm.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jarm)
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
 
-	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jarm).Build()
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(&jClient, nil)
@@ -121,27 +111,13 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 }
 
 func TestReconcile_Reconcile_Delete_Failure_UnsetRoles(t *testing.T) {
-	jarm := v1alpha1.JenkinsAuthorizationRoleMapping{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "test",
-			Namespace:         "nss",
-			DeletionTimestamp: &metav1.Time{Time: time.Now()},
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "JenkinsAuthorizationRoleMapping",
-			APIVersion: "apps/v1",
-		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleMappingSpec{
-			RoleType: "rt",
-			Group:    "mke@test.com",
-			Roles:    []string{"tolr1", "tooo2"},
-		},
-	}
+	jarm := getTestJenkinsAuthorizationRoleMapping()
+	jarm.DeletionTimestamp = &metav1.Time{Time: time.Now()}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jarm)
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
 
-	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&jarm).Build()
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(&jClient, nil)
@@ -179,41 +155,122 @@ func TestReconcile_Reconcile_Delete_Failure_UnsetRoles(t *testing.T) {
 }
 
 func TestSpecUpdated(t *testing.T) {
-	jarm1 := v1alpha1.JenkinsAuthorizationRoleMapping{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "test",
-			Namespace:         "nss",
-			DeletionTimestamp: &metav1.Time{Time: time.Now()},
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "JenkinsAuthorizationRoleMapping",
-			APIVersion: "apps/v1",
-		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleMappingSpec{
-			RoleType: "rt",
-			Group:    "mke@test.com",
-			Roles:    []string{"tolr1", "tooo2"},
-		},
-	}
+	jarm1 := getTestJenkinsAuthorizationRoleMapping()
+	jarm2 := getTestJenkinsAuthorizationRoleMapping()
+	jarm2.Spec.RoleType = "rt123"
 
-	jarm2 := v1alpha1.JenkinsAuthorizationRoleMapping{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "test",
-			Namespace:         "nss",
-			DeletionTimestamp: &metav1.Time{Time: time.Now()},
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "JenkinsAuthorizationRoleMapping",
-			APIVersion: "apps/v1",
-		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleMappingSpec{
-			RoleType: "rt2",
-			Group:    "mke@test.com",
-			Roles:    []string{"tolr1", "tooo2"},
-		},
-	}
-
-	if !specUpdated(event.UpdateEvent{ObjectOld: &jarm1, ObjectNew: &jarm2}) {
+	if !specUpdated(event.UpdateEvent{ObjectOld: jarm1, ObjectNew: jarm2}) {
 		t.Fatal("spec is updated")
+	}
+}
+
+func TestNewReconciler(t *testing.T) {
+	lg := helper.LoggerMock{}
+	k8sClient := fake.NewClientBuilder().Build()
+	ps := platform.Mock{}
+
+	rec := NewReconciler(k8sClient, &lg, &ps)
+	if rec == nil {
+		t.Fatal("reconciler is not inited")
+	}
+
+	if rec.log != &lg || rec.client != k8sClient {
+		t.Fatal("wrong reconciler params")
+	}
+}
+
+func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
+	jarm := getTestJenkinsAuthorizationRoleMapping()
+	s := scheme.Scheme
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
+
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
+	logger := helper.LoggerMock{}
+
+	r := Reconcile{
+		client: k8sClient,
+		log:    &logger,
+	}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: "baz"},
+	}
+
+	_, err := r.Reconcile(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if logger.LastInfo() != "instance not found" {
+		t.Fatal("not found error is not logged")
+	}
+}
+
+func TestReconcile_Reconcile_FailureMakeJenkinsClient(t *testing.T) {
+	jarm := getTestJenkinsAuthorizationRoleMapping()
+	s := scheme.Scheme
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
+
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
+	logger := helper.LoggerMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(nil,
+		errors.New("client fatal"))
+
+	r := Reconcile{
+		client:               k8sClient,
+		log:                  &logger,
+		jenkinsClientFactory: &jBuilder,
+	}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
+	}
+
+	_, err := r.Reconcile(context.Background(), req)
+	if err == nil {
+		t.Fatal("error is not returned")
+	}
+
+	if !strings.Contains(err.Error(), "client fatal") {
+		t.Fatalf("wrong error returned: %s", err.Error())
+	}
+}
+
+func TestReconcile_Reconcile_AssignRoleFailure(t *testing.T) {
+	jarm := getTestJenkinsAuthorizationRoleMapping()
+
+	s := scheme.Scheme
+	s.AddKnownTypes(v1.SchemeGroupVersion, jarm)
+
+	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
+	jClient := jenkins.ClientMock{}
+	jBuilder := jenkins.ClientBuilderMock{}
+	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(&jClient, nil)
+	jClient.On("AssignRole", jarm.Spec.RoleType, jarm.Spec.Roles[0], jarm.Spec.Group).Return(errors.New("assign fatal"))
+	logger := helper.LoggerMock{}
+
+	r := Reconcile{
+		client:               k8sClient,
+		jenkinsClientFactory: &jBuilder,
+		log:                  &logger,
+	}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
+	}
+
+	_, err := r.Reconcile(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lastErr := logger.LastError()
+	if lastErr == nil {
+		t.Fatal("no error returned")
+	}
+
+	if !strings.Contains(lastErr.Error(), "assign fatal") {
+		t.Fatalf("wrong error returned: %s", lastErr.Error())
 	}
 }

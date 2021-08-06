@@ -36,7 +36,12 @@ func (m *Mock) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 }
 
 func (m *Mock) GetSecretData(namespace string, name string) (map[string][]byte, error) {
-	panic("not implemented")
+	called := m.Called(namespace, name)
+	if err := called.Error(1); err != nil {
+		return nil, err
+	}
+
+	return called.Get(0).(map[string][]byte), nil
 }
 
 func (m *Mock) GetConfigMapData(namespace string, name string) (map[string]string, error) {

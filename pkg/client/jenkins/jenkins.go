@@ -31,7 +31,7 @@ var log = ctrl.Log.WithName("jenkins_client")
 type JenkinsClient struct {
 	instance        *v1alpha1.Jenkins
 	PlatformService platform.PlatformService
-	resty           resty.Client
+	resty           *resty.Client
 	GoJenkins       *gojenkins.Jenkins
 }
 
@@ -54,7 +54,7 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 	jc := &JenkinsClient{
 		instance:        instance,
 		PlatformService: platformService,
-		resty:           *resty.SetHostURL(apiUrl).SetBasicAuth(string(adminSecret["username"]), string(adminSecret["password"])),
+		resty:           resty.SetHostURL(apiUrl).SetBasicAuth(string(adminSecret["username"]), string(adminSecret["password"])),
 	}
 	return jc, nil
 }
@@ -71,7 +71,7 @@ func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Pl
 	}
 	url := fmt.Sprintf("%v://%v%v", shm, h, p)
 	log.V(2).Info("initializing new Jenkins client", "url", url, "username", string(s["username"]))
-	jenkins, err := gojenkins.CreateJenkins(&http.Client{}, url, string(s["username"]), string(s["password"])).Init()
+	jenkins, err := gojenkins.CreateJenkins(http.DefaultClient, url, string(s["username"]), string(s["password"])).Init()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Pl
 	return &JenkinsClient{
 		GoJenkins:       jenkins,
 		PlatformService: platformService,
-		resty:           *resty.SetHostURL(url).SetBasicAuth(string(s["username"]), string(s["password"])),
+		resty:           resty.SetHostURL(url).SetBasicAuth(string(s["username"]), string(s["password"])),
 	}, nil
 }
 

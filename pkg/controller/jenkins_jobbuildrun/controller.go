@@ -66,6 +66,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	var instance v2v1alpha1.JenkinsJobBuildRun
 	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
+			reqLogger.Info("instance not found")
 			return
 		}
 
