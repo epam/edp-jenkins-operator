@@ -219,7 +219,7 @@ func (s K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data
 			if len(labels) != 0 {
 				resultLabels = labels[0]
 			}
-			cm := &coreV1Api.ConfigMap{
+			currentConfigMap = &coreV1Api.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: instance.Namespace,
@@ -228,7 +228,7 @@ func (s K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data
 				Data: data,
 			}
 
-			if err := s.createConfigMap(instance, cm); err != nil {
+			if err := s.createConfigMap(instance, currentConfigMap); err != nil {
 				return nil, errors.Wrap(err, "unable to create config map")
 			}
 
