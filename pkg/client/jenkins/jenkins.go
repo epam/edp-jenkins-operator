@@ -347,8 +347,19 @@ func (jc JenkinsClient) getBuildNumber(queueNumber int64) (*int64, error) {
 
 func (jc JenkinsClient) CreateFolder(name string) error {
 	log.V(2).Info("start creating jenkins folder", "name", name)
-	_, err := jc.GoJenkins.CreateFolder(name)
+	names, err := jc.GoJenkins.GetAllJobNames()
 	if err != nil {
+		return err
+	}
+
+	for _, n := range names {
+		if n.Name == name {
+			log.V(2).Info("Jenkins folder already exists", "name", name)
+			return nil
+		}
+	}
+
+	if _, err := jc.GoJenkins.CreateFolder(name); err != nil {
 		return err
 	}
 	log.V(2).Info("end creating jenkins folder", "name", name)

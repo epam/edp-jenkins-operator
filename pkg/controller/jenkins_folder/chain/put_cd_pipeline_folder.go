@@ -38,7 +38,7 @@ func (h PutCDPipelineJenkinsFolder) ServeRequest(jf *v1alpha1.JenkinsFolder) err
 	}
 
 	if err := jc.CreateFolder(jf.Name); err != nil {
-		return err
+		return errors.Wrapf(err, "unable to create %v Jenkins folder", jf.Name)
 	}
 
 	if err := h.setStatus(jf, consts.StatusFinished); err != nil {
