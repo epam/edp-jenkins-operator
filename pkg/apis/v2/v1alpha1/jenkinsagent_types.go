@@ -8,21 +8,12 @@ import (
 
 // +k8s:openapi-gen=true
 type JenkinsAgentSpec struct {
-	Name          string `json:"name"`
-	ConfigMapName string `json:"configMapName"`
-	ConfigMapKey  string `json:"configMapKey"`
+	Name     string `json:"name"`
+	Template string `json:"template"`
 }
 
 func (in JenkinsAgentSpec) SalvesKey() string {
 	return fmt.Sprintf("%s-template", in.Name)
-}
-
-func (in JenkinsAgentSpec) GetConfigMapKey() string {
-	if in.ConfigMapKey == "" {
-		return "template"
-	}
-
-	return in.ConfigMapKey
 }
 
 // +k8s:openapi-gen=true

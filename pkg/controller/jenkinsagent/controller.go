@@ -85,18 +85,13 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 }
 
 func (r *Reconcile) tryToReconcile(ctx context.Context, instance *v2v1alpha1.JenkinsAgent) error {
-	var slavesCm, agentCm v1.ConfigMap
+	var slavesCm v1.ConfigMap
 	if err := r.client.Get(ctx,
 		types.NamespacedName{Namespace: instance.Namespace, Name: jenkins.SlavesTemplateName}, &slavesCm); err != nil {
 		return errors.Wrap(err, "unable to get slaves config map")
 	}
 
-	if err := r.client.Get(ctx,
-		types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.ConfigMapName}, &agentCm); err != nil {
-		return errors.Wrap(err, "unable to get instance config map")
-	}
-
-	slavesCm.Data[instance.Spec.SalvesKey()] = agentCm.Data[instance.Spec.GetConfigMapKey()]
+	slavesCm.Data[instance.Spec.SalvesKey()] = instance.Spec.Template
 
 	if err := r.client.Update(ctx, &slavesCm); err != nil {
 		return errors.Wrap(err, "unable to update slaves config map")

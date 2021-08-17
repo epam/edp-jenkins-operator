@@ -35,15 +35,12 @@ spec:
                 name:
                   type: string
                   description: 'agent name'
-                configMapName:
+                template:
                   type: string
-                  description: 'agent config map with config template'
-                configMapKey:
-                  type: string
-                  description: 'config map key to get template, default: template'
+                  description: 'agent config template'
               required:
                 - name
-                - configMapName
+                - template
               type: object
             status:
               type: object
