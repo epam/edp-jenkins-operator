@@ -15,11 +15,11 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
-	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210730114857-7c52e393d03d
-	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210618082456-07096065e4b6
-	github.com/epam/edp-component-operator v0.1.1-0.20210427065236-c7dce7f4ea2b
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210804150247-d7c99d1246bd
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210719101613-f5c6cff5e79e
+	github.com/epam/edp-component-operator v0.1.1-0.20210712140516-09b8bb3a4cff
 	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210427073621-8b07da9960b2
-	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210427070516-9b6232f72684
+	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20210719103751-659797a2dead
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
 	github.com/openshift/client-go v3.9.0+incompatible
