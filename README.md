@@ -1,11 +1,13 @@
 # Jenkins Operator
 
-Get acquainted with the Jenkins Operator and the installation process as well as the local development, 
+Get acquainted with the Jenkins Operator and the installation process as well as the local development,
 and architecture scheme.
+
+:warning: Please refer to [EDP documentation](https://epam.github.io/edp-install/) to get the notion of the main concepts and guidelines.
 
 ## Overview
 
-Jenkins Operator creates, deploys and manages the EDP Jenkins instance, which is equipped with the necessary plugins, on Kubernetes and OpenShift.  
+Jenkins Operator creates, deploys and manages the EDP Jenkins instance, which is equipped with the necessary plugins, on Kubernetes and OpenShift.
 Also, Jenkins operator is responsible for creating Jenkins job's.
 
 There is an ability to customize the Jenkins instance and to check changes during the application creation.
@@ -15,7 +17,7 @@ _**NOTE:** Operator is platform-independent, that is why there is a unified inst
 ## Prerequisites
 1. Linux machine or Windows Subsystem for Linux instance with [Helm 3](https://helm.sh/docs/intro/install/) installed;
 2. Cluster admin access to the cluster;
-3. EDP project/namespace is deployed by following one of the instructions: [edp-install-openshift](https://github.com/epam/edp-install/blob/master/documentation/openshift_install_edp.md#edp-project) or [edp-install-kubernetes](https://github.com/epam/edp-install/blob/master/documentation/kubernetes_install_edp.md#edp-namespace).
+3. EDP project/namespace is deployed by following the [EDP Install](https://epam.github.io/edp-install/operator-guide/install-edp/) instruction.
 
 ## Installation
 In order to install the EDP Jenkins Operator, follow the steps below:
@@ -124,10 +126,4 @@ Token secret:
 ### Related Articles
 * [Architecture Scheme of Jenkins Operator](documentation/arch.md)
 * [Local Development](documentation/local-development.md)
-* [GitHub Integration](https://github.com/epam/edp-admin-console/blob/master/documentation/github-integration.md#github-integration)
-* [GitLab Integration](https://github.com/epam/edp-admin-console/blob/master/documentation/gitlab-integration.md#gitlab-integration)
----
-* [Add Jenkins Slave](documentation/add-jenkins-slave.md) 
-* [Add Job Provision](documentation/add-job-provision.md)
 
->_**NOTE**: To get more accurate information on the CI/CD customization, please refer to the [admin-console](https://github.com/epam/edp-admin-console/tree/master#edp-admin-console) repository._
