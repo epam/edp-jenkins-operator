@@ -25,6 +25,18 @@ spec:
         - name: jenkins-jenkins-data
           persistentVolumeClaim:
             claimName: jenkins-data
+      {{- with .Values.jenkins.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jenkins.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: grant-permissions
           image: {{.Values.jenkins.initImage}}
@@ -82,18 +94,6 @@ spec:
               value: kubernetes
           resources:
 {{ toYaml .Values.jenkins.resources | indent 12 }}
-      {{- with .Values.jenkins.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.jenkins.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.jenkins.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
           volumeMounts:
             - name: jenkins-jenkins-data
               mountPath: /var/lib/jenkins
