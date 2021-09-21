@@ -1,6 +1,10 @@
 {{ if eq .Values.global.platform "kubernetes" }}
+{{- $ingressApiIsStable := eq (include "jenkins.ingress.isStable" .) "true" -}}
+{{- $ingressSupportsIngressClassName := eq (include "jenkins.ingress.supportsIngressClassName" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "jenkins.ingress.supportsPathType" .) "true" -}}
+{{- $ingressPathType := .Values.jenkins.ingress.pathType -}}
 kind: Ingress
-apiVersion: extensions/v1beta1
+apiVersion: {{ include "jenkins.ingress.apiVersion" . }}
 metadata:
   name: jenkins
   labels:
@@ -11,12 +15,25 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if and $ingressSupportsIngressClassName .Values.jenkins.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.jenkins.ingress.ingressClassName }}
+  {{- end }}
   rules:
     - host: {{ include "jenkins-operator.jenkinsBaseUrl" . }}
       http:
         paths:
           - path: {{ include "jenkins-operator.jenkinsBasePath" . }}
+            {{- if $ingressSupportsPathType }}
+            pathType: {{ $ingressPathType }}
+            {{- end }}
             backend:
+              {{- if $ingressApiIsStable }}
+              service:
+                name: jenkins
+                port: 
+                  number: 8080
+              {{- else }}
               serviceName: jenkins
               servicePort: 8080
+              {{- end }}
 {{ end }}
