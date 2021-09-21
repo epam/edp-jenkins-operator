@@ -14,6 +14,7 @@ image:
   name: epamedp/jenkins-operator
   # if not defined then .Chart.AppVersion is used
   version:
+imagePullPolicy: "IfNotPresent"
 
 resources:
   limits:
@@ -27,6 +28,7 @@ jenkins:
   initImage: "busybox"
   image: "epamedp/edp-jenkins"
   version: "2.9.0-SNAPSHOT"
+  imagePullPolicy: "IfNotPresent"
   storage:
     class: gp2
     size: 10Gi

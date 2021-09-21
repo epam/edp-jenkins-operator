@@ -56,7 +56,7 @@ spec:
             - name: PLATFORM_TYPE
               value: openshift
           image: {{.Values.jenkins.image}}:{{.Values.jenkins.version}}
-          imagePullPolicy: Always
+          imagePullPolicy: "{{ .Values.jenkins.imagePullPolicy }}"
           name: jenkins
           ports:
             - containerPort: 8080
@@ -103,7 +103,7 @@ spec:
               $JENKINS_HOME/.ssh/id_rsa; if [ -e $JENKINS_HOME/.ssh/config ];
               then chmod 400 -fR $JENKINS_HOME/.ssh/config; fi; fi
           image: {{.Values.jenkins.initImage}}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: "{{ .Values.jenkins.imagePullPolicy }}"
           name: grant-permissions
           resources: {}
           terminationMessagePath: /dev/termination-log
