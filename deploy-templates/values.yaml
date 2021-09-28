@@ -27,7 +27,7 @@ jenkins:
   deploy: true
   initImage: "busybox"
   image: "epamedp/edp-jenkins"
-  version: "2.9.0-SNAPSHOT"
+  version: "2.9.0"
   imagePullPolicy: "IfNotPresent"
   storage:
     class: gp2
@@ -46,10 +46,10 @@ jenkins:
   sharedLibraries:
     - name: "edp-library-stages"
       url: "https://github.com/epam/edp-library-stages.git"
-      tag: "master"
+      tag: "build/2.10.0-RC.1"
     - name: "edp-library-pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
-      tag: "master"
+      tag: "build/2.10.0-RC.1"
 # Example of using private repository:
 #    - name: "stub-name"
 #      url: "stub-url"
