@@ -136,6 +136,7 @@ if (project == null) {
 project.getBuildersList().clear()
 executeDslScripts = new ExecuteDslScripts()
 executeDslScripts.setScriptText(scriptText)
+project.setBuildDiscarder(new hudson.tasks.LogRotator (10, 10))
 project.getBuildersList().add(executeDslScripts)
 def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
                       new StringParameterDefinition("STAGE_NAME", ""),
