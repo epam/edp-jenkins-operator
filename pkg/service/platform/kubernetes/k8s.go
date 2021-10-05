@@ -579,7 +579,7 @@ func (s K8SService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 
 		j = append(j, i)
 	}
-	j = append(j, model.PipelineStage{Name: "promote-images-ecr", StepName: "promote-images-ecr"})
+	j = append(j, model.PipelineStage{Name: "promote-images", StepName: "promote-images"})
 
 	o, err := json.Marshal(j)
 	if err != nil {

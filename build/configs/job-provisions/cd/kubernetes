@@ -67,7 +67,7 @@ if (deploymentType == containerDeploymentType) {
 
 def buildStages(deploymentType, containerDeploymentType, qgStages) {
     return deploymentType == containerDeploymentType
-    ? '[{"name":"init","step_name":"init"},{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images-ecr","step_name":"promote-images"}]'
+    ? '[{"name":"init","step_name":"init"},{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
     : ''
 }
 
