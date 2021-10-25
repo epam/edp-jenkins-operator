@@ -9,22 +9,89 @@ rules:
 - apiGroups:
   - '*'
   resources:
-  - adminconsoles
-  - cdpipelines
-  - codebasebranches
-  - codebaseimagestreams
-  - codebases
-  - edpcomponents
-  - gitservers
-  - jenkins
-  - jenkinses
-  - keycloakrealms
-  - stages
-  - jirafixversions
+  - securitycontextconstraints
   verbs:
-  - create
   - get
   - list
-  - patch
   - update
+- apiGroups:
+  - ""
+  - project.openshift.io
+  resources:
+  - projectrequests
+  verbs:
+  - create
+- apiGroups:
+    - '*'
+  resources:
+    - keycloaks
+    - gerrits
+    - nexuses
+    - keycloaks/status
+    - keycloakclients
+    - keycloakclients/finalizers
+    - keycloakclients/status
+    - keycloakrealms
+    - keycloakrealms/status
+    - jenkins
+    - jenkins/finalizers
+    - jenkins/status
+    - jenkinses
+    - jenkinses/finalizers
+    - jenkinses/status
+    - jenkinsserviceaccounts
+    - jenkinsserviceaccounts/finalizers
+    - jenkinsserviceaccounts/status
+    - jenkinsscripts
+    - jenkinsscripts/finalizers
+    - jenkinsscripts/status
+    - jenkinsjobs
+    - jenkinsjobs/finalizers
+    - jenkinsjobs/status
+    - jenkinsfolders
+    - jenkinsfolders/finalizers
+    - jenkinsfolders/status
+    - edpcomponents
+    - stages
+    - stages/finalizers
+    - stages/status
+    - cdpipelines
+    - cdpipelines/finalizers
+    - cdpipelines/status
+    - projectrequests
+    - codebases
+    - codebases/finalizers
+    - codebasebranches
+    - codebaseimagestreams
+    - gitservers
+    - jirafixversions
+    - adminconsoles
+    - cdstagejenkinsdeployments
+    - cdstagejenkinsdeployments/finalizers
+    - cdstagejenkinsdeployments/status
+    - cdstagedeployments
+    - cdstagedeployments/finalizers
+    - cdstagedeployments/status
+    - jenkinsjobbuildruns
+    - jenkinsjobbuildruns/status
+    - jenkinsauthorizationroles
+    - jenkinsauthorizationroles/status
+    - jenkinsauthorizationroles/finalizers
+    - jenkinsauthorizationrolemappings
+    - jenkinsauthorizationrolemappings/status
+    - jenkinsauthorizationrolemappings/finalizers
+    - jenkinsagents
+    - jenkinsagents/status
+    - jenkinsagents/finalizers
+  verbs:
+    - '*'
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+  verbs:
+    - create
+    - get
+    - list
+    - update
 {{ end}}
