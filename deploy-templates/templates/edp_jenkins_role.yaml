@@ -11,3 +11,9 @@ rules:
                 "jirafixversions", "codebases/finalizers", "jiraissuemetadatas", "jiraissuemetadatas/finalizers",
                 "jiraissuemetadatas/status"]
     verbs: ["get", "create", "update", "patch", "list", "delete"]
+  - apiGroups: ["build.openshift.io"] # "" indicates the core API group
+    resources: ["buildconfigs", "builds"]
+    verbs: ["list"]
+  - apiGroups: ["image.openshift.io"] # "" indicates the core API group
+    resources: ["imagestreams"]
+    verbs: ["list"]
