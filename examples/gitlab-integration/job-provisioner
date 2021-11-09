@@ -202,7 +202,7 @@ gitServerCrName, gitServerCrVersion, jiraIntegrationEnabled, platformType) {
                         stringParam("PLATFORM_TYPE", "${platformType}", "Platform type")
                         stringParam("GERRIT_PROJECT", "${codebaseName}", "")
                         stringParam("RELEASE_NAME", "", "Name of the release(branch to be created)")
-                        stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, HEAD of master will be used")
+                        stringParam("COMMIT_ID", "", "Commit ID that will be used to create branch from for new release. If empty, DEFAULT_BRANCH will be used")
                         stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
                         stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
                         stringParam("REPOSITORY_PATH", "${repository}", "Full repository path")
