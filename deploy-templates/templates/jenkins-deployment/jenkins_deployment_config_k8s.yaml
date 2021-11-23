@@ -76,10 +76,6 @@ spec:
               value: 'false'
             - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
               value: 'true'
-            - name: KUBERNETES_MASTER
-              value: 'https://kubernetes.default:443'
-            - name: KUBERNETES_TRUST_CERTIFICATES
-              value: 'true'
             - name: JNLP_SERVICE_NAME
               value: jenkins-jnlp
             - name: JENKINS_PASSWORD
