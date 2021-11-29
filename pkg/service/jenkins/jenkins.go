@@ -71,12 +71,11 @@ type JenkinsService interface {
 
 // NewJenkinsService function that returns JenkinsService implementation
 func NewJenkinsService(ps platform.PlatformService, client client.Client, scheme *runtime.Scheme) JenkinsService {
-	helper := keycloakControllerHelper.MakeHelper(client, scheme)
 	return JenkinsServiceImpl{
 		platformService: ps,
 		k8sClient:       client,
 		k8sScheme:       scheme,
-		keycloakHelper:  helper,
+		keycloakHelper:  keycloakControllerHelper.MakeHelper(client, scheme, ctrl.Log.WithName("jenkins_service")),
 	}
 }
 
