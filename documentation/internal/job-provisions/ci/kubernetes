@@ -159,7 +159,7 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineType, r
         }
         definition {
             cps {
-                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \n\n${pipelineType}()")
+                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\n${pipelineType}()")
                 sandbox(true)
             }
             parameters {
@@ -197,7 +197,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineTy
         }
         definition {
             cps {
-                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \n\n${pipelineType}()")
+                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\n${pipelineType}()")
                 sandbox(true)
             }
             parameters {

@@ -159,7 +159,7 @@ def createCiPipeline(pipelineName, codebaseName, codebaseStages, pipelineType, r
         }
         definition {
             cps {
-                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \n\n${pipelineType}()")
+                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\n${pipelineType}()")
             }
             parameters {
                 stringParam("GIT_SERVER_CR_NAME", "${gitServerCrName}", "Name of Git Server CR to generate link to Git server")
@@ -196,7 +196,7 @@ def createReleasePipeline(pipelineName, codebaseName, codebaseStages, pipelineTy
         }
         definition {
             cps {
-                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \n\n${pipelineType}()")
+                script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\n${pipelineType}()")
             }
             parameters {
                 stringParam("STAGES", "${codebaseStages}", "")
