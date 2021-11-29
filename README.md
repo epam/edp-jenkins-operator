@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/epam/edp-jenkins-operator/branch/master/graph/badge.svg?token=7A2P3UFQWN)](https://codecov.io/gh/epam/edp-jenkins-operator)
+
 # Jenkins Operator
 
 | :heavy_exclamation_mark: Please refer to [EDP documentation](https://epam.github.io/edp-install/) to get the notion of the main concepts and guidelines. |
