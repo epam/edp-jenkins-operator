@@ -13,7 +13,7 @@ import (
 type JenkinsServiceAccountSpec struct {
 	Type        string `json:"type"`
 	Credentials string `json:"credentials"`
-	OwnerName   string `json:"ownerName, omitempty"`
+	OwnerName   string `json:"ownerName,omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -25,9 +25,9 @@ type JenkinsServiceAccountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool      `json:"available, omitempty"`
-	Created         bool      `json:"created, omitempty"`
-	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
+	Available       bool      `json:"available,omitempty"`
+	Created         bool      `json:"created,omitempty"`
+	LastTimeUpdated time.Time `json:"lastTimeUpdated,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -15,8 +15,8 @@ type JenkinsScriptSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	SourceCmName string  `json:"sourceConfigMapName, omitempty"`
-	OwnerName    *string `json:"ownerName, omitempty"`
+	SourceCmName string  `json:"sourceConfigMapName,omitempty"`
+	OwnerName    *string `json:"ownerName,omitempty"`
 }
 
 // JenkinsScriptStatus defines the observed state of JenkinsScript
@@ -25,9 +25,9 @@ type JenkinsScriptStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool      `json:"available, omitempty"`
-	Executed        bool      `json:"executed, omitempty"`
-	LastTimeUpdated time.Time `json:"lastTimeUpdated, omitempty"`
+	Available       bool      `json:"available,omitempty"`
+	Executed        bool      `json:"executed,omitempty"`
+	LastTimeUpdated time.Time `json:"lastTimeUpdated,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

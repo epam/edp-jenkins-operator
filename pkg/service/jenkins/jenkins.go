@@ -344,7 +344,7 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 
 	ss := []v1alpha1.Slave{}
 	for _, s := range sl {
-		ss = append(ss, v1alpha1.Slave{s})
+		ss = append(ss, v1alpha1.Slave{Name: s})
 	}
 
 	if !reflect.DeepEqual(instance.Status.Slaves, ss) {
@@ -360,7 +360,7 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 			return &instance, upd, errors.Wrapf(err, "Unable to get Jenkins Job provisions list for scope %v", scope)
 		}
 		for _, p := range pr {
-			ps = append(ps, v1alpha1.JobProvision{p, scope})
+			ps = append(ps, v1alpha1.JobProvision{Name: p, Scope: scope})
 		}
 	}
 
@@ -581,7 +581,7 @@ func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClien
 	return err
 }
 
-// IsDeploymentConfigReady check if DC for Jenkins is ready
+// IsDeploymentReady check if DC for Jenkins is ready
 func (j JenkinsServiceImpl) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 	return j.platformService.IsDeploymentReady(instance)
 }
