@@ -1,0 +1,7 @@
+# options for analysis running
+run:
+  skip-files:
+    - ".*mock.*"
+linters:
+  disable:
+    - unused

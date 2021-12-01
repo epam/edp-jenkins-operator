@@ -45,34 +45,34 @@ type K8SService struct {
 }
 
 // Init initializes K8SService
-func (service *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
+func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
 	authClient, err := authV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init auth V1 client for K8S")
 	}
 
-	service.Scheme = Scheme
-	service.authClient = *authClient
-	service.client = *k8sClient
+	s.Scheme = Scheme
+	s.authClient = *authClient
+	s.client = *k8sClient
 
 	extensionsClient, err := extensionsV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init extensions V1 client for K8S")
 	}
-	service.extensionsV1Client = *extensionsClient
+	s.extensionsV1Client = *extensionsClient
 
 	appsClient, err := appsV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init apps V1 client for K8S")
 	}
-	service.appsV1Client = *appsClient
+	s.appsV1Client = *appsClient
 
 	return nil
 }
 
 // GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
-func (service K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	ingress, err := service.extensionsV1Client.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+func (s K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
+	ingress, err := s.extensionsV1Client.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		return "", "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
 	} else if err != nil {
@@ -84,14 +84,14 @@ func (service K8SService) GetExternalEndpoint(namespace string, name string) (st
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
-func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string,
+func (s K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string,
 	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if len(vol) == 0 || len(volMount) == 0 {
 		return nil
 	}
 
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+	deployment, err := s.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -112,15 +112,15 @@ func (service K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, co
 		return err
 	}
 
-	_, err = service.appsV1Client.Deployments(deployment.Namespace).Patch(context.TODO(), deployment.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
+	_, err = s.appsV1Client.Deployments(deployment.Namespace).Patch(context.TODO(), deployment.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (service K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
-	deployment, err := service.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+func (s K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+	deployment, err := s.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -266,9 +266,9 @@ func (s K8SService) createConfigMap(jenkins v1alpha1.Jenkins, cm *coreV1Api.Conf
 }
 
 // CreateConfigMapFromFile performs creating ConfigMap in K8S
-func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
+func (s K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
 	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
-	configMapData, err := service.fillConfigMapData(path, configMapKey)
+	configMapData, err := s.fillConfigMapData(path, configMapKey)
 	if err != nil {
 		return errors.Wrapf(err, "Couldn't generate Config Map data for %v", configMapName)
 	}
@@ -280,7 +280,7 @@ func (service K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins
 		}
 	}
 
-	_, err = service.CreateConfigMap(instance, configMapName, configMapData, labels)
+	_, err = s.CreateConfigMap(instance, configMapName, configMapData, labels)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to create Config Map %v", configMapName)
 	}
@@ -332,19 +332,19 @@ func (s K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, icon st
 	return s.client.Create(context.TODO(), c)
 }
 
-func (service K8SService) fillConfigMapData(path string, configMapKey *string) (map[string]string, error) {
-	configMapData := make(map[string]string)
+func (s K8SService) fillConfigMapData(path string, configMapKey *string) (map[string]string, error) {
+	var configMapData map[string]string
 	pathInfo, err := os.Stat(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
 	}
 	if pathInfo.Mode().IsDir() {
-		configMapData, err = service.fillConfigMapFromDir(path)
+		configMapData, err = s.fillConfigMapFromDir(path)
 		if err != nil {
 			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't generate config map data from directory %v", path))
 		}
 	} else {
-		configMapData, err = service.fillConfigMapFromFile(path, configMapKey)
+		configMapData, err = s.fillConfigMapFromFile(path, configMapKey)
 		if err != nil {
 			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't generate config map data from file %v", path))
 		}
@@ -352,8 +352,8 @@ func (service K8SService) fillConfigMapData(path string, configMapKey *string) (
 	return configMapData, nil
 }
 
-func (service K8SService) fillConfigMapFromFile(path string, configMapKey *string) (map[string]string, error) {
-	configMapData := make(map[string]string)
+func (s K8SService) fillConfigMapFromFile(path string, configMapKey *string) (map[string]string, error) {
+
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't read file %v.", path))
@@ -362,13 +362,13 @@ func (service K8SService) fillConfigMapFromFile(path string, configMapKey *strin
 	if configMapKey != nil {
 		key = *configMapKey
 	}
-	configMapData = map[string]string{
+	configMapData := map[string]string{
 		key: string(content),
 	}
 	return configMapData, nil
 }
 
-func (service K8SService) fillConfigMapFromDir(path string) (map[string]string, error) {
+func (s K8SService) fillConfigMapFromDir(path string) (map[string]string, error) {
 	configMapData := make(map[string]string)
 	directory, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -396,16 +396,16 @@ func (s K8SService) GetConfigMapData(namespace, name string) (map[string]string,
 	return cm.Data, nil
 }
 
-func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
+func (s K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error {
 	nsn := types.NamespacedName{
 		Namespace: kc.Namespace,
 		Name:      kc.Name,
 	}
 
-	err := service.client.Get(context.TODO(), nsn, kc)
+	err := s.client.Get(context.TODO(), nsn, kc)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			err := service.client.Create(context.TODO(), kc)
+			err := s.client.Create(context.TODO(), kc)
 			if err != nil {
 				return errors.Wrapf(err, "Failed to create Keycloak client %s/%s", kc.Namespace, kc.Name)
 			}
@@ -418,14 +418,14 @@ func (service K8SService) CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient)
 	return nil
 }
 
-func (service K8SService) GetKeycloakClient(name, namespace string) (keycloakV1Api.KeycloakClient, error) {
+func (s K8SService) GetKeycloakClient(name, namespace string) (keycloakV1Api.KeycloakClient, error) {
 	out := keycloakV1Api.KeycloakClient{}
 	nsn := types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,
 	}
 
-	err := service.client.Get(context.TODO(), nsn, &out)
+	err := s.client.Get(context.TODO(), nsn, &out)
 	if err != nil {
 		return out, err
 	}

@@ -45,10 +45,7 @@ func (r *ReconcileJenkinsScript) SetupWithManager(mgr ctrl.Manager) error {
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldObject := e.ObjectOld.(*jenkinsApi.JenkinsScript)
 			newObject := e.ObjectNew.(*jenkinsApi.JenkinsScript)
-			if oldObject.Status != newObject.Status {
-				return false
-			}
-			return true
+			return oldObject.Status == newObject.Status
 		},
 	}
 
@@ -82,7 +79,7 @@ func (r *ReconcileJenkinsScript) Reconcile(ctx context.Context, request reconcil
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
-	if instance.Status.Executed == true {
+	if instance.Status.Executed {
 		return reconcile.Result{}, nil
 	}
 

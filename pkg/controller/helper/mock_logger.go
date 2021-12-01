@@ -37,7 +37,7 @@ func (l *LoggerMock) LastInfo() string {
 	return l.infos[len(l.infos)-1]
 }
 
-func (l *LoggerMock) V(level int) logr.InfoLogger {
+func (l *LoggerMock) V(level int) logr.Logger {
 	return l
 }
 

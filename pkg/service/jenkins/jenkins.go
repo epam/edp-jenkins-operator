@@ -282,6 +282,9 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		}
 
 		directoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
+		if err != nil {
+			return &instance, false, errors.Wrap(err, "unable to create path to template directory")
+		}
 		keycloakCfgFilePath := fmt.Sprintf("%s/%s", directoryPath, keycloakConfigTemplateName)
 
 		jenkinsScriptData := platformHelper.JenkinsScriptData{}
@@ -488,7 +491,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		return &instance, false, err
 	}
 
-	directory, err = ioutil.ReadDir(slavesDirectoryPath)
+	_, err = ioutil.ReadDir(slavesDirectoryPath)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", slavesDirectoryPath))
 	}

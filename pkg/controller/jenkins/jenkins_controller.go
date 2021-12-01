@@ -54,10 +54,7 @@ func (r *ReconcileJenkins) SetupWithManager(mgr ctrl.Manager) error {
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldObject := e.ObjectOld.(*jenkinsApi.Jenkins)
 			newObject := e.ObjectNew.(*jenkinsApi.Jenkins)
-			if reflect.DeepEqual(oldObject.Status, newObject.Status) {
-				return false
-			}
-			return true
+			return !reflect.DeepEqual(oldObject.Status, newObject.Status)
 		},
 	}
 
@@ -226,6 +223,6 @@ func (r ReconcileJenkins) updateInstanceStatus(ctx context.Context, instance *je
 			return errors.Wrapf(err, "Couldn't update instance status")
 		}
 	}
-	log.Info(fmt.Sprintf("Instance status has been updated"))
+	log.Info("Instance status has been updated")
 	return nil
 }

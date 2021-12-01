@@ -151,6 +151,9 @@ func (jc JenkinsClient) GetSlaves() ([]string, error) {
 	}
 	p := fmt.Sprintf("%v/%v", d, defaultGetSlavesScript)
 	cn, err := ioutil.ReadFile(p)
+	if err != nil {
+		return nil, errors.Wrap(err, "Reading File err")
+	}
 
 	pr := map[string]string{"script": string(cn)}
 	resp, err := jc.resty.R().
@@ -238,6 +241,9 @@ func (jc JenkinsClient) GetAdminToken() (*string, error) {
 
 	var parsedResponse map[string]interface{}
 	err = json.Unmarshal(resp.Body(), &parsedResponse)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unmarshal err. %v", resp.Body())
+	}
 	parsedData, valid := parsedResponse["data"].(map[string]interface{})
 	if valid {
 		token := fmt.Sprintf("%v", parsedData["tokenValue"])
@@ -273,7 +279,7 @@ func (jc JenkinsClient) GetJobProvisions(jobPath string) ([]string, error) {
 
 	err = json.Unmarshal([]byte(resp.String()), &raw)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Unable to obtain job provisions"))
+		return nil, errors.Wrapf(err, "Unable to unmarshal %v", []byte(resp.String()))
 	}
 
 	if raw["_class"].(string) != "com.cloudbees.hudson.plugins.folder.Folder" {

@@ -82,6 +82,9 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *v2v1alpha1.Jenkin
 
 	var jpc map[string]string
 	err = json.Unmarshal([]byte(jf.Spec.Job.Config), &jpc)
+	if err != nil {
+		return errors.Wrapf(err, "Cant unmarshal %v", []byte(jf.Spec.Job.Config))
+	}
 
 	bn, err := jc.BuildJob(jf.Spec.Job.Name, jpc)
 	if err != nil {

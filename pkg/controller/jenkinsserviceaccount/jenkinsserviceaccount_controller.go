@@ -44,10 +44,7 @@ func (r *ReconcileJenkinsServiceAccount) SetupWithManager(mgr ctrl.Manager) erro
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldObject := e.ObjectOld.(*jenkinsApi.JenkinsServiceAccount)
 			newObject := e.ObjectNew.(*jenkinsApi.JenkinsServiceAccount)
-			if oldObject.Status != newObject.Status {
-				return false
-			}
-			return true
+			return oldObject.Status == newObject.Status
 		},
 	}
 

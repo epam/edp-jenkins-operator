@@ -21,14 +21,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"os"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
 	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 )
-
-var log = ctrl.Log.WithName("platform")
 
 // OpenshiftService struct for Openshift platform service
 type OpenshiftService struct {

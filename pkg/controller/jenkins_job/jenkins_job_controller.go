@@ -103,6 +103,9 @@ func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.R
 	}
 
 	jc, err := jenkinsClient.InitGoJenkinsClient(j, r.platform)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "an error has occurred while init jenkins client %v", j)
+	}
 	jobExist, err := isJenkinsJobExist(jc, i.Spec.Job.Name)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "an error has occurred while retrieving jenkins job %v", i.Spec.Job.Name)
