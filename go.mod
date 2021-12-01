@@ -15,12 +15,12 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
-	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20210726142624-e26cea43163f
-	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210719101613-f5c6cff5e79e
-	github.com/epam/edp-common v0.0.0-20211124100535-e54dcdf42879
-	github.com/epam/edp-component-operator v0.1.1-0.20210712140516-09b8bb3a4cff
-	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20210719104840-e43f3bfe023d
-	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20211129095541-12e9e800993e
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20211130105433-ab18815b74d0
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20211130102103-b05e463cf62b
+	github.com/epam/edp-common v0.0.0-20211130150314-81d7cc13140c
+	github.com/epam/edp-component-operator v0.1.1-0.20211129100139-b5b7659f98f6
+	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20211130161209-15bf5aec5493
+	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20211130125231-d444d239995b
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
 	github.com/jarcoal/httpmock v1.0.8
@@ -65,14 +65,14 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/google/go-cmp v0.5.2 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.5.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/imdario/mergo v0.3.10 // indirect
+	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
-	github.com/kr/pretty v0.2.0 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
