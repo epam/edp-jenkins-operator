@@ -1,6 +1,9 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+
+<a name="v2.10.0"></a>
+## [v2.10.0] - 2021-12-07
 ### Features
 
 - Job provisioner is responsible for the formation of Jenkinsfile [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
@@ -9,6 +12,7 @@
 
 ### Bug Fixes
 
+- Changelog links [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
 - Enable groovy sandbox flag on Openshift [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
 - Fix job-provisioner typo [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
 - Skip certificate check for Openshift cluster [EPMDEDP-7919](https://jiraeu.epam.com/browse/EPMDEDP-7919)
@@ -30,6 +34,8 @@
 
 ### Routine
 
+- Bump version to 2.10.0 [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
+- Add changelog generator [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
 - Update operators to the latest stable [EPMDEDP-7930](https://jiraeu.epam.com/browse/EPMDEDP-7930)
 - Update keycloak to the latest stable [EPMDEDP-7930](https://jiraeu.epam.com/browse/EPMDEDP-7930)
 - Add codecov report [EPMDEDP-7885](https://jiraeu.epam.com/browse/EPMDEDP-7885)
@@ -43,6 +49,11 @@
 ### Documentation
 
 - Update the links on GitHub [EPMDEDP-7781](https://jiraeu.epam.com/browse/EPMDEDP-7781)
+
+### BREAKING CHANGE:
+
+
+Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline script.
 
 
 <a name="v2.9.0"></a>
@@ -86,7 +97,8 @@
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...HEAD
+[v2.10.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...v2.10.0
 [v2.9.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.3...v2.9.0
 [v2.8.3]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.2...v2.8.3
 [v2.8.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.1...v2.8.2
