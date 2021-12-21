@@ -28,7 +28,11 @@ type DefChain struct {
 }
 
 func InitDefChain(scheme *runtime.Scheme, client client.Client) (*DefChain, error) {
-	ps, err := platform.NewPlatformService(helper.GetPlatformTypeEnv(), scheme, &client)
+	env, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		return nil, err
+	}
+	ps, err := platform.NewPlatformService(env, scheme, &client)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +59,11 @@ type TriggerJobProvisionChain struct {
 }
 
 func InitTriggerJobProvisionChain(scheme *runtime.Scheme, client client.Client) (*TriggerJobProvisionChain, error) {
-	ps, err := platform.NewPlatformService(helper.GetPlatformTypeEnv(), scheme, &client)
+	env, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		return nil, err
+	}
+	ps, err := platform.NewPlatformService(env, scheme, &client)
 	if err != nil {
 		return nil, err
 	}

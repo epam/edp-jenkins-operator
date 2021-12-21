@@ -302,7 +302,7 @@ func (jc JenkinsClient) IsBuildSuccessful(jobName string, buildNumber int64) (bo
 
 	b, err := getBuild(jobName, job, buildNumber)
 	if err != nil {
-		if err.Error() == "404" {
+		if helper.JenkinsIsNotFoundErr(err) {
 			log.Info("couldn't find build", "build number", buildNumber)
 			return false, nil
 		}

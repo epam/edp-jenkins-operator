@@ -214,7 +214,7 @@ func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
 	return coreV1Api.Volume{}, false
 }
 
-func (s OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
+func (service OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
 			Name:     "deploy",

@@ -19,7 +19,7 @@ type TriggerJenkinsDeployJob struct {
 	log      logr.Logger
 }
 
-const jenkinsKey = "jenkinsName"
+const JenkinsKey = "jenkinsName"
 
 func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) error {
 	log := h.log.WithValues("job", jenkinsDeploy.Spec.Job)
@@ -56,5 +56,5 @@ func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *v1alpha1.CDSta
 }
 
 func (h TriggerJenkinsDeployJob) getJenkins(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) (*v1alpha1.Jenkins, error) {
-	return platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[jenkinsKey], jenkinsDeploy.Namespace)
+	return platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[JenkinsKey], jenkinsDeploy.Namespace)
 }

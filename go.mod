@@ -17,7 +17,7 @@ require (
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
 	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20211130105433-ab18815b74d0
 	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20211130102103-b05e463cf62b
-	github.com/epam/edp-common v0.0.0-20211130150314-81d7cc13140c
+	github.com/epam/edp-common v0.0.0-20211206180607-3e1ca60d6e4a
 	github.com/epam/edp-component-operator v0.1.1-0.20211129100139-b5b7659f98f6
 	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20211130161209-15bf5aec5493
 	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20211130125231-d444d239995b

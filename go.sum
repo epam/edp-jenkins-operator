@@ -280,8 +280,9 @@ github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20210719112602-046af47ad1c0
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20211130102103-b05e463cf62b h1:GHOEfFP5xnfyqfFAmHd9oMvhG5X/qJxaW8jQekD4yDg=
 github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20211130102103-b05e463cf62b/go.mod h1:cwACKzlCpuSUpc4W3tJFph6IRiLBxOVP5mcgheOC2cM=
 github.com/epam/edp-common v0.0.0-20211124100535-e54dcdf42879/go.mod h1:S1yrJ76vy4JMkBpartv4qpDDAtPP43aM2sg5YhkB90I=
-github.com/epam/edp-common v0.0.0-20211130150314-81d7cc13140c h1:48IHOjxWizxDbawCHQrrKFLQwyU3xWV7yRCNU4Z1xd8=
 github.com/epam/edp-common v0.0.0-20211130150314-81d7cc13140c/go.mod h1:S1yrJ76vy4JMkBpartv4qpDDAtPP43aM2sg5YhkB90I=
+github.com/epam/edp-common v0.0.0-20211206180607-3e1ca60d6e4a h1:twumv3j/0cxDlfz1T8De0/4FNuKmPEP1ql0lG8XELFQ=
+github.com/epam/edp-common v0.0.0-20211206180607-3e1ca60d6e4a/go.mod h1:S1yrJ76vy4JMkBpartv4qpDDAtPP43aM2sg5YhkB90I=
 github.com/epam/edp-component-operator v0.1.1-0.20210712133513-acb35d96931c/go.mod h1:fxiH4grhavez0q1vBcDleIcQ5mXiIrtSK34TRtgQ4Ec=
 github.com/epam/edp-component-operator v0.1.1-0.20210712140516-09b8bb3a4cff/go.mod h1:fxiH4grhavez0q1vBcDleIcQ5mXiIrtSK34TRtgQ4Ec=
 github.com/epam/edp-component-operator v0.1.1-0.20211129100139-b5b7659f98f6 h1:kzb7KC3VYEYTyDcYGUck32774H9a2HDCPuUujNiIVjc=

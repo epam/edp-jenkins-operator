@@ -64,6 +64,6 @@ func NewPlatformService(platformType string, scheme *runtime.Scheme, k8sClient *
 		}
 		return platform, nil
 	default:
-		return nil, errors.Wrap(err, "Unknown platform type")
+		return nil, errors.New("Unknown platform type")
 	}
 }

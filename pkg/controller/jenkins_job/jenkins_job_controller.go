@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"reflect"
 	"time"
 
@@ -75,6 +76,7 @@ func (r *ReconcileJenkinsJob) Reconcile(ctx context.Context, request reconcile.R
 	i := &jenkinsApi.JenkinsJob{}
 	if err := r.client.Get(ctx, request.NamespacedName, i); err != nil {
 		if k8serrors.IsNotFound(err) {
+			log.Info("instance not found")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -143,7 +145,7 @@ func (r *ReconcileJenkinsJob) getChain(jobExist bool) (chain.Chain, error) {
 func isJenkinsJobExist(jc *jenkinsClient.JenkinsClient, jp string) (bool, error) {
 	_, err := jc.GoJenkins.GetJob(jp)
 	if err != nil {
-		if err.Error() == "404" {
+		if helper.JenkinsIsNotFoundErr(err) {
 			return false, nil
 		}
 		return false, err
@@ -190,7 +192,7 @@ func (r ReconcileJenkinsJob) deleteJob(jj *jenkinsApi.JenkinsJob) error {
 
 	j := r.getJobName(jj)
 	if _, err := jc.GoJenkins.DeleteJob(j); err != nil {
-		if err.Error() == "404" {
+		if helper.JenkinsIsNotFoundErr(err) {
 			r.log.V(2).Info("job/folder doesn't exist. skip deleting", "name", j)
 			return nil
 		}

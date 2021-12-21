@@ -74,6 +74,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
+			log.Info("instance not found")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -122,6 +123,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 		log.Error(err, "Configuration has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Configuration failed")
 	} else if !isFinished {
+		log.Info("Configuration is not finished")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
@@ -159,6 +161,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 		log.Error(err, "Integration has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Integration failed")
 	} else if !isFinished {
+		log.Info("Integration is not finished")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
@@ -166,6 +169,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 		log.Info("Configuration has been finished", instance.Namespace, instance.Name)
 		err = r.updateStatus(ctx, instance, StatusReady)
 		if err != nil {
+			log.Info("Couldn't update status")
 			return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 		}
 	}

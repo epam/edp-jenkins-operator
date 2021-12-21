@@ -13,7 +13,10 @@ import (
 var log = ctrl.Log.WithName("jenkins-folder-chain")
 
 func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.JenkinsFolderHandler, error) {
-	pt := helper.GetPlatformTypeEnv()
+	pt, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		return nil, err
+	}
 	ps, err := platform.NewPlatformService(pt, s, c)
 	if err != nil {
 		return nil, err
@@ -27,7 +30,10 @@ func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.J
 }
 
 func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c *client.Client) (handler.JenkinsFolderHandler, error) {
-	pt := helper.GetPlatformTypeEnv()
+	pt, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		return nil, err
+	}
 	ps, err := platform.NewPlatformService(pt, s, c)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package platform
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
@@ -56,7 +57,9 @@ func TestMock_CreateConfigMapWithUpdate(t *testing.T) {
 
 func TestMock_AddVolumeToInitContainer(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -68,7 +71,9 @@ func TestMock_AddVolumeToInitContainer(t *testing.T) {
 
 func TestMock_CreateConfigMapFromFileOrDir(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -81,7 +86,9 @@ func TestMock_CreateConfigMapFromFileOrDir(t *testing.T) {
 
 func TestMock_CreateEDPComponentIfNotExist(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -108,7 +115,9 @@ func TestMock_GetExternalEndpoint(t *testing.T) {
 
 func TestMock_IsDeploymentReady(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -134,7 +143,9 @@ func TestMock_GetSecretData(t *testing.T) {
 
 func TestMock_GetConfigMapData(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -146,7 +157,9 @@ func TestMock_GetConfigMapData(t *testing.T) {
 
 func TestMock_CreateKeycloakClient(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}
@@ -158,7 +171,9 @@ func TestMock_CreateKeycloakClient(t *testing.T) {
 
 func TestMock_CreateStageJSON(t *testing.T) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
 	}()
 
 	m := Mock{}

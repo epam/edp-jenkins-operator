@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"github.com/stretchr/testify/assert"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -11,6 +13,54 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
+
+func TestNewJenkinsUser(t *testing.T) {
+	data := map[string][]byte{}
+	secretName := "name"
+	credentialsType := []string{SSHUserType, PasswordUserType, TokenUserType}
+	for i := range credentialsType {
+		_, err := NewJenkinsUser(data, credentialsType[i], secretName)
+		assert.NoError(t, err)
+	}
+}
+
+func TestNewJenkinsUserErr(t *testing.T) {
+	data := map[string][]byte{}
+	secretName := "name"
+	credentialsType := ""
+	_, err := NewJenkinsUser(data, credentialsType, secretName)
+	assert.Equal(t, "Unknown credentials type!", err.Error())
+}
+
+func TestJenkinsCredentials_ToString(t *testing.T) {
+	credentials := JenkinsCredentials{
+		Credentials: JenkinsCredentialsParams{Id: "1"},
+	}
+	str, err := credentials.ToString()
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"credentials\":{\"id\":\"1\",\"scope\":\"\",\"stapler-class\":\"\"}}", str)
+}
+
+func TestGetPlatformTypeEnv(t *testing.T) {
+	str := "test"
+	err := os.Setenv(PlatformType, str)
+	assert.NoError(t, err)
+	env, err := GetPlatformTypeEnv()
+	assert.NoError(t, err)
+	assert.Equal(t, str, env)
+	err = os.Unsetenv(PlatformType)
+	assert.NoError(t, err)
+}
+
+func TestGetPlatformTypeEnvErr(t *testing.T) {
+	env, err := GetPlatformTypeEnv()
+	assert.Error(t, err)
+	assert.Equal(t, "", env)
+}
+
+func TestNewTrue(t *testing.T) {
+	assert.True(t, *NewTrue())
+}
 
 func TestTryToDelete_AddFinalizers(t *testing.T) {
 	ja := v1alpha1.JenkinsAgent{

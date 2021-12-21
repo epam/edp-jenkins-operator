@@ -149,7 +149,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	ps, err := platform.NewPlatformService(helper.GetPlatformTypeEnv(), mgr.GetScheme(), &cl)
+	env, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		setupLog.Error(err, "unable to get platform type env")
+		os.Exit(1)
+	}
+	ps, err := platform.NewPlatformService(env, mgr.GetScheme(), &cl)
 	if err != nil {
 		setupLog.Error(err, "unable to create platform service")
 	}

@@ -579,7 +579,11 @@ func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClien
 	}
 	configMapName := strings.ReplaceAll(fmt.Sprintf("%v-%v", instance.Name, jobPath), "/", "-")
 	configMapKey := consts.JenkinsDefaultScriptConfigMapKey
-	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, helperController.GetPlatformTypeEnv()))
+	env, err := helperController.GetPlatformTypeEnv()
+	if err != nil {
+		return err
+	}
+	path := filepath.FromSlash(fmt.Sprintf("%v/%v", jobProvisionsDirectoryPath, env))
 	err = j.createScript(instance, configMapName, configMapKey, path)
 	return err
 }

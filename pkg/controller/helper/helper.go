@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	DefaultRequeueTime        = 30
-	GlobalScope        string = "GLOBAL"
-	SSHUserType        string = "ssh"
-	PasswordUserType   string = "password"
-	TokenUserType      string = "token"
-	platformType       string = "PLATFORM_TYPE"
-	StatusSuccess             = "success"
+	DefaultRequeueTime = 30
+	GlobalScope        = "GLOBAL"
+	SSHUserType        = "ssh"
+	PasswordUserType   = "password"
+	TokenUserType      = "token"
+	PlatformType       = "PLATFORM_TYPE"
+	StatusSuccess      = "success"
 )
 
 func NewTrue() *bool {
@@ -152,12 +152,12 @@ func trimNewline(data map[string][]byte) map[string]string {
 	return out
 }
 
-func GetPlatformTypeEnv() string {
-	platformType, found := os.LookupEnv(platformType)
+func GetPlatformTypeEnv() (string, error) {
+	platformType, found := os.LookupEnv(PlatformType)
 	if !found {
-		panic("Environment variable PLATFORM_TYPE is not defined")
+		return "", errors.New("Environment variable PLATFORM_TYPE no found")
 	}
-	return platformType
+	return platformType, nil
 }
 
 func GetSlavesList(slaves string) []string {
@@ -167,10 +167,6 @@ func GetSlavesList(slaves string) []string {
 	}
 
 	return nil
-}
-
-func JenkinsIsNotFoundErr(err error) bool {
-	return err.Error() == "404"
 }
 
 func TryToDelete(instance client.Object, finalizerName string, deleteFunc func() error) (needUpdate bool, err error) {
@@ -194,4 +190,8 @@ func TryToDelete(instance client.Object, finalizerName string, deleteFunc func()
 	instance.SetFinalizers(finalizers)
 
 	return true, nil
+}
+
+func JenkinsIsNotFoundErr(err error) bool {
+	return err.Error() == "404"
 }

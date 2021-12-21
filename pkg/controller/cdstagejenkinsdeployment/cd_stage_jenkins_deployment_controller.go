@@ -59,6 +59,7 @@ func (r *ReconcileCDStageJenkinsDeployment) Reconcile(ctx context.Context, reque
 	i := &jenkinsApi.CDStageJenkinsDeployment{}
 	if err := r.client.Get(ctx, request.NamespacedName, i); err != nil {
 		if k8serrors.IsNotFound(err) {
+			log.Info("instance not found")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -76,7 +77,11 @@ func (r *ReconcileCDStageJenkinsDeployment) Reconcile(ctx context.Context, reque
 		return reconcile.Result{}, err
 	}
 
-	platform, err := ps.NewPlatformService(helper.GetPlatformTypeEnv(), r.scheme, &r.client)
+	env, err := helper.GetPlatformTypeEnv()
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	platform, err := ps.NewPlatformService(env, r.scheme, &r.client)
 	if err != nil {
 		err := errors.Wrap(err, "couldn't create platform service")
 		i.SetFailedStatus(err)

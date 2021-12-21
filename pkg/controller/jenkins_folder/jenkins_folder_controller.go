@@ -2,6 +2,7 @@ package jenkins
 
 import (
 	"context"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -74,6 +75,7 @@ func (r *ReconcileJenkinsFolder) Reconcile(ctx context.Context, request reconcil
 	i := &jenkinsApi.JenkinsFolder{}
 	if err := r.client.Get(ctx, request.NamespacedName, i); err != nil {
 		if k8serrors.IsNotFound(err) {
+			log.Info("instance not found")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -148,7 +150,7 @@ func (r ReconcileJenkinsFolder) tryToDeleteJenkinsFolder(ctx context.Context, jc
 
 	fn := r.getJenkinsFolderName(jf)
 	if _, err := jc.GoJenkins.DeleteJob(fn); err != nil {
-		if err.Error() != "404" {
+		if helper.JenkinsIsNotFoundErr(err) {
 			return &reconcile.Result{}, err
 		}
 		r.log.V(2).Info("404 code error when Jenkins job was deleted earlier during reconciliation", "jenkins folder", jf.Name)
