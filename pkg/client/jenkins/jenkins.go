@@ -8,15 +8,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bndr/gojenkins"
+	"github.com/pkg/errors"
+	"gopkg.in/resty.v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/bndr/gojenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	"github.com/pkg/errors"
-	"gopkg.in/resty.v1"
 )
 
 const (
@@ -90,18 +90,18 @@ func (jc JenkinsClient) GetCrumb() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to send request for Crumb!")
 	}
-	if resp.StatusCode() == 404 {
+	if resp.StatusCode() == http.StatusNotFound {
 		log.V(1).Info("Jenkins Crumb is not found")
 		return "", nil
 	}
 	if resp.IsError() {
-		return "", errors.Wrapf(err, "Getting Crumb failed! Response code: %v, response body: %s", resp.StatusCode(), resp.Body())
+		return "", errors.Errorf("Getting Crumb failed! Response code: %v, response body: %s", resp.StatusCode(), resp.Body())
 	}
 
 	var responseData map[string]string
 	err = json.Unmarshal(resp.Body(), &responseData)
 	if err != nil {
-		return "", errors.Wrap(err, "Unmarshaling response output failed")
+		return "", errors.Wrap(err, "Unmarshalling response output failed")
 	}
 
 	return responseData["crumb"], nil
@@ -208,7 +208,7 @@ func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) erro
 		return errors.Wrap(err, "Failed to sent Jenkins user creation request!")
 	}
 
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return errors.New(fmt.Sprintf("Failed to create user in Jenkins! Response code: %v, response body: %s", resp.StatusCode(), resp.Body()))
 	}
 
@@ -306,7 +306,7 @@ func (jc JenkinsClient) IsBuildSuccessful(jobName string, buildNumber int64) (bo
 			log.Info("couldn't find build", "build number", buildNumber)
 			return false, nil
 		}
-		return false, err
+		return false, errors.Wrapf(err, "could't get build %v", jobName)
 	}
 	return b.GetResult() == "SUCCESS", nil
 }
@@ -318,7 +318,7 @@ func getBuild(jp string, job *gojenkins.Job, id int64) (*gojenkins.Build, error)
 	if err != nil {
 		return nil, err
 	}
-	if status == 200 {
+	if status == http.StatusOK {
 		return &build, nil
 	}
 	return nil, errors.New(strconv.Itoa(status))
