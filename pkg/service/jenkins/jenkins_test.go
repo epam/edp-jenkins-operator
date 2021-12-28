@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	"github.com/pkg/errors"
 )
 
 func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {

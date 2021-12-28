@@ -1,17 +1,18 @@
 package helper
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 )
 
 func TestNewJenkinsUser(t *testing.T) {
@@ -128,4 +129,9 @@ func TestTryToDelete_DeleteFuncFailure(t *testing.T) {
 		t.Log(err)
 		t.Fatal("wrong func returned")
 	}
+}
+
+func TestJenkinsIsNotFoundErr(t *testing.T) {
+	err := errors.New("404")
+	assert.True(t, JenkinsIsNotFoundErr(err))
 }

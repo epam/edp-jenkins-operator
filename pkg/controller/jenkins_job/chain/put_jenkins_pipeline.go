@@ -4,20 +4,22 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"text/template"
+	"time"
+
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"text/template"
-	"time"
 )
 
 type PutJenkinsPipeline struct {
@@ -30,7 +32,7 @@ type PutJenkinsPipeline struct {
 func (h PutJenkinsPipeline) ServeRequest(jj *v1alpha1.JenkinsJob) error {
 	h.log.Info("start creating Jenkins CD Pipeline")
 	if err := h.setStatus(jj, consts.StatusInProgress, v1alpha1.CreateJenkinsPipeline, nil); err != nil {
-		return err
+		return errors.Wrap(err, "set status err")
 	}
 	if err := h.tryToCreateJob(jj); err != nil {
 		if err := h.setStatus(jj, consts.StatusFailed, v1alpha1.CreateJenkinsPipeline, &err); err != nil {
@@ -135,11 +137,13 @@ func (h PutJenkinsPipeline) setPipeSrcParams(stage *cdPipeApi.Stage, pipeSrc map
 	if err != nil {
 		h.log.Error(err, "couldn't retrieve parameters for pipeline's library, default source type will be used",
 			"Library name", stage.Spec.Source.Library.Name)
+		return
 	}
 	gs, err := h.getGitServerParams(cb.Spec.GitServer, stage.Namespace)
 	if err != nil {
 		h.log.Error(err, "couldn't retrieve parameters for git server, default source type will be used",
 			"Git server", cb.Spec.GitServer)
+		return
 	} else {
 		pipeSrc["type"] = "library"
 		pipeSrc["library"] = map[string]string{

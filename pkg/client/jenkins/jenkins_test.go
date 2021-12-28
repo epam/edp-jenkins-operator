@@ -540,6 +540,18 @@ func TestJenkinsClient_BuildJob_Err(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestJenkinsClient_CreateFolder(t *testing.T) {
+	jenkins, err := createMockClient()
+	assert.NoError(t, err)
+	jc := JenkinsClient{
+		GoJenkins: jenkins,
+	}
+	httpmock.RegisterResponder(http.MethodGet, "https://crumbIssuer/api/json/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
+	httpmock.RegisterResponder(http.MethodPost, "https://createItem", httpmock.NewStringResponder(http.StatusOK, ""))
+	err = jc.CreateFolder(name)
+	assert.NoError(t, err)
+}
+
 func TestJenkinsClient_CreateFolder_Err(t *testing.T) {
 	jenkins, err := createMockClient()
 	assert.NoError(t, err)

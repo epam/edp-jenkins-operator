@@ -9,10 +9,6 @@ import (
 
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	common "github.com/epam/edp-common/pkg/mock"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +16,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
 const name = "name"
@@ -212,4 +213,17 @@ func TestReconcileCDStageJenkinsDeployment_CreateDefChainErr(t *testing.T) {
 	assert.Equal(t, reconcile.Result{RequeueAfter: 500 * time.Millisecond}, rs)
 	err = os.Unsetenv(helper.PlatformType)
 	assert.NoError(t, err)
+}
+
+func TestNewReconcileCDStageJenkinsDeployment(t *testing.T) {
+	cl := fake.NewClientBuilder().Build()
+	log := &common.Logger{}
+	scheme := runtime.NewScheme()
+	Reconcile := NewReconcileCDStageJenkinsDeployment(cl, scheme, log)
+	Expected := &ReconcileCDStageJenkinsDeployment{
+		client: cl,
+		scheme: scheme,
+		log:    log,
+	}
+	assert.Equal(t, Expected, Reconcile)
 }

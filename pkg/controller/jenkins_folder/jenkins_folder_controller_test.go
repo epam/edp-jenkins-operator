@@ -2,26 +2,28 @@ package jenkins
 
 import (
 	"context"
+	"os"
+	"strings"
+	"testing"
+
 	common "github.com/epam/edp-common/pkg/mock"
-	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strings"
-	"testing"
+
+	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
 const name = "name"
 const namespace = "namespace"
-const URLScheme = "https://"
+const URLScheme = "https"
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -108,7 +110,7 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	assert.NoError(t, err)
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
-	httpmock.RegisterResponder("GET", "https:////firstthird/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://firstthird/api/json", httpmock.NewStringResponder(200, ""))
 
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
@@ -130,4 +132,20 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while setting owner reference"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	platform.AssertExpectations(t)
+}
+
+func TestNewReconcileJenkinsFolder(t *testing.T) {
+	cl := fake.NewClientBuilder().Build()
+	log := &common.Logger{}
+	scheme := runtime.NewScheme()
+	platform := &pmock.PlatformService{}
+	Reconcile := NewReconcileJenkinsFolder(cl, scheme, log, platform)
+	Expected := &ReconcileJenkinsFolder{
+		client:   cl,
+		scheme:   scheme,
+		log:      log,
+		platform: platform,
+	}
+	assert.Equal(t, Expected, Reconcile)
 }

@@ -3,24 +3,25 @@ package jenkinsserviceaccount
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"time"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/go-logr/logr"
 	errorsf "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 func NewReconcileJenkinsServiceAccount(client client.Client, scheme *runtime.Scheme, log logr.Logger, ps platform.PlatformService) *ReconcileJenkinsServiceAccount {
@@ -64,6 +65,7 @@ func (r *ReconcileJenkinsServiceAccount) Reconcile(ctx context.Context, request 
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
+			log.Info("instance not found")
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -81,11 +83,11 @@ func (r *ReconcileJenkinsServiceAccount) Reconcile(ctx context.Context, request 
 	jc, err := jenkinsClient.InitJenkinsClient(jenkinsInstance, r.platform)
 	if err != nil {
 		log.Info("Failed to init Jenkins REST client")
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errorsf.Wrap(err, "Failed to init Jenkins REST client")
 	}
 	if jc == nil {
 		log.V(1).Info("Jenkins returns nil client")
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, err
+		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
 	err = jc.CreateUser(*instance)

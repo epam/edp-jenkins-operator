@@ -3,22 +3,23 @@ package jenkins
 import (
 	"context"
 	"errors"
-	common "github.com/epam/edp-common/pkg/mock"
-	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
-	smock "github.com/epam/edp-jenkins-operator/v2/mock/service"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+	"testing"
 	"time"
 
+	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
+
+	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
+	smock "github.com/epam/edp-jenkins-operator/v2/mock/service"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
 const name = "name"
@@ -93,6 +94,8 @@ func TestReconcileJenkins_Reconcile_UpdateEmptyStatusErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update status from "))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_UpdateStatusInstallErr(t *testing.T) {
@@ -125,6 +128,8 @@ func TestReconcileJenkins_Reconcile_UpdateStatusInstallErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update status from "))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_CreateAdminPasswordErr(t *testing.T) {
@@ -160,6 +165,9 @@ func TestReconcileJenkins_Reconcile_CreateAdminPasswordErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Admin password secret creation has failed"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_IsDeploymentReadyErr(t *testing.T) {
@@ -195,6 +203,9 @@ func TestReconcileJenkins_Reconcile_IsDeploymentReadyErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Checking if Deployment configs is ready has been failed"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_IsDeploymentReadyFalse(t *testing.T) {
@@ -229,6 +240,9 @@ func TestReconcileJenkins_Reconcile_IsDeploymentReadyFalse(t *testing.T) {
 	_, ok := log.InfoMessages["Deployment configs is not ready for configuration yet"]
 	assert.True(t, ok)
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_UpdateStatusCreatedErr(t *testing.T) {
@@ -264,6 +278,9 @@ func TestReconcileJenkins_Reconcile_UpdateStatusCreatedErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update status from"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_ConfigureErr(t *testing.T) {
@@ -299,6 +316,9 @@ func TestReconcileJenkins_Reconcile_ConfigureErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Configuration failed"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_ConfigureFalse(t *testing.T) {
@@ -334,6 +354,9 @@ func TestReconcileJenkins_Reconcile_ConfigureFalse(t *testing.T) {
 	_, ok := log.InfoMessages["Configuration is not finished"]
 	assert.True(t, ok)
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_UpdateStatusConfiguringErr(t *testing.T) {
@@ -371,6 +394,9 @@ func TestReconcileJenkins_Reconcile_UpdateStatusConfiguringErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update status from "))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_UpdateStatusConfiguredErr(t *testing.T) {
@@ -408,6 +434,9 @@ func TestReconcileJenkins_Reconcile_UpdateStatusConfiguredErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update status from "))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_ExposeConfigurationErr(t *testing.T) {
@@ -426,7 +455,6 @@ func TestReconcileJenkins_Reconcile_ExposeConfigurationErr(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	mc.On("Update").Return(nil)
 	serv.On("CreateAdminPassword").Return(nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
@@ -446,6 +474,9 @@ func TestReconcileJenkins_Reconcile_ExposeConfigurationErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Expose configuration failed"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_updateInstanceStatusErr(t *testing.T) {
@@ -484,6 +515,9 @@ func TestReconcileJenkins_Reconcile_updateInstanceStatusErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update instance status"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_IntegrationErr(t *testing.T) {
@@ -502,7 +536,6 @@ func TestReconcileJenkins_Reconcile_IntegrationErr(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	mc.On("Update").Return(nil)
 	serv.On("CreateAdminPassword").Return(nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
@@ -523,6 +556,9 @@ func TestReconcileJenkins_Reconcile_IntegrationErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Integration failed"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_IntegrationFalse(t *testing.T) {
@@ -540,7 +576,6 @@ func TestReconcileJenkins_Reconcile_IntegrationFalse(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	mc.On("Update").Return(nil)
 	serv.On("CreateAdminPassword").Return(nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
@@ -562,6 +597,9 @@ func TestReconcileJenkins_Reconcile_IntegrationFalse(t *testing.T) {
 	_, ok := log.InfoMessages["Integration is not finished"]
 	assert.True(t, ok)
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_UpdateStatusIntegrationStartErr(t *testing.T) {
@@ -602,6 +640,9 @@ func TestReconcileJenkins_Reconcile_UpdateStatusIntegrationStartErr(t *testing.T
 	_, ok := log.InfoMessages["Couldn't update status"]
 	assert.True(t, ok)
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_updateAvailableStatusErr(t *testing.T) {
@@ -642,6 +683,9 @@ func TestReconcileJenkins_Reconcile_updateAvailableStatusErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't update availability status"))
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }
 
 func TestReconcileJenkins_Reconcile_AllValid(t *testing.T) {
@@ -659,7 +703,6 @@ func TestReconcileJenkins_Reconcile_AllValid(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	mc.On("Update").Return(nil)
 	serv.On("CreateAdminPassword").Return(nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
@@ -679,4 +722,7 @@ func TestReconcileJenkins_Reconcile_AllValid(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, reconcile.Result{RequeueAfter: 60 * time.Second}, rs)
+	mc.AssertExpectations(t)
+	sw.AssertExpectations(t)
+	serv.AssertExpectations(t)
 }

@@ -3,24 +3,26 @@ package jenkins
 import (
 	"context"
 	"errors"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	common "github.com/epam/edp-common/pkg/mock"
-	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
-	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strings"
-	"testing"
-	"time"
+
+	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
+	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
 const name = "name"
@@ -95,6 +97,7 @@ func TestReconcileJenkinsJob_Reconcile_tryToDeleteJobErr(t *testing.T) {
 
 	assert.Equal(t, errTest, err)
 	assert.Equal(t, reconcile.Result{}, rs)
+	mc.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_setOwnersErr(t *testing.T) {
@@ -166,6 +169,7 @@ func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while checking availability of creating jenkins job"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	mc.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledFalse(t *testing.T) {
@@ -282,6 +286,7 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while init jenkins client"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	platform.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
@@ -334,6 +339,7 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while retrieving jenkins job"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	platform.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
@@ -387,6 +393,7 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while selecting chain"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	platform.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
@@ -442,4 +449,22 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
 	assert.Equal(t, reconcile.Result{}, rs)
+	platform.AssertExpectations(t)
+}
+
+func TestNewReconcileJenkinsJob(t *testing.T) {
+
+	cl := fake.NewClientBuilder().Build()
+	log := &common.Logger{}
+	scheme := runtime.NewScheme()
+	platform := &pmock.PlatformService{}
+	Reconcile := NewReconcileJenkinsJob(cl, scheme, log, platform)
+	Expected := &ReconcileJenkinsJob{
+		client:   cl,
+		scheme:   scheme,
+		log:      log,
+		platform: platform,
+	}
+	assert.Equal(t, Expected, Reconcile)
+
 }
