@@ -21,7 +21,7 @@ import (
 const (
 	name      = "name"
 	namespace = "namespace"
-	str       = "{\"crumb\": \"file\"}"
+	str       = `{"crumb": "file"}`
 )
 
 func createMockClient() (*gojenkins.Jenkins, error) {
@@ -518,14 +518,14 @@ func TestJenkinsClient_IsBuildSuccessful_getBuildNotFound(t *testing.T) {
 
 func TestJenkinsClient_IsBuildSuccessful(t *testing.T) {
 	jenkins, err := createMockClient()
-	httpmock.RegisterResponder(http.MethodGet, "https://job/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job//1/api/json?depth=1", httpmock.NewStringResponder(http.StatusOK, ""))
+	httpmock.RegisterResponder(http.MethodGet, "https://job/name/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
+	httpmock.RegisterResponder(http.MethodGet, "https://job/name/1/api/json?depth=1", httpmock.NewStringResponder(http.StatusOK, ""))
 
 	assert.NoError(t, err)
 	jc := JenkinsClient{
 		GoJenkins: jenkins,
 	}
-	_, err = jc.IsBuildSuccessful("", int64(1))
+	_, err = jc.IsBuildSuccessful(name, int64(1))
 	assert.NoError(t, err)
 }
 

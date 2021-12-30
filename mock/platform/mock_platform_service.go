@@ -166,7 +166,7 @@ func (_m *PlatformService) CreateKeycloakClient(kc *v1v1alpha1.KeycloakClient) e
 
 // CreateSecret provides a mock function with given fields: instance, name, data
 func (_m *PlatformService) CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error {
-	ret := _m.Called(instance, name, data)
+	ret := _m.Called(instance, name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, map[string][]byte) error); ok {

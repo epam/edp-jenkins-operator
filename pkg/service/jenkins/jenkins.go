@@ -14,14 +14,6 @@ import (
 	"github.com/dchest/uniuri"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
-	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
@@ -33,6 +25,15 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
+	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
 const (
@@ -143,6 +144,8 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 
 	err := j.k8sClient.List(context.TODO(), list, &options)
 	if err != nil {
+		str := err.Error()
+		fmt.Println(str)
 		log.V(1).Info(fmt.Sprintf("Gerrit installation is not found in namespace %v", instance.Namespace))
 		return nil
 	}
@@ -337,7 +340,7 @@ func (j JenkinsServiceImpl) ExposeConfiguration(instance v1alpha1.Jenkins) (*v1a
 		return &instance, upd, errors.Wrap(err, "Failed to init Jenkins REST client")
 	}
 	if jc == nil {
-		return &instance, upd, errors.Wrap(err, "Jenkins returns nil client")
+		return &instance, upd, errors.New("Jenkins returns nil client")
 	}
 
 	sl, err := jc.GetSlaves()
@@ -422,7 +425,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
 	}
 	if jc == nil {
-		return &instance, false, errors.Wrap(err, "Jenkins returns nil client")
+		return &instance, false, errors.New("Jenkins returns nil client")
 	}
 
 	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
