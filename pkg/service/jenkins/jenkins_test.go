@@ -685,3 +685,11 @@ func TestJenkinsServiceImpl_CreateAdminPassword(t *testing.T) {
 	assert.NoError(t, err)
 	platform.AssertExpectations(t)
 }
+
+func Test_setAnnotation(t *testing.T) {
+	key := "key"
+	value := "val"
+	instance := v1alpha1.Jenkins{}
+	setAnnotation(&instance, key, value)
+	assert.Equal(t, value, instance.Annotations[key])
+}

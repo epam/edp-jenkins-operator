@@ -23,11 +23,12 @@ import (
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const name = "name"
 const namespace = "namespace"
-const URLScheme = "https://"
+const URLScheme = "https"
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -248,7 +249,7 @@ func TestReconcileJenkinsJob_Reconcile_GetJenkinsInstanceOwnerErr(t *testing.T) 
 
 func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	ctx := context.Background()
-	platform := pmock.PlatformService{}
+	platformMock := pmock.PlatformService{}
 
 	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
@@ -269,14 +270,14 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
 		&jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
+	platformMock.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkinsJob{
 		client:   cl,
 		log:      log,
 		scheme:   s,
-		platform: &platform,
+		platform: &platformMock,
 	}
 	req := reconcile.Request{
 		NamespacedName: nsn,
@@ -286,12 +287,12 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while init jenkins client"))
 	assert.Equal(t, reconcile.Result{}, rs)
-	platform.AssertExpectations(t)
+	platformMock.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	ctx := context.Background()
-	platform := pmock.PlatformService{}
+	platformMock := pmock.PlatformService{}
 
 	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
@@ -315,21 +316,21 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
-	httpmock.RegisterResponder("GET", "https:////12/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://12/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
 		&jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platform.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
-	platform.On("GetSecretData", namespace, "").Return(secretData, nil)
+	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
+	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkinsJob{
 		client:   cl,
 		log:      log,
 		scheme:   s,
-		platform: &platform,
+		platform: &platformMock,
 	}
 	req := reconcile.Request{
 		NamespacedName: nsn,
@@ -339,12 +340,12 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while retrieving jenkins job"))
 	assert.Equal(t, reconcile.Result{}, rs)
-	platform.AssertExpectations(t)
+	platformMock.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	ctx := context.Background()
-	platform := pmock.PlatformService{}
+	platformMock := pmock.PlatformService{}
 
 	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
@@ -368,22 +369,22 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
-	httpmock.RegisterResponder("GET", "https:////12/api/json", httpmock.NewStringResponder(200, ""))
-	httpmock.RegisterResponder("GET", "https:////12/job/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://12/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://12/job/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
 		&jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platform.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
-	platform.On("GetSecretData", namespace, "").Return(secretData, nil)
+	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
+	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkinsJob{
 		client:   cl,
 		log:      log,
 		scheme:   s,
-		platform: &platform,
+		platform: &platformMock,
 	}
 	req := reconcile.Request{
 		NamespacedName: nsn,
@@ -393,12 +394,12 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has occurred while selecting chain"))
 	assert.Equal(t, reconcile.Result{}, rs)
-	platform.AssertExpectations(t)
+	platformMock.AssertExpectations(t)
 }
 
 func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	ctx := context.Background()
-	platform := pmock.PlatformService{}
+	platformMock := pmock.PlatformService{}
 
 	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
@@ -420,26 +421,26 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 
 	instance := createJenkinsJobInstance()
 
-	err := os.Setenv(helper.PlatformType, "kubernetes")
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	assert.NoError(t, err)
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
-	httpmock.RegisterResponder("GET", "https:////12/api/json", httpmock.NewStringResponder(200, ""))
-	httpmock.RegisterResponder("GET", "https:////12/job/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://12/api/json", httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder("GET", "https://12/job/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
 		&jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platform.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
-	platform.On("GetSecretData", namespace, "").Return(secretData, nil)
+	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
+	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkinsJob{
 		client:   cl,
 		log:      log,
 		scheme:   s,
-		platform: &platform,
+		platform: &platformMock,
 	}
 	req := reconcile.Request{
 		NamespacedName: nsn,
@@ -449,7 +450,7 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
 	assert.Equal(t, reconcile.Result{}, rs)
-	platform.AssertExpectations(t)
+	platformMock.AssertExpectations(t)
 }
 
 func TestNewReconcileJenkinsJob(t *testing.T) {
@@ -457,13 +458,13 @@ func TestNewReconcileJenkinsJob(t *testing.T) {
 	cl := fake.NewClientBuilder().Build()
 	log := &common.Logger{}
 	scheme := runtime.NewScheme()
-	platform := &pmock.PlatformService{}
-	Reconcile := NewReconcileJenkinsJob(cl, scheme, log, platform)
+	platformMock := &pmock.PlatformService{}
+	Reconcile := NewReconcileJenkinsJob(cl, scheme, log, platformMock)
 	Expected := &ReconcileJenkinsJob{
 		client:   cl,
 		scheme:   scheme,
 		log:      log,
-		platform: platform,
+		platform: platformMock,
 	}
 	assert.Equal(t, Expected, Reconcile)
 

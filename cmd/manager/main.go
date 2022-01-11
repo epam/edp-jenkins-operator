@@ -10,6 +10,11 @@ import (
 	buildInfo "github.com/epam/edp-common/pkg/config"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
@@ -24,10 +29,6 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	clusterUtil "github.com/epam/edp-jenkins-operator/v2/pkg/util"
-	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -154,7 +155,7 @@ func main() {
 		setupLog.Error(err, "unable to get platform type env")
 		os.Exit(1)
 	}
-	ps, err := platform.NewPlatformService(env, mgr.GetScheme(), &cl)
+	ps, err := platform.NewPlatformService(env, mgr.GetScheme(), cl)
 	if err != nil {
 		setupLog.Error(err, "unable to create platform service")
 	}

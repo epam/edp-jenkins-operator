@@ -1,14 +1,15 @@
 package chain
 
 import (
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 var log = ctrl.Log.WithName("jenkins_job")
@@ -32,7 +33,7 @@ func InitDefChain(scheme *runtime.Scheme, client client.Client) (*DefChain, erro
 	if err != nil {
 		return nil, err
 	}
-	ps, err := platform.NewPlatformService(env, scheme, &client)
+	ps, err := platform.NewPlatformService(env, scheme, client)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +64,7 @@ func InitTriggerJobProvisionChain(scheme *runtime.Scheme, client client.Client) 
 	if err != nil {
 		return nil, err
 	}
-	ps, err := platform.NewPlatformService(env, scheme, &client)
+	ps, err := platform.NewPlatformService(env, scheme, client)
 	if err != nil {
 		return nil, err
 	}

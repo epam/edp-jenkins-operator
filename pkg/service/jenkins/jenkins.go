@@ -214,7 +214,7 @@ func (j JenkinsServiceImpl) createSecret(instance v1alpha1.Jenkins, secretName s
 }
 
 //setAnnotation add key:value to current resource annotation
-func (j JenkinsServiceImpl) setAnnotation(instance *v1alpha1.Jenkins, key string, value string) {
+func setAnnotation(instance *v1alpha1.Jenkins, key string, value string) {
 	if len(instance.Annotations) == 0 {
 		instance.ObjectMeta.Annotations = map[string]string{
 			key: value,
@@ -446,7 +446,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		}
 
 		adminTokenAnnotationKey := helper.GenerateAnnotationKey(jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
-		j.setAnnotation(&instance, adminTokenAnnotationKey, adminTokenSecretName)
+		setAnnotation(&instance, adminTokenAnnotationKey, adminTokenSecretName)
 
 		err = j.k8sClient.Update(context.TODO(), &instance)
 		if err != nil {

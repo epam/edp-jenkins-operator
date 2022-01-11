@@ -1,18 +1,19 @@
 package chain
 
 import (
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = ctrl.Log.WithName("jenkins-folder-chain")
 
-func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.JenkinsFolderHandler, error) {
+func CreateCDPipelineFolderChain(s *runtime.Scheme, c client.Client) (handler.JenkinsFolderHandler, error) {
 	pt, err := helper.GetPlatformTypeEnv()
 	if err != nil {
 		return nil, err
@@ -23,13 +24,13 @@ func CreateCDPipelineFolderChain(s *runtime.Scheme, c *client.Client) (handler.J
 	}
 
 	return PutCDPipelineJenkinsFolder{
-		client: *c,
+		client: c,
 		ps:     ps,
 		scheme: s,
 	}, nil
 }
 
-func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c *client.Client) (handler.JenkinsFolderHandler, error) {
+func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c client.Client) (handler.JenkinsFolderHandler, error) {
 	pt, err := helper.GetPlatformTypeEnv()
 	if err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c *client.Client) (hand
 	}
 
 	return TriggerBuildJobProvision{
-		client: *c,
+		client: c,
 		ps:     ps,
 	}, nil
 }

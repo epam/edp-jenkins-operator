@@ -19,6 +19,7 @@ import (
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const name = "name"
@@ -84,7 +85,7 @@ func TestReconcileJenkinsFolder_Reconcile_tryToDeleteJenkinsFolderErr(t *testing
 
 func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	ctx := context.Background()
-	platform := pmock.PlatformService{}
+	platformMock := pmock.PlatformService{}
 	first := "first"
 	third := "third"
 	secretData := map[string][]byte{
@@ -106,7 +107,7 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name},
 	}
 
-	err := os.Setenv(helper.PlatformType, "kubernetes")
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	assert.NoError(t, err)
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
@@ -115,14 +116,14 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
 
-	platform.On("GetExternalEndpoint", namespace, name).Return(first, URLScheme, third, nil)
-	platform.On("GetSecretData", namespace, name).Return(secretData, nil)
+	platformMock.On("GetExternalEndpoint", namespace, name).Return(first, URLScheme, third, nil)
+	platformMock.On("GetSecretData", namespace, name).Return(secretData, nil)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkinsFolder{
 		client:   cl,
 		log:      log,
-		platform: &platform,
+		platform: &platformMock,
 	}
 	req := reconcile.Request{
 		NamespacedName: nsn,
@@ -132,20 +133,20 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while setting owner reference"))
 	assert.Equal(t, reconcile.Result{}, rs)
-	platform.AssertExpectations(t)
+	platformMock.AssertExpectations(t)
 }
 
 func TestNewReconcileJenkinsFolder(t *testing.T) {
 	cl := fake.NewClientBuilder().Build()
 	log := &common.Logger{}
 	scheme := runtime.NewScheme()
-	platform := &pmock.PlatformService{}
-	Reconcile := NewReconcileJenkinsFolder(cl, scheme, log, platform)
+	platformMock := &pmock.PlatformService{}
+	Reconcile := NewReconcileJenkinsFolder(cl, scheme, log, platformMock)
 	Expected := &ReconcileJenkinsFolder{
 		client:   cl,
 		scheme:   scheme,
 		log:      log,
-		platform: platform,
+		platform: platformMock,
 	}
 	assert.Equal(t, Expected, Reconcile)
 }

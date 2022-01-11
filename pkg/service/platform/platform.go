@@ -4,9 +4,6 @@ import (
 	"strings"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -14,6 +11,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
+)
+
+const (
+	K8SPlatformType       = "kubernetes"
+	OpenShiftPlatformType = "openshift"
 )
 
 // PlatformService interface
@@ -37,7 +43,7 @@ type PlatformService interface {
 }
 
 // NewPlatformService returns platform service interface implementation
-func NewPlatformService(platformType string, scheme *runtime.Scheme, k8sClient *client.Client) (PlatformService, error) {
+func NewPlatformService(platformType string, scheme *runtime.Scheme, k8sClient client.Client) (PlatformService, error) {
 	config := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -49,14 +55,14 @@ func NewPlatformService(platformType string, scheme *runtime.Scheme, k8sClient *
 	}
 
 	switch strings.ToLower(platformType) {
-	case "openshift":
+	case OpenShiftPlatformType:
 		platform := openshift.OpenshiftService{}
 		err := platform.Init(restConfig, scheme, k8sClient)
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to init for Openshift platform")
 		}
 		return platform, nil
-	case "kubernetes":
+	case K8SPlatformType:
 		platform := kubernetes.K8SService{}
 		err := platform.Init(restConfig, scheme, k8sClient)
 		if err != nil {

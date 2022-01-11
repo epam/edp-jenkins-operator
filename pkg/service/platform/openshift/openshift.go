@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
-	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
-	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
+	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -20,11 +19,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 
-	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
+	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 )
 
 // OpenshiftService struct for Openshift platform service
@@ -42,7 +43,7 @@ const (
 )
 
 // Init initializes OpenshiftService
-func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme, k8sClient *client.Client) error {
+func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme, k8sClient client.Client) error {
 	err := service.K8SService.Init(config, scheme, k8sClient)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init K8S platform service")

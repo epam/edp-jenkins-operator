@@ -11,11 +11,11 @@ import (
 
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const (
 	wrongPlatform = "test"
-	validPlatform = "kubernetes"
 )
 
 func TestInitDefChain_PlatformTypeErr(t *testing.T) {
@@ -43,7 +43,7 @@ func TestInitDefChain_NewPlatformServiceErr(t *testing.T) {
 }
 
 func TestInitDefChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, validPlatform)
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestInitTriggerJobProvisionChain_NewPlatformServiceErr(t *testing.T) {
 }
 
 func TestInitTriggerJobProvisionChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, validPlatform)
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 ignore:
   - "**/*_test.go"
   - "**/zz_generated.deepcopy.go"
+  - "**/zz_generated.openapi.go"
   - "**/service_types.go"
   - "**/factory.go"
   - "**/mock_*.go"

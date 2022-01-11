@@ -20,6 +20,7 @@ import (
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
@@ -186,7 +187,7 @@ func TestReconcileCDStageJenkinsDeployment_CreateDefChainErr(t *testing.T) {
 		consts.CdStageDeployKey: name,
 		chain.JenkinsKey:        name,
 	}
-	err := os.Setenv(helper.PlatformType, "kubernetes")
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	assert.NoError(t, err)
 
 	s := runtime.NewScheme()

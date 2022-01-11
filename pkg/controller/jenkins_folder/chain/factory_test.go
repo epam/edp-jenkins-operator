@@ -13,17 +13,17 @@ import (
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const (
 	wrongPlatform = "test"
-	validPlatform = "kubernetes"
 )
 
 func TestCreateCDPipelineFolderChain_GetPlatformTypeEnvErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
 	assert.Nil(t, jenkinsFolderHandler)
@@ -37,7 +37,7 @@ func TestCreateCDPipelineFolderChain_NewPlatformServiceErr(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
 	err = os.Unsetenv(helper.PlatformType)
@@ -48,14 +48,14 @@ func TestCreateCDPipelineFolderChain_NewPlatformServiceErr(t *testing.T) {
 }
 
 func TestCreateCDPipelineFolderChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, validPlatform)
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
 	assert.NoError(t, err)
 	err = os.Unsetenv(helper.PlatformType)
 	if err != nil {
@@ -67,7 +67,7 @@ func TestCreateCDPipelineFolderChain(t *testing.T) {
 func TestCreateTriggerBuildProvisionChain_GetPlatformTypeEnvErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
 	assert.Nil(t, jenkinsFolderHandler)
@@ -81,7 +81,7 @@ func TestCreateTriggerBuildProvisionChain_NewPlatformServiceErr(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
 	assert.Nil(t, jenkinsFolderHandler)
@@ -92,13 +92,13 @@ func TestCreateTriggerBuildProvisionChain_NewPlatformServiceErr(t *testing.T) {
 }
 
 func TestCreateTriggerBuildProvisionChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, validPlatform)
+	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
 	if err != nil {
 		t.Fatal(err)
 	}
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, &client)
+	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.NoError(t, err)
 	assert.NotNil(t, jenkinsFolderHandler)
 	err = os.Unsetenv(helper.PlatformType)

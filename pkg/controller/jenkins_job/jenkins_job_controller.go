@@ -4,17 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"reflect"
 	"time"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
-	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -27,6 +19,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
+	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 )
 
 const jenkinsJobFinalizerName = "jenkinsjob.finalizer.name"

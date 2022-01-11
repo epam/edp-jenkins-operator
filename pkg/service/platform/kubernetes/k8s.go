@@ -13,10 +13,6 @@ import (
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
 	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
-	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
-	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -31,6 +27,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
+	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 )
 
 var log = ctrl.Log.WithName("platform")
@@ -40,12 +41,12 @@ type K8SService struct {
 	Scheme             *runtime.Scheme
 	client             client.Client
 	authClient         authV1Client.RbacV1Client
-	extensionsV1Client extensionsV1Client.ExtensionsV1beta1Client
-	appsV1Client       appsV1Client.AppsV1Client
+	extensionsV1Client extensionsV1Client.ExtensionsV1beta1Interface
+	appsV1Client       appsV1Client.AppsV1Interface
 }
 
 // Init initializes K8SService
-func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient *client.Client) error {
+func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient client.Client) error {
 	authClient, err := authV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init auth V1 client for K8S")
@@ -53,19 +54,19 @@ func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient
 
 	s.Scheme = Scheme
 	s.authClient = *authClient
-	s.client = *k8sClient
+	s.client = k8sClient
 
 	extensionsClient, err := extensionsV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init extensions V1 client for K8S")
 	}
-	s.extensionsV1Client = *extensionsClient
+	s.extensionsV1Client = extensionsClient
 
 	appsClient, err := appsV1Client.NewForConfig(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to init apps V1 client for K8S")
 	}
-	s.appsV1Client = *appsClient
+	s.appsV1Client = appsClient
 
 	return nil
 }
@@ -177,7 +178,7 @@ func (s K8SService) createSecret(jenkins v1alpha1.Jenkins, secret *coreV1Api.Sec
 	return nil
 }
 
-// GetSecret return data field of Secret
+// GetSecretData return data field of Secret
 func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, error) {
 	secret, err := s.getSecret(name, namespace)
 	if err != nil {
@@ -265,7 +266,7 @@ func (s K8SService) createConfigMap(jenkins v1alpha1.Jenkins, cm *coreV1Api.Conf
 	return nil
 }
 
-// CreateConfigMapFromFile performs creating ConfigMap in K8S
+// CreateConfigMapFromFileOrDir performs creating ConfigMap in K8S
 func (s K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
 	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
 	configMapData, err := s.fillConfigMapData(path, configMapKey)

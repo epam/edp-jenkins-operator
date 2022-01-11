@@ -2,13 +2,9 @@ package cdstagejenkinsdeployment
 
 import (
 	"context"
+	"time"
+
 	"github.com/epam/edp-codebase-operator/v2/pkg/util"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
-	cdStageJenkinshelper "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -20,7 +16,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
+	cdStageJenkinshelper "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
 func NewReconcileCDStageJenkinsDeployment(client client.Client, scheme *runtime.Scheme, log logr.Logger) *ReconcileCDStageJenkinsDeployment {
@@ -81,7 +83,7 @@ func (r *ReconcileCDStageJenkinsDeployment) Reconcile(ctx context.Context, reque
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	platform, err := ps.NewPlatformService(env, r.scheme, &r.client)
+	platform, err := ps.NewPlatformService(env, r.scheme, r.client)
 	if err != nil {
 		err := errors.Wrap(err, "couldn't create platform service")
 		i.SetFailedStatus(err)

@@ -2,32 +2,30 @@ package jenkins
 
 import (
 	"context"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/go-logr/logr"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"reflect"
 	"strings"
 	"time"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-
-	"reflect"
-
-	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	jf_handler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain"
+	jf_handler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
+	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 )
 
 const jenkinsFolderJenkinsFinalizerName = "jenkinsfolder.jenkins.finalizer.name"
@@ -104,9 +102,9 @@ func (r *ReconcileJenkinsFolder) Reconcile(ctx context.Context, request reconcil
 
 func (r *ReconcileJenkinsFolder) createChain(flag bool) (jf_handler.JenkinsFolderHandler, error) {
 	if flag {
-		return chain.CreateTriggerBuildProvisionChain(r.scheme, &r.client)
+		return chain.CreateTriggerBuildProvisionChain(r.scheme, r.client)
 	}
-	return chain.CreateCDPipelineFolderChain(r.scheme, &r.client)
+	return chain.CreateCDPipelineFolderChain(r.scheme, r.client)
 }
 
 func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf jenkinsApi.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
