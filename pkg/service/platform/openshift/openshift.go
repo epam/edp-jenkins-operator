@@ -32,9 +32,9 @@ import (
 type OpenshiftService struct {
 	kubernetes.K8SService
 
-	appClient     appsV1client.AppsV1Client
-	routeClient   routeV1Client.RouteV1Client
-	projectClient projectV1Client.ProjectV1Client
+	appClient     appsV1client.AppsV1Interface
+	routeClient   routeV1Client.RouteV1Interface
+	projectClient projectV1Client.ProjectV1Interface
 }
 
 const (
@@ -64,9 +64,9 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 		return errors.Wrap(err, "Failed to init project client for Openshift")
 	}
 
-	service.appClient = *appClient
-	service.routeClient = *routeClient
-	service.projectClient = *pc
+	service.appClient = appClient
+	service.routeClient = routeClient
+	service.projectClient = pc
 
 	return nil
 }
