@@ -4,8 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/jarcoal/httpmock"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -13,11 +11,14 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 )
 
 func TestMakeClientBuilder(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().Build()
-	ps := platform.Mock{}
+	ps := pmock.PlatformService{}
 
 	cb := MakeClientBuilder(&ps, k8sClient)
 
@@ -37,7 +38,7 @@ func TestMakeClientBuilder(t *testing.T) {
 func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
 	var (
 		k8sClient = fake.NewClientBuilder().Build()
-		ps        platform.Mock
+		ps        pmock.PlatformService
 		jar       v1alpha1.JenkinsAuthorizationRole
 		cb        = MakeClientBuilder(&ps, k8sClient)
 	)
@@ -54,7 +55,7 @@ func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
 
 func TestClientBuilder_MakeNewClient(t *testing.T) {
 	var (
-		ps  platform.Mock
+		ps  pmock.PlatformService
 		jar v1alpha1.JenkinsAuthorizationRole
 		ji  = v1alpha1.Jenkins{
 			ObjectMeta: metav1.ObjectMeta{
@@ -92,7 +93,7 @@ func TestClientBuilder_MakeNewClient(t *testing.T) {
 
 func TestClientBuilder_MakeNewClient_FailureGetExternalEndpoint(t *testing.T) {
 	var (
-		ps  platform.Mock
+		ps  pmock.PlatformService
 		jar v1alpha1.JenkinsAuthorizationRole
 		ji  = v1alpha1.Jenkins{
 			ObjectMeta: metav1.ObjectMeta{

@@ -22,7 +22,6 @@ import (
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 )
 
@@ -62,8 +61,9 @@ func CreateKeycloakClient() *keycloakV1Api.KeycloakClient {
 
 func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 	ji := v1alpha1.Jenkins{}
-	platformMock := platform.Mock{}
+	platformMock := pmock.PlatformService{}
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
+	data := map[string]string{"context": "lol"}
 
 	fp, err := os.Create("/tmp/temp.tpl")
 	if err != nil {
@@ -84,7 +84,7 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 		}
 	}()
 
-	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").Return(false, nil)
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp", data).Return(false, nil)
 	platformMock.On("CreateJenkinsScript", "", "-temp", false).Return(&v1alpha1.JenkinsScript{}, nil)
 
 	if err := createTemplateScript("/tmp", "temp.tpl", &platformMock, jenkinsScriptData, ji); err != nil {
@@ -98,7 +98,8 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 			Version: "0",
 		},
 	}
-	platformMock := platform.Mock{}
+	data := map[string]string{"context": "lol"}
+	platformMock := pmock.PlatformService{}
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 
 	err := createTemplateScript("/tmp", "temp123.tpl", &platformMock, jenkinsScriptData,
@@ -130,9 +131,9 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
-
-	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").
-		Return(false, errors.New("CreateConfigMap fatal"))
+	ji.Spec.Version = "2"
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp", data).
+		Return(false, errors.New("CreateConfigMap fatal")).Once()
 
 	err = createTemplateScript("/tmp", "temp.tpl", &platformMock, jenkinsScriptData, ji)
 
@@ -145,8 +146,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 		t.Fatal("wrong error returned")
 	}
 
-	ji.Spec.Version = "2"
-	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp").
+	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp", data).
 		Return(false, nil)
 	platformMock.On("CreateJenkinsScript", "", "-temp", false).
 		Return(nil, errors.New("CreateJenkinsScript fatal"))
@@ -161,6 +161,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 		t.Log(errors.Cause(err).Error())
 		t.Fatal("wrong error returned")
 	}
+	platformMock.AssertExpectations(t)
 }
 
 func TestJenkinsServiceImpl_Integration_GetExternalEndpointErr(t *testing.T) {

@@ -7,10 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,6 +14,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
 func getTestJenkinsAuthorizationRole() *v1alpha1.JenkinsAuthorizationRole {
@@ -159,7 +160,7 @@ func TestSpecUpdated(t *testing.T) {
 
 func TestNewReconciler(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().Build()
-	ps := platform.Mock{}
+	ps := pmock.PlatformService{}
 	lg := helper.LoggerMock{}
 
 	rec := NewReconciler(k8sClient, &lg, &ps)

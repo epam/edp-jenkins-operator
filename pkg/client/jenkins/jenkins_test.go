@@ -15,7 +15,6 @@ import (
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const (
@@ -613,7 +612,7 @@ func TestInitGoJenkinsClient(t *testing.T) {
 			AdminSecretName: "admin-secret",
 		},
 	}
-	ps := platform.Mock{}
+	ps := pmock.PlatformService{}
 
 	ps.On("GetExternalEndpoint", ji.Namespace, ji.Name).Return("host", "http", "path", nil)
 	ps.On("GetSecretData", ji.Namespace, ji.Status.AdminSecretName).Return(map[string][]byte{
@@ -636,7 +635,7 @@ func TestInitJenkinsClient(t *testing.T) {
 			AdminSecretName: "admin-secret",
 		},
 	}
-	ps := platform.Mock{}
+	ps := pmock.PlatformService{}
 	ps.On("GetExternalEndpoint", ji.Namespace, ji.Name).Return("host", "http", "path", nil)
 	ps.On("GetSecretData", ji.Namespace, ji.Status.AdminSecretName).Return(map[string][]byte{
 		"username": []byte("tester"),

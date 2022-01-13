@@ -16,10 +16,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 func getTestJenkinsJobBuildRun() *v1alpha1.JenkinsJobBuildRun {
@@ -301,7 +301,7 @@ func TestSpecUpdate(t *testing.T) {
 
 func TestNewReconciler(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().Build()
-	ps := platform.Mock{}
+	ps := pmock.PlatformService{}
 	lg := helper.LoggerMock{}
 
 	rec := NewReconciler(k8sClient, &lg, &ps)
