@@ -1,7 +1,7 @@
 global:
   edpName: ""
   platform: "openshift"
-  dnsWildCard: "delivery.aws.main.edp.projects.epam.com"
+  dnsWildCard: "example.com"
   openshift:
     deploymentType: "deploymentConfigs"
 
