@@ -2,6 +2,16 @@
 ## [Unreleased]
 
 
+<a name="v2.10.1"></a>
+## [v2.10.1] - 2022-01-21
+### Routine
+
+- Update jenkins image and edp-library-stages [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Bump Jenkins helm agent version [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Bump Jenkins go agent version [EPMDEDP-7974](https://jiraeu.epam.com/browse/EPMDEDP-7974)
+- Update release flow [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+
+
 <a name="v2.10.0"></a>
 ## [v2.10.0] - 2021-12-07
 ### Features
@@ -92,7 +102,8 @@
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...HEAD
+[v2.10.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...v2.10.1
 [v2.10.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...v2.10.0
 [v2.9.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.3...v2.9.0
 [v2.8.3]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.2...v2.8.3
