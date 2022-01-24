@@ -5,7 +5,7 @@ ENV OPERATOR=/usr/local/bin/jenkins-operator \
     USER_NAME=jenkins-operator \
     HOME=/home/jenkins-operator
 
-RUN apk add --no-cache ca-certificates=20191127-r5 openssh-client=8.4_p1-r4
+RUN apk add --no-cache ca-certificates=20211220-r0 openssh-client=8.4_p1-r4
 
 # install operator binary
 COPY ./dist/go-binary ${OPERATOR}
