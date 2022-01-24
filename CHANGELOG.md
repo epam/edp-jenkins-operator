@@ -4,6 +4,41 @@
 ### Bug Fixes
 
 - Fix changelog breaking change section [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
+- Fix GH Actions for release pipeline [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+
+### Code Refactoring
+
+- Remove duplicate platform mock [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Define namespace for Service Account in Role Binding [EPMDEDP-8084](https://jiraeu.epam.com/browse/EPMDEDP-8084)
+
+### Testing
+
+- Add tests, mocks [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests, mocks [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests and mocks [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+- Add tests and mocks [EPMDEDP-7991](https://jiraeu.epam.com/browse/EPMDEDP-7991)
+
+### Routine
+
+- Update release CI pipelines [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
+- Bump Jenkins go agent version [EPMDEDP-7974](https://jiraeu.epam.com/browse/EPMDEDP-7974)
+- Bump Jenkins edp-helm agent version [EPMDEDP-7988](https://jiraeu.epam.com/browse/EPMDEDP-7988)
+- Update jenkins URL baseline link [EPMDEDP-8204](https://jiraeu.epam.com/browse/EPMDEDP-8204)
+- Update release flow [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Bump Jenkins helm agent version [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+
+
+<a name="v2.10.1"></a>
+## [v2.10.1] - 2022-01-21
+### Routine
+
+- Bump Jenkins go agent version [EPMDEDP-7974](https://jiraeu.epam.com/browse/EPMDEDP-7974)
+- Update jenkins image and edp-library-stages [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Bump Jenkins helm agent version [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Update release flow [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
 
 
 <a name="v2.10.0"></a>
@@ -101,7 +136,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...HEAD
+[v2.10.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...v2.10.1
 [v2.10.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...v2.10.0
 [v2.9.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.3...v2.9.0
 [v2.8.3]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.2...v2.8.3
