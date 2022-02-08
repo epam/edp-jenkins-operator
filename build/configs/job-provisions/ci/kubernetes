@@ -14,6 +14,7 @@ limitations under the License. */
 
 import groovy.json.*
 import jenkins.model.Jenkins
+import hudson.model.labels.LabelAtom
 import javaposse.jobdsl.plugin.*
 import com.cloudbees.hudson.plugins.folder.*
 import java.util.zip.GZIPInputStream
@@ -60,4 +61,5 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
+project.setAssignedLabel(new LabelAtom("master"))
 project.save()
