@@ -1,4 +1,4 @@
-/* Copyright 2021 EPAM Systems.
+/* Copyright 2022 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.cloudbees.hudson.plugins.folder.*
 import hudson.model.*
 
 def scriptText = '''
-/* Copyright 2021 EPAM Systems.
+/* Copyright 2022 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -279,4 +279,5 @@ def definitionList = [new StringParameterDefinition("NAME", ""),
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(true)
+project.setAssignedLabel(new LabelAtom("master"))
 project.save()

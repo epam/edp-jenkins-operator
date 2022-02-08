@@ -1,4 +1,4 @@
-/* Copyright 2021 EPAM Systems.
+/* Copyright 2022 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@ import groovy.json.*
 import jenkins.model.Jenkins
 import javaposse.jobdsl.plugin.*
 import com.cloudbees.hudson.plugins.folder.*
+import hudson.model.labels.LabelAtom
 
 def scriptText = '''
-/* Copyright 2021 EPAM Systems.
+/* Copyright 2022 EPAM Systems.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -152,4 +153,5 @@ def definitionList = [new StringParameterDefinition("PIPELINE_NAME", ""),
 
 project.addProperty(new ParametersDefinitionProperty(definitionList))
 project.setConcurrentBuild(false)
+project.setAssignedLabel(new LabelAtom("master"))
 project.save()
