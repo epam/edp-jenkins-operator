@@ -99,6 +99,10 @@ def createContainerizedCdPipeline(pipelineName, stageName, stages, pipelineScrip
         }
         properties {
           disableConcurrentBuilds()
+          logRotator {
+            numToKeep(10)
+            daysToKeep(7)
+          }
         }
         parameters {
             stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
@@ -116,6 +120,10 @@ def createCustomCdPipeline(pipelineName, stageName) {
     pipelineJob("${pipelineName}/${stageName}") {
         properties {
           disableConcurrentBuilds()
+          logRotator {
+            numToKeep(10)
+            daysToKeep(7)
+          }
         }
     }
 }'''
