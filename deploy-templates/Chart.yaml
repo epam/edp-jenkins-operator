@@ -1,11 +1,159 @@
 apiVersion: v2
 description: A Helm chart for EDP Jenkins Operator
-home: https://solutionshub.epam.com/solution/epam-delivery-platform
+home: https://epam.github.io/edp-install/
 name: jenkins-operator
 type: application
 version: 2.11.0-SNAPSHOT
 appVersion: 2.11.0-SNAPSHOT
+icon: https://epam.github.io/edp-install/assets/logo.png
+keywords:
+  - edp
+  - jenkins
+  - operator
+  - pipelines
 maintainers:
-  - name: EPAM EDP Team
+  - name: epmd-edp
+    email: SupportEPMD-EDP@epam.com
+    url: https://solutionshub.epam.com/solution/epam-delivery-platform
+  - name: sergk
+    url: https://github.com/SergK
 sources:
   - https://github.com/epam/edp-jenkins-operator
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/operator: "true"
+  artifacthub.io/images: |
+    - name: jenkins-operator:2.10.1
+      image: epamedp/jenkins-operator:2.10.1
+    - name: jenkins-operator:2.10.0
+      image: epamedp/jenkins-operator:2.10.0
+    - name: epamedp/edp-jenkins:2.10.1
+      image: epamedp/epamedp/edp-jenkins:2.10.1
+    - name: epamedp/edp-jenkins:2.10.0
+      image: epamedp/epamedp/edp-jenkins:2.10.0
+    - name: epamedp/edp-jenkins:2.9.0
+      image: epamedp/epamedp/edp-jenkins:2.9.0
+    - name: busybox:1.35.0
+      image: busybox:1.35.0
+    - name: alpine:3.13.7
+      image: alpine:3.13.7
+  artifacthub.io/operatorCapabilities: Full Lifecycle
+  artifacthub.io/crds: |
+    - kind: CDStageJenkinsDeployment
+      version: v2.edp.epam.com/v1alpha1
+      name: cdstagejenkinsdeployment
+      displayName: CDStageJenkinsDeployment
+      description: CD Stage configuration
+    - kind: Jenkins
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkins
+      displayName: Jenkins
+      description: Jenkins server configuration
+    - kind: JenkinsAgent
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsagent
+      displayName: JenkinsAgent
+      description: Jenkins agent configuration
+    - kind: JenkinsAuthorizationRole
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsauthorizationrole
+      displayName: JenkinsAuthorizationRole
+      description: Jenkins role configuration
+    - kind: JenkinsAuthorizationRoleMapping
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsauthorizationrolemappings
+      displayName: JenkinsAuthorizationRoleMapping
+      description: Jenkins role mapping configuration
+    - kind: JenkinsFolder
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsfolder
+      displayName: JenkinsFolder
+      description: Jenkins folder configuration
+    - kind: JenkinsJob
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsjob
+      displayName: JenkinsJob
+      description: Jenkins job configuration
+    - kind: JenkinsJobBuildRun
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsjobbuildrun
+      displayName: JenkinsJobBuildRun
+      description: Configure job pipeline
+    - kind: JenkinsScript
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsscript
+      displayName: JenkinsScript
+      description: Starts Jenkins scripts
+    - kind: JenkinsServiceAccount
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinsserviceaccounts
+      displayName: JenkinsServiceAccount
+      description: Configure Jenkins service account
+  artifacthub.io/crdsExamples: |
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: Jenkins
+      metadata:
+        name: jenkins
+      spec:
+        edpSpec:
+          dnsWildcard: example.com
+        image: epamedp/edp-jenkins
+        initImage: busybox
+        keycloakSpec:
+          enabled: true
+          realm: main
+        sharedLibraries:
+          - name: edp-library-stages
+            tag: v2.12.0
+            url: https://github.com/epam/edp-library-stages.git
+          - name: edp-library-pipelines
+            tag: v2.11.0
+            url: https://github.com/epam/edp-library-pipelines.git
+        version: 2.10.1
+        volumes:
+          - capacity: 10Gi
+            name: data
+            storageClass: gp2-retain
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsFolder
+      metadata:
+        name: test
+      spec:
+        codebaseName: null
+        job:
+          config: >-
+            {"BUILD_TOOL":"maven","DEFAULT_BRANCH":"master","GIT_CREDENTIALS_ID":"gerrit-ciuser-sshkey","GIT_SERVER_CR_NAME":"gerrit","GIT_SERVER_CR_VERSION":"v2","JIRA_INTEGRATION_ENABLED":"false","LANGUAGE":"Java","NAME":"test","PARAM":"true","PLATFORM_TYPE":"kubernetes","REPOSITORY_PATH":"ssh://jenkins@gerrit.example.com:30023/test"}
+          name: job-provisions/job/ci/job/default
+        ownerName: null
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsJob
+      metadata:
+        name: test
+      spec:
+        jenkinsFolder: deploy
+        job:
+          autoTriggerPeriod: 60
+          config: >-
+            {"AUTODEPLOY":"false","DEPLOYMENT_TYPE":"container","GIT_SERVER_CR_VERSION":"v2","PIPELINE_NAME":"deploy","QG_STAGES":"{\"name\":\"manual\",\"step_name\":\"qa\"}","SOURCE_TYPE":"default","STAGE_NAME":"qa"}
+          name: job-provisions/job/cd/job/default
+        stageName: deploy-qa
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsScript
+      metadata:
+        name: gerrit-jenkins-plugin-config
+      spec:
+        ownerName: null
+        sourceConfigMapName: gerrit-jenkins-plugin-config
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsServiceAccount
+      metadata:
+        name: gerrit-ciuser-sshkey
+      spec:
+        credentials: gerrit-ciuser-sshkey
+        ownerName: 'blank'
+        type: ssh
+  artifacthub.io/links: |
+    - name: EDP Documentation
+      url: https://epam.github.io/edp-install/
+    - name: EPAM SolutionHub
+      url: https://solutionshub.epam.com/solution/epam-delivery-platform

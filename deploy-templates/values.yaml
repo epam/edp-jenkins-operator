@@ -25,7 +25,7 @@ resources:
 
 jenkins:
   deploy: true
-  initImage: "busybox"
+  initImage: "busybox:1.35.0"
   image: "epamedp/edp-jenkins"
   version: "2.11.0-SNAPSHOT"
   imagePullPolicy: "IfNotPresent"
