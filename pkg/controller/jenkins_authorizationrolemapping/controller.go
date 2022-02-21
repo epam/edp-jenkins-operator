@@ -5,10 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -18,6 +14,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 const finalizerName = "jenkinsauthrolemapping.jenkins.finalizer.name"
@@ -83,7 +84,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	}()
 
 	if err := r.tryToReconcile(ctx, &instance, jc); err != nil {
-		r.log.Error(err, "error during reconcilation", "instance", instance)
+		r.log.Error(err, "error during reconciliation", "instance", instance)
 		instance.Status.Value = err.Error()
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}

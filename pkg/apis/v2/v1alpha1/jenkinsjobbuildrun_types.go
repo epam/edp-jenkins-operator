@@ -61,7 +61,3 @@ type JenkinsJobBuildRunStatus struct {
 	BuildNumber int64     `json:"buildNumber"`
 	LastUpdated time.Time `json:"lastUpdated"`
 }
-
-func init() {
-	SchemeBuilder.Register(&JenkinsJobBuildRun{}, &JenkinsJobBuildRunList{})
-}

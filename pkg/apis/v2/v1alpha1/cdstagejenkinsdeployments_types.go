@@ -64,7 +64,3 @@ type CDStageJenkinsDeploymentList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []CDStageJenkinsDeployment `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&CDStageJenkinsDeployment{}, &CDStageJenkinsDeploymentList{})
-}

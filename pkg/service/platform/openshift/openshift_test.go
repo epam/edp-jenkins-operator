@@ -107,7 +107,7 @@ func TestOpenshiftService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := OpenshiftService{}
-	err := service.AddVolumeToInitContainer(instance, name, vol, volMount)
+	err := service.AddVolumeToInitContainer(&instance, name, vol, volMount)
 	assert.NoError(t, err)
 }
 
@@ -199,7 +199,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := OpenshiftService{}
-	err := service.AddVolumeToInitContainer(instance, name, vol, volMount)
+	err := service.AddVolumeToInitContainer(&instance, name, vol, volMount)
 	assert.NoError(t, err)
 }
 
@@ -217,7 +217,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	volMounts := []v1.VolumeMount{{Name: name}}
 
 	service := OpenshiftService{appClient: appClient}
-	err := service.AddVolumeToInitContainer(instance, name, vols, volMounts)
+	err := service.AddVolumeToInitContainer(&instance, name, vols, volMounts)
 	assert.NoError(t, err)
 
 	appClient.AssertExpectations(t)
@@ -240,7 +240,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	volMounts := []v1.VolumeMount{{Name: name}}
 
 	service := OpenshiftService{appClient: appClient}
-	err := service.AddVolumeToInitContainer(instance, name, vols, volMounts)
+	err := service.AddVolumeToInitContainer(&instance, name, vols, volMounts)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "No matching container in spec found!"))
 
@@ -268,7 +268,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	deploymentConf.On("Patch", context.TODO(), deploymentConfInstance.Name, types.StrategicMergePatchType, metav1.PatchOptions{}).Return(nil, errTest)
 
 	service := OpenshiftService{appClient: appClient}
-	err := service.AddVolumeToInitContainer(instance, name, vols, volMounts)
+	err := service.AddVolumeToInitContainer(&instance, name, vols, volMounts)
 	assert.Error(t, err)
 
 	appClient.AssertExpectations(t)
@@ -294,7 +294,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	deploymentConf.On("Patch", context.TODO(), deploymentConfInstance.Name, types.StrategicMergePatchType, metav1.PatchOptions{}).Return(nil, nil)
 
 	service := OpenshiftService{appClient: appClient}
-	err := service.AddVolumeToInitContainer(instance, name, vols, volMounts)
+	err := service.AddVolumeToInitContainer(&instance, name, vols, volMounts)
 	assert.NoError(t, err)
 
 	appClient.AssertExpectations(t)

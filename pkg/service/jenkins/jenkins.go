@@ -43,9 +43,9 @@ const (
 	defaultJobProvisionsDirectory   = "job-provisions"
 	defaultCiJobProvisionsDirectory = "ci"
 	defaultCdJobProvisionsDirectory = "cd"
-	defaultTemplatesDirectory       = "templates"
+	DefaultTemplatesDirectory       = "templates"
 	SlavesTemplateName              = "jenkins-slaves"
-	sharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
+	SharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
 	kubernetesPluginTemplateName    = "config-kubernetes-plugin.tmpl"
 	keycloakConfigTemplateName      = "config-keycloak.tmpl"
 	kanikoTemplateName              = "kaniko.json"
@@ -63,11 +63,11 @@ var log = ctrl.Log.WithName("jenkins_service")
 
 // JenkinsService interface for Jenkins EDP component
 type JenkinsService interface {
-	Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
+	Configure(instance *v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	ExposeConfiguration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
-	Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
+	Integration(instance *v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
-	CreateAdminPassword(instance v1alpha1.Jenkins) error
+	CreateAdminPassword(instance *v1alpha1.Jenkins) error
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
@@ -138,7 +138,7 @@ func (j JenkinsServiceImpl) createKeycloakClient(instance v1alpha1.Jenkins, name
 	return keycloakClientObject, nil
 }
 
-func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) error {
+func (j JenkinsServiceImpl) mountGerritCredentials(instance *v1alpha1.Jenkins) error {
 	options := client.ListOptions{Namespace: instance.Namespace}
 	list := &gerritApi.GerritList{}
 
@@ -194,7 +194,7 @@ func (j JenkinsServiceImpl) mountGerritCredentials(instance v1alpha1.Jenkins) er
 	return nil
 }
 
-func (j JenkinsServiceImpl) createSecret(instance v1alpha1.Jenkins, secretName string, username string, password *string) error {
+func (j JenkinsServiceImpl) createSecret(instance *v1alpha1.Jenkins, secretName string, username string, password *string) error {
 	var secretPassword string
 	if password == nil {
 		secretPassword = uniuri.New()
@@ -225,12 +225,12 @@ func setAnnotation(instance *v1alpha1.Jenkins, key string, value string) {
 }
 
 // Integration performs integration Jenkins with other EDP components
-func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+func (j JenkinsServiceImpl) Integration(instance *v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
 	if instance.Spec.KeycloakSpec.Enabled {
 
 		h, s, p, err := j.platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 		if err != nil {
-			return &instance, false, errors.Wrap(err, "Failed to get route from cluster!")
+			return instance, false, errors.Wrap(err, "Failed to get route from cluster!")
 		}
 
 		webUrl := fmt.Sprintf("%v://%v%v", s, h, p)
@@ -257,36 +257,36 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 
 		err = j.platformService.CreateKeycloakClient(&keycloakClient)
 		if err != nil {
-			return &instance, false, errors.Wrap(err, "Failed to create Keycloak Client data!")
+			return instance, false, errors.Wrap(err, "Failed to create Keycloak Client data!")
 		}
 
 		keycloakClient, err = j.platformService.GetKeycloakClient(instance.Name, instance.Namespace)
 		if err != nil {
-			return &instance, false, errors.Wrap(err, "Failed to get Keycloak Client CR!")
+			return instance, false, errors.Wrap(err, "Failed to get Keycloak Client CR!")
 		}
 
 		keycloakRealm, err := j.keycloakHelper.GetOwnerKeycloakRealm(keycloakClient.ObjectMeta)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, "Failed to get Keycloak Realm for %s client!", keycloakClient.Name)
+			return instance, false, errors.Wrapf(err, "Failed to get Keycloak Realm for %s client!", keycloakClient.Name)
 		}
 
 		if keycloakRealm == nil {
-			return &instance, false, errors.New("Keycloak Realm CR in not created yet!")
+			return instance, false, errors.New("Keycloak Realm CR in not created yet!")
 		}
 
 		keycloak, err := j.keycloakHelper.GetOwnerKeycloak(keycloakRealm.ObjectMeta)
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to get owner for %s/%s", keycloakClient.Namespace, keycloakClient.Name)
-			return &instance, false, errors.Wrap(err, errMsg)
+			return instance, false, errors.Wrap(err, errMsg)
 		}
 
 		if keycloak == nil {
-			return &instance, false, errors.New("Keycloak CR is not created yet!")
+			return instance, false, errors.New("Keycloak CR is not created yet!")
 		}
 
-		directoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
+		directoryPath, err := platformHelper.CreatePathToTemplateDirectory(DefaultTemplatesDirectory)
 		if err != nil {
-			return &instance, false, errors.Wrap(err, "unable to create path to template directory")
+			return instance, false, errors.Wrap(err, "unable to create path to template directory")
 		}
 		keycloakCfgFilePath := fmt.Sprintf("%s/%s", directoryPath, keycloakConfigTemplateName)
 
@@ -299,7 +299,7 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 		if instance.Spec.KeycloakSpec.IsPrivate {
 			dt, err := j.platformService.GetSecretData(instance.Namespace, keycloakClient.Spec.Secret)
 			if err != nil {
-				return &instance, false, errors.Wrap(err, "unable to get keycloak client secret data")
+				return instance, false, errors.Wrap(err, "unable to get keycloak client secret data")
 			}
 
 			jenkinsScriptData.KeycloakClientSecret = string(dt["clientSecret"])
@@ -307,28 +307,28 @@ func (j JenkinsServiceImpl) Integration(instance v1alpha1.Jenkins) (*v1alpha1.Je
 
 		scriptContext, err := platformHelper.ParseTemplate(jenkinsScriptData, keycloakCfgFilePath, keycloakConfigTemplateName)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 
 		configKeycloakName := fmt.Sprintf("%v-%v", instance.Name, "config-keycloak")
 		configMapData := map[string]string{defaultScriptConfigMapKey: scriptContext.String()}
 		_, err = j.platformService.CreateConfigMap(instance, configKeycloakName, configMapData)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 
 		_, err = j.platformService.CreateJenkinsScript(instance.Namespace, configKeycloakName, false)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 	}
 
 	err := j.mountGerritCredentials(instance)
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Failed to mount Gerrit credentials")
+		return instance, false, errors.Wrapf(err, "Failed to mount Gerrit credentials")
 	}
 
-	return &instance, true, nil
+	return instance, true, nil
 }
 
 // ExposeConfiguration performs exposing Jenkins configuration for other EDP components
@@ -419,55 +419,55 @@ func (j JenkinsServiceImpl) getIcon() (*string, error) {
 }
 
 // Configure performs self-configuration of Jenkins
-func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
-	jc, err := jenkinsClient.InitJenkinsClient(&instance, j.platformService)
+func (j JenkinsServiceImpl) Configure(instance *v1alpha1.Jenkins) (*v1alpha1.Jenkins, bool, error) {
+	jc, err := jenkinsClient.InitJenkinsClient(instance, j.platformService)
 	if err != nil {
-		return &instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
+		return instance, false, errors.Wrap(err, "Failed to init Jenkins REST client")
 	}
 	if jc == nil {
-		return &instance, false, errors.New("Jenkins returns nil client")
+		return instance, false, errors.New("Jenkins returns nil client")
 	}
 
 	adminTokenSecretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
 	adminTokenSecret, err := j.platformService.GetSecretData(instance.Namespace, adminTokenSecretName)
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, "Unable to get admin token secret for %v", instance.Name)
+		return instance, false, errors.Wrapf(err, "Unable to get admin token secret for %v", instance.Name)
 	}
 
 	if adminTokenSecret == nil {
 		token, err := jc.GetAdminToken()
 		if err != nil {
-			return &instance, false, errors.Wrap(err, "Failed to get token from admin user")
+			return instance, false, errors.Wrap(err, "Failed to get token from admin user")
 		}
 
 		err = j.createSecret(instance, adminTokenSecretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, token)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 
 		adminTokenAnnotationKey := helper.GenerateAnnotationKey(jenkinsDefaultSpec.JenkinsTokenAnnotationSuffix)
-		setAnnotation(&instance, adminTokenAnnotationKey, adminTokenSecretName)
+		setAnnotation(instance, adminTokenAnnotationKey, adminTokenSecretName)
 
-		err = j.k8sClient.Update(context.TODO(), &instance)
+		err = j.k8sClient.Update(context.TODO(), instance)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, adminTokenSecretName)
+		updatedInstance, err := j.setAdminSecretInStatus(instance, adminTokenSecretName)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
-		instance = *updatedInstance
+		instance = updatedInstance
 	}
 
 	scriptsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultScriptsDirectory)
 	if err != nil {
-		return &instance, false, err
+		return instance, false, err
 	}
 
 	directory, err := ioutil.ReadDir(scriptsDirectoryPath)
 	if err != nil {
-		return &instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", scriptsDirectoryPath))
+		return instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", scriptsDirectoryPath))
 	}
 
 	for _, file := range directory {
@@ -477,7 +477,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 		path := filepath.FromSlash(fmt.Sprintf("%v/%v", scriptsDirectoryPath, file.Name()))
 		err = j.createScript(instance, configMapName, configMapKey, path)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 	}
 
@@ -485,13 +485,13 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	for _, scope := range scopes {
 		err = j.createJobProvisions(fmt.Sprintf("%v/%v", defaultJobProvisionsDirectory, scope), jc, instance)
 		if err != nil {
-			return &instance, false, err
+			return instance, false, err
 		}
 	}
 
 	slavesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultSlavesDirectory)
 	if err != nil {
-		return &instance, false, err
+		return instance, false, err
 	}
 
 	_, err = ioutil.ReadDir(slavesDirectoryPath)
@@ -504,21 +504,21 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 
 	err = j.platformService.CreateConfigMapFromFileOrDir(instance, SlavesTemplateName, nil,
-		slavesDirectoryPath, &instance, JenkinsSlavesConfigmapLabels)
+		slavesDirectoryPath, instance, JenkinsSlavesConfigmapLabels)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "Couldn't create configs-map %v in namespace %v.",
 			SlavesTemplateName, instance.Namespace)
 	}
 
-	templatesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(defaultTemplatesDirectory)
+	templatesDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(DefaultTemplatesDirectory)
 	if err != nil {
-		return &instance, false, err
+		return instance, false, err
 	}
 
 	var templatesList []string
 	templatesList = append(
 		templatesList,
-		sharedLibrariesTemplateName,
+		SharedLibrariesTemplateName,
 		kubernetesPluginTemplateName,
 	)
 
@@ -529,7 +529,7 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	for _, template := range templatesList {
 		if err := createTemplateScript(templatesDirectoryPath, template, j.platformService, jenkinsScriptData,
 			instance); err != nil {
-			return &instance, false, nil
+			return instance, false, nil
 		}
 	}
 
@@ -541,17 +541,17 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	} {
 		configMapName := template["cmName"]
 		filePath := fmt.Sprintf("%s/%s", templatesDirectoryPath, template["name"])
-		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, nil, filePath, &instance)
+		err = j.platformService.CreateConfigMapFromFileOrDir(instance, configMapName, nil, filePath, instance)
 		if err != nil {
-			return &instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
+			return instance, false, errors.Wrapf(err, "Couldn't create config-map %v", configMapName)
 		}
 	}
 
-	return &instance, true, nil
+	return instance, true, nil
 }
 
 func createTemplateScript(templatesDirectoryPath, template string, platformService platform.PlatformService,
-	jenkinsScriptData platformHelper.JenkinsScriptData, instance v1alpha1.Jenkins) error {
+	jenkinsScriptData platformHelper.JenkinsScriptData, instance *v1alpha1.Jenkins) error {
 	templateFilePath := fmt.Sprintf("%v/%v", templatesDirectoryPath, template)
 	ctx, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
 	if err != nil {
@@ -575,7 +575,7 @@ func createTemplateScript(templatesDirectoryPath, template string, platformServi
 	return nil
 }
 
-func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance v1alpha1.Jenkins) error {
+func (j JenkinsServiceImpl) createJobProvisions(jobPath string, jc *jenkinsClient.JenkinsClient, instance *v1alpha1.Jenkins) error {
 	jobProvisionsDirectoryPath, err := platformHelper.CreatePathToTemplateDirectory(jobPath)
 	if err != nil {
 		return err
@@ -596,7 +596,7 @@ func (j JenkinsServiceImpl) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, 
 	return j.platformService.IsDeploymentReady(instance)
 }
 
-func (j JenkinsServiceImpl) createScript(instance v1alpha1.Jenkins, configMapName string, configMapKey string, contextPath string) error {
+func (j JenkinsServiceImpl) createScript(instance *v1alpha1.Jenkins, configMapName string, configMapKey string, contextPath string) error {
 	jenkinsScript, err := j.platformService.CreateJenkinsScript(instance.Namespace, configMapName, false)
 	if err != nil {
 		return err
@@ -608,18 +608,18 @@ func (j JenkinsServiceImpl) createScript(instance v1alpha1.Jenkins, configMapNam
 	return nil
 }
 
-func (j JenkinsServiceImpl) CreateAdminPassword(instance v1alpha1.Jenkins) error {
+func (j JenkinsServiceImpl) CreateAdminPassword(instance *v1alpha1.Jenkins) error {
 	secretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsAdminPasswordSuffix)
 	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create Admin password secret")
 	}
 	if instance.Status.AdminSecretName == "" {
-		updatedInstance, err := j.setAdminSecretInStatus(&instance, secretName)
+		updatedInstance, err := j.setAdminSecretInStatus(instance, secretName)
 		if err != nil {
 			return err
 		}
-		instance = *updatedInstance
+		instance = updatedInstance
 	}
 	return nil
 }

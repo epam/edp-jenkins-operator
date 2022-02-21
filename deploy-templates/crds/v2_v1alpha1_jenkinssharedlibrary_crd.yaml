@@ -1,0 +1,51 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: jenkinssharedlibraries.v2.edp.epam.com
+spec:
+  group: v2.edp.epam.com
+  names:
+    kind: JenkinsSharedLibrary
+    listKind: JenkinsSharedLibraryList
+    plural: jenkinssharedlibraries
+    singular: jenkinssharedlibrary
+    shortNames:
+      - jshl
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              properties:
+                ownerName:
+                  type: string
+                  nullable: true
+                name:
+                  type: string
+                secret:
+                  type: string
+                tag:
+                  type: string
+                url:
+                  type: string
+              required:
+                - name
+                - tag
+                - url
+              type: object
+            status:
+              type: object
+              additionalProperties: true
+      subresources:
+        status: {}

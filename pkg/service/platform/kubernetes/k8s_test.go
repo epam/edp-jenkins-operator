@@ -45,7 +45,7 @@ func TestK8SService_CreateConfigMap(t *testing.T) {
 		Scheme: scheme,
 	}
 
-	ji := v1alpha1.Jenkins{ObjectMeta: metav1.ObjectMeta{Name: "test"}}
+	ji := &v1alpha1.Jenkins{ObjectMeta: metav1.ObjectMeta{Name: "test"}}
 	_, err := svc.CreateConfigMap(ji, "test", map[string]string{"bar": "baz"}, map[string]string{"lol": "lol"})
 	if err != nil {
 		t.Fatal(err)
@@ -233,7 +233,7 @@ func TestK8SService_GetSecretData(t *testing.T) {
 func TestK8SService_CreateSecretErr(t *testing.T) {
 	data := map[string][]byte{name: []byte(namespace)}
 	scheme := runtime.NewScheme()
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	client := fake.NewClientBuilder().Build()
 	service := K8SService{client: client, Scheme: scheme}
 	err := service.CreateSecret(instance, namespace, data)
@@ -245,7 +245,7 @@ func TestK8SService_CreateSecret(t *testing.T) {
 	data := map[string][]byte{name: []byte(namespace)}
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.Jenkins{}, &v1.Secret{})
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 	service := K8SService{client: client, Scheme: scheme}
 	err := service.CreateSecret(instance, namespace, data)
@@ -253,7 +253,7 @@ func TestK8SService_CreateSecret(t *testing.T) {
 }
 
 func TestK8SService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := K8SService{}
@@ -264,7 +264,7 @@ func TestK8SService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_DeploymentGetErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 
 	errTest := errors.New("test")
 
@@ -284,7 +284,7 @@ func TestK8SService_AddVolumeToInitContainer_DeploymentGetErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_NotFoundErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	deploymentInstance := &appsv1.Deployment{}
 
 	appClient.On("Deployments", "").Return(deployment)
@@ -304,7 +304,7 @@ func TestK8SService_AddVolumeToInitContainer_NotFoundErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_SelectContainerErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	deploymentInstance := appsv1.Deployment{
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},
@@ -339,7 +339,7 @@ func TestK8SService_AddVolumeToInitContainer_SelectContainerErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := v1alpha1.Jenkins{}
+	instance := &v1alpha1.Jenkins{}
 	deploymentInstance := appsv1.Deployment{
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},

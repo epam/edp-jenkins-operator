@@ -3,24 +3,24 @@ package jenkins
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
-	"github.com/go-logr/logr"
-	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"time"
-
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/pkg/errors"
-
-	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 const (
@@ -97,7 +97,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 	}
 
 	// Create Admin password secret
-	err = r.service.CreateAdminPassword(*instance)
+	err = r.service.CreateAdminPassword(instance)
 	if err != nil {
 		log.Error(err, "Admin password secret creation has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Admin password secret creation has failed")
@@ -118,7 +118,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 		}
 	}
 
-	instance, isFinished, err := r.service.Configure(*instance)
+	instance, isFinished, err := r.service.Configure(instance)
 	if err != nil {
 		log.Error(err, "Configuration has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Configuration failed")
@@ -156,7 +156,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 		}
 	}
 
-	instance, isFinished, err = r.service.Integration(*instance)
+	instance, isFinished, err = r.service.Integration(instance)
 	if err != nil {
 		log.Error(err, "Integration has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Integration failed")

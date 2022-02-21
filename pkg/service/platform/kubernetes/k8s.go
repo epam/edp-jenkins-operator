@@ -85,7 +85,7 @@ func (s K8SService) GetExternalEndpoint(namespace string, name string) (string, 
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
-func (s K8SService) AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string,
+func (s K8SService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins, containerName string,
 	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if len(vol) == 0 || len(volMount) == 0 {
@@ -134,7 +134,7 @@ func (s K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 }
 
 //CreateSecret creates secret object in K8s cluster
-func (s K8SService) CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error {
+func (s K8SService) CreateSecret(instance *v1alpha1.Jenkins, name string, data map[string][]byte) error {
 	_, err := s.getSecret(name, instance.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -166,8 +166,8 @@ func (s K8SService) getSecret(name, namespace string) (*coreV1Api.Secret, error)
 	return secret, nil
 }
 
-func (s K8SService) createSecret(jenkins v1alpha1.Jenkins, secret *coreV1Api.Secret) error {
-	if err := controllerutil.SetControllerReference(&jenkins, secret, s.Scheme); err != nil {
+func (s K8SService) createSecret(jenkins *v1alpha1.Jenkins, secret *coreV1Api.Secret) error {
+	if err := controllerutil.SetControllerReference(jenkins, secret, s.Scheme); err != nil {
 		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secret.Name)
 	}
 
@@ -191,7 +191,7 @@ func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, er
 	return secret.Data, nil
 }
 
-func (s K8SService) CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name string, data map[string]string,
+func (s K8SService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name string, data map[string]string,
 	labels ...map[string]string) (isUpdated bool, err error) {
 	currentConfigMap, err := s.CreateConfigMap(instance, name, data, labels...)
 	if err != nil {
@@ -210,7 +210,7 @@ func (s K8SService) CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name st
 	return true, nil
 }
 
-func (s K8SService) CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+func (s K8SService) CreateConfigMap(instance *v1alpha1.Jenkins, name string, data map[string]string,
 	labels ...map[string]string) (*coreV1Api.ConfigMap, error) {
 
 	currentConfigMap, err := s.getConfigMap(name, instance.Namespace)
@@ -254,8 +254,8 @@ func (s K8SService) getConfigMap(name, namespace string) (*coreV1Api.ConfigMap, 
 	return cm, nil
 }
 
-func (s K8SService) createConfigMap(jenkins v1alpha1.Jenkins, cm *coreV1Api.ConfigMap) error {
-	if err := controllerutil.SetControllerReference(&jenkins, cm, s.Scheme); err != nil {
+func (s K8SService) createConfigMap(jenkins *v1alpha1.Jenkins, cm *coreV1Api.ConfigMap) error {
+	if err := controllerutil.SetControllerReference(jenkins, cm, s.Scheme); err != nil {
 		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", cm.Name)
 	}
 
@@ -267,7 +267,7 @@ func (s K8SService) createConfigMap(jenkins v1alpha1.Jenkins, cm *coreV1Api.Conf
 }
 
 // CreateConfigMapFromFileOrDir performs creating ConfigMap in K8S
-func (s K8SService) CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string,
+func (s K8SService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, configMapName string,
 	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
 	configMapData, err := s.fillConfigMapData(path, configMapKey)
 	if err != nil {

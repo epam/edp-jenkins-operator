@@ -3,7 +3,12 @@ package main
 import (
 	"flag"
 	"os"
+	"path"
 	"strconv"
+
+	sharedLibrary "github.com/epam/edp-jenkins-operator/v2/pkg/controller/shared_library"
+	jenkinsService "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
@@ -212,6 +217,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := sharedLibrary.NewReconcile(cl, ctrlLog, ps,
+		defaultEnv("TEMPLATES_PATH",
+			path.Join(platformHelper.DefaultConfigsAbsolutePath, jenkinsService.DefaultTemplatesDirectory))).
+		SetupWithManager(mgr); err != nil {
+
+	}
+
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
 		os.Exit(1)
@@ -241,4 +253,13 @@ func getMaxConcurrentReconciles(envVar string) int {
 	}
 
 	return int(n)
+}
+
+func defaultEnv(envVar, defaultValue string) string {
+	val, exists := os.LookupEnv(envVar)
+	if !exists {
+		return defaultValue
+	}
+
+	return val
 }

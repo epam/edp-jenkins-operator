@@ -103,7 +103,7 @@ func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bo
 	return service.K8SService.IsDeploymentReady(instance)
 }
 
-func (service OpenshiftService) AddVolumeToInitContainer(instance v1alpha1.Jenkins,
+func (service OpenshiftService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins,
 	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {

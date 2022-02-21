@@ -6,6 +6,8 @@
 package v1alpha1
 
 import (
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
@@ -16,6 +18,24 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
-
-	AddToScheme = SchemeBuilder.AddToScheme
 )
+
+func AddToScheme(sch *runtime.Scheme) error {
+	SchemeBuilder.Register(&JenkinsJob{}, &JenkinsJobList{},
+		&CDStageJenkinsDeployment{}, &CDStageJenkinsDeploymentList{},
+		&Jenkins{}, &JenkinsList{},
+		&JenkinsAgent{}, &JenkinsAgentList{},
+		&JenkinsAuthorizationRole{}, &JenkinsAuthorizationRoleList{},
+		&JenkinsAuthorizationRoleMapping{}, &JenkinsAuthorizationRoleMappingList{},
+		&JenkinsFolder{}, &JenkinsFolderList{},
+		&JenkinsJobBuildRun{}, &JenkinsJobBuildRunList{},
+		&JenkinsScript{}, &JenkinsScriptList{},
+		&JenkinsServiceAccount{}, &JenkinsServiceAccountList{},
+		&JenkinsSharedLibrary{}, &JenkinsSharedLibraryList{})
+
+	if err := SchemeBuilder.AddToScheme(sch); err != nil {
+		return errors.Wrap(err, "error during scheme building")
+	}
+
+	return nil
+}

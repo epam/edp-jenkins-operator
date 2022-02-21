@@ -1,0 +1,11 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsAuthorizationRole
+metadata:
+  name: mk1-role
+spec:
+  name: mk1-role
+  roleType: "projectRoles"
+  pattern: ".*"
+  permissions:
+    - "hudson.model.Item.Read"
+    - "hudson.model.Item.Build"

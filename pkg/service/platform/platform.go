@@ -24,19 +24,19 @@ const (
 
 // PlatformService interface
 type PlatformService interface {
-	CreateSecret(instance v1alpha1.Jenkins, name string, data map[string][]byte) error
-	CreateConfigMapFromFileOrDir(instance v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
+	CreateSecret(instance *v1alpha1.Jenkins, name string, data map[string][]byte) error
+	CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	GetExternalEndpoint(namespace string, name string) (string, string, string, error)
 	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
-	AddVolumeToInitContainer(instance v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error
+	AddVolumeToInitContainer(instance *v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
 	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
 	CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*v1alpha1.JenkinsScript, error)
-	CreateConfigMap(instance v1alpha1.Jenkins, name string, data map[string]string,
+	CreateConfigMap(instance *v1alpha1.Jenkins, name string, data map[string]string,
 		labels ...map[string]string) (*coreV1Api.ConfigMap, error)
-	CreateConfigMapWithUpdate(instance v1alpha1.Jenkins, name string, data map[string]string,
+	CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name string, data map[string]string,
 		labels ...map[string]string) (isUpdated bool, err error)
 	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
 	CreateStageJSON(stage cdPipeApi.Stage) (string, error)

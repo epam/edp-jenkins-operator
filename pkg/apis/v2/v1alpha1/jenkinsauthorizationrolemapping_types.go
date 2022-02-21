@@ -31,7 +31,3 @@ type JenkinsAuthorizationRoleMappingList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsAuthorizationRoleMapping `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&JenkinsAuthorizationRoleMapping{}, &JenkinsAuthorizationRoleMappingList{})
-}
