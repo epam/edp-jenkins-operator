@@ -40,9 +40,9 @@ type JenkinsVolumes struct {
 
 type JenkinsSharedLibraries struct {
 	Name         string  `json:"name"`
-	Url          string  `json:"url"`
+	URL          string  `json:"url"`
 	Tag          string  `json:"tag"`
-	CredentialId *string `json:"secret,omitempty"`
+	CredentialID *string `json:"secret,omitempty"`
 	Type         *string `json:"type,omitempty"`
 }
 
@@ -96,8 +96,4 @@ type JenkinsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Jenkins `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&Jenkins{}, &JenkinsList{})
 }

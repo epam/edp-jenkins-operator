@@ -32,9 +32,9 @@ def librariesArray = []
 {{ range $i, $v := .JenkinsSharedLibraries }}
 GitSCMSource gitSCMSource{{$i}} = new GitSCMSource(
 "{{ $v.Name }}",
-"{{ $v.Url }}",
-{{- if $v.CredentialId}}
-"{{ $v.CredentialId }}",
+"{{ $v.URL }}",
+{{- if $v.CredentialID}}
+"{{ $v.CredentialID }}",
 {{- else}}
 "",
 {{- end}}

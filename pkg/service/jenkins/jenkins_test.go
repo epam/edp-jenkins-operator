@@ -60,7 +60,7 @@ func CreateKeycloakClient() *keycloakV1Api.KeycloakClient {
 }
 
 func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
-	ji := v1alpha1.Jenkins{}
+	ji := &v1alpha1.Jenkins{}
 	platformMock := pmock.PlatformService{}
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 	data := map[string]string{"context": "lol"}
@@ -93,7 +93,7 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
-	ji := v1alpha1.Jenkins{
+	ji := &v1alpha1.Jenkins{
 		Spec: v1alpha1.JenkinsSpec{
 			Version: "0",
 		},
@@ -165,7 +165,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_Integration_GetExternalEndpointErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
+	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
 		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
@@ -219,9 +219,9 @@ func TestJenkinsServiceImpl_Integration_mountGerritCredentialsErr(t *testing.T) 
 	}
 	errTest := errors.New("test")
 
-	platform.On("AddVolumeToInitContainer", instance, "grant-permissions", vol, volMount).Return(errTest)
+	platform.On("AddVolumeToInitContainer", &instance, "grant-permissions", vol, volMount).Return(errTest)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to mount Gerrit credentials"))
 }
@@ -256,7 +256,7 @@ func TestJenkinsServiceImpl_Integration(t *testing.T) {
 					Mode: &mode,
 				}}}}}}
 
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -285,7 +285,7 @@ func TestJenkinsServiceImpl_Integration_CreateKeycloakClientErr(t *testing.T) {
 	platform.On("GetExternalEndpoint", namespace, name).Return(urlName, URLScheme, domain, nil)
 	platform.On("CreateKeycloakClient", keycloakClient).Return(errTest)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to create Keycloak Client data!"))
 }
@@ -305,7 +305,7 @@ func TestJenkinsServiceImpl_Integration_GetKeycloakClientErr(t *testing.T) {
 	platform.On("CreateKeycloakClient", keycloakClient).Return(nil)
 	platform.On("GetKeycloakClient", name, namespace).Return(*keycloakClient, errTest)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to get Keycloak Client CR!"))
 }
@@ -326,7 +326,7 @@ func TestJenkinsServiceImpl_Integration_GetOwnerKeycloakRealmErr(t *testing.T) {
 	platform.On("CreateKeycloakClient", keycloakClient).Return(nil)
 	platform.On("GetKeycloakClient", name, namespace).Return(*keycloakClient, nil)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to get Keycloak Realm for"))
 }
@@ -336,7 +336,7 @@ func TestJenkinsServiceImpl_Integration_GetOwnerKeycloakErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &keycloakV1Api.KeycloakRealm{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(keycloakRealm).Build()
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
+	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
 		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	keycloakHelper := keycloakControllerHelper.MakeHelper(client, scheme, logr.Discard())
@@ -390,7 +390,7 @@ func TestJenkinsServiceImpl_Integration_ParseTemplateErr(t *testing.T) {
 	platform.On("CreateKeycloakClient", &keycloakClient).Return(nil)
 	platform.On("GetKeycloakClient", name, namespace).Return(keycloakClient2, nil)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Template file not found in path"))
 	platform.AssertExpectations(t)
@@ -431,7 +431,7 @@ func TestJenkinsServiceImpl_Integration_GetSecretDataErr(t *testing.T) {
 	platform.On("GetKeycloakClient", name, namespace).Return(keycloakClient2, nil)
 	platform.On("GetSecretData", namespace, "").Return(nil, errTest)
 
-	_, _, err := impl.Integration(instance)
+	_, _, err := impl.Integration(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "unable to get keycloak client secret data"))
 	platform.AssertExpectations(t)
@@ -509,7 +509,7 @@ func TestJenkinsServiceImpl_Configure_InitJenkinsClientErr(t *testing.T) {
 		platformService: &platform,
 	}
 
-	configuration, b, err := impl.Configure(*instance)
+	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to init Jenkins REST client"))
 	assert.False(t, b)
@@ -527,7 +527,7 @@ func TestJenkinsServiceImpl_Configure_NilClientErr(t *testing.T) {
 		platformService: &platform,
 	}
 
-	configuration, b, err := impl.Configure(*instance)
+	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Jenkins returns nil client"))
 	assert.False(t, b)
@@ -555,7 +555,7 @@ func TestJenkinsServiceImpl_Configure_GetSecretDataErr(t *testing.T) {
 		platformService: &platform,
 	}
 
-	configuration, b, err := impl.Configure(*instance)
+	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Unable to get admin token secret for"))
 	assert.False(t, b)
@@ -582,7 +582,7 @@ func TestJenkinsServiceImpl_Configure_GetAdminTokenErr(t *testing.T) {
 		platformService: &platform,
 	}
 
-	configuration, b, err := impl.Configure(*instance)
+	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to get token from admin user"))
 	assert.False(t, b)
@@ -609,7 +609,7 @@ func TestJenkinsServiceImpl_Configure_ReadDirErr(t *testing.T) {
 		platformService: &platform,
 	}
 
-	configuration, b, err := impl.Configure(*instance)
+	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't read directory"))
 	assert.False(t, b)
@@ -636,12 +636,12 @@ func TestJenkinsServiceImpl_CreateAdminPassword_CreateSecretErr(t *testing.T) {
 	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
 
 	errTest := errors.New("test")
-	platform.On("CreateSecret", instance, "name-admin-password").Return(errTest)
+	platform.On("CreateSecret", &instance, "name-admin-password").Return(errTest)
 
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
 	}
-	err := impl.CreateAdminPassword(instance)
+	err := impl.CreateAdminPassword(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to create Admin password secret"))
 	platform.AssertExpectations(t)
@@ -655,7 +655,7 @@ func TestJenkinsServiceImpl_setAdminSecretInStatusErr(t *testing.T) {
 
 	errTest := errors.New("test")
 
-	platform.On("CreateSecret", instance, "name-admin-password").Return(nil)
+	platform.On("CreateSecret", &instance, "name-admin-password").Return(nil)
 	client.On("Update").Return(errTest)
 	client.On("Status").Return(statusWriter)
 	statusWriter.On("Update").Return(errTest)
@@ -664,7 +664,7 @@ func TestJenkinsServiceImpl_setAdminSecretInStatusErr(t *testing.T) {
 		platformService: &platform,
 		k8sClient:       &client,
 	}
-	err := impl.CreateAdminPassword(instance)
+	err := impl.CreateAdminPassword(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't set admin secret name in status"))
 	platform.AssertExpectations(t)
@@ -677,12 +677,12 @@ func TestJenkinsServiceImpl_CreateAdminPassword(t *testing.T) {
 	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
 		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
 
-	platform.On("CreateSecret", instance, "name-admin-password").Return(nil)
+	platform.On("CreateSecret", &instance, "name-admin-password").Return(nil)
 
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
 	}
-	err := impl.CreateAdminPassword(instance)
+	err := impl.CreateAdminPassword(&instance)
 	assert.NoError(t, err)
 	platform.AssertExpectations(t)
 }

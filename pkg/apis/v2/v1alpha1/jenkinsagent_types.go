@@ -37,7 +37,3 @@ type JenkinsAgentList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsAgent `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&JenkinsAgent{}, &JenkinsAgentList{})
-}

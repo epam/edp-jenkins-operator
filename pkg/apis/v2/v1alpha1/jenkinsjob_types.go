@@ -1,9 +1,10 @@
 package v1alpha1
 
 import (
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"time"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -90,8 +91,4 @@ type JenkinsJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsJob `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&JenkinsJob{}, &JenkinsJobList{})
 }

@@ -1,0 +1,8 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsSharedLibrary
+metadata:
+  name: lib1
+spec:
+  name: edp-library-stages-beta
+  tag: beta
+  url: 'https://github.com/epam/edp-library-stages.git'

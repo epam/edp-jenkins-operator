@@ -83,6 +83,9 @@ rules:
     - jenkinsagents
     - jenkinsagents/status
     - jenkinsagents/finalizers
+    - jenkinssharedlibraries
+    - jenkinssharedlibraries/status
+    - jenkinssharedlibraries/finalizers
   verbs:
     - '*'
 - apiGroups:

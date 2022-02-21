@@ -1,0 +1,9 @@
+apiVersion: v2.edp.epam.com/v1alpha1
+kind: JenkinsAuthorizationRoleMapping
+metadata:
+  name: map-mk1
+spec:
+  roleType: "projectRoles"
+  roles:
+    - mk1-role
+  group: user1@example.com
