@@ -12,11 +12,11 @@
     "initContainers": [
       {
         "name": "init-kaniko",
-        "image": "busybox",
+        "image": "busybox:1.35.0",
         "command": [
           "/bin/sh",
           "-c",
-          "while ! [[ -f /tmp/workspace/Dockerfile ]]; do echo \"Waiting for Dockerfile in workspace...\"; sleep 10;done"
+          "for i in 1 2 3 4 5 6; do echo \"Waiting for Dockerfile...\"; sleep 10; if [ -f /tmp/workspace/Dockerfile ]; then exit 0; fi; done; exit 1"
         ],
         "volumeMounts": [
           {
