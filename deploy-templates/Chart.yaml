@@ -27,12 +27,12 @@ annotations:
       image: epamedp/jenkins-operator:2.10.1
     - name: jenkins-operator:2.10.0
       image: epamedp/jenkins-operator:2.10.0
-    - name: epamedp/edp-jenkins:2.10.1
-      image: epamedp/epamedp/edp-jenkins:2.10.1
-    - name: epamedp/edp-jenkins:2.10.0
-      image: epamedp/epamedp/edp-jenkins:2.10.0
-    - name: epamedp/edp-jenkins:2.9.0
-      image: epamedp/epamedp/edp-jenkins:2.9.0
+    - name: edp-jenkins:2.10.1
+      image: epamedp/edp-jenkins:2.10.1
+    - name: edp-jenkins:2.10.0
+      image: epamedp/edp-jenkins:2.10.0
+    - name: edp-jenkins:2.9.0
+      image: epamedp/edp-jenkins:2.9.0
     - name: busybox:1.35.0
       image: busybox:1.35.0
     - name: alpine:3.13.7
