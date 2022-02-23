@@ -48,10 +48,8 @@ const (
 	sharedLibrariesTemplateName     = "config-shared-libraries.tmpl"
 	kubernetesPluginTemplateName    = "config-kubernetes-plugin.tmpl"
 	keycloakConfigTemplateName      = "config-keycloak.tmpl"
-	kanikoTemplateName              = "kaniko.json"
 	cbisTemplateName                = "cbis.json"
 	jimTemplateName                 = "jim.json"
-	dockerRegistryTemplateName      = "config.json"
 	defaultScriptConfigMapKey       = "context"
 	sshKeyDefaultMountPath          = "/tmp/ssh"
 
@@ -534,8 +532,6 @@ func (j JenkinsServiceImpl) Configure(instance v1alpha1.Jenkins) (*v1alpha1.Jenk
 	}
 
 	for _, template := range []map[string]string{
-		{"name": kanikoTemplateName, "cmName": "kaniko-template"},
-		{"name": dockerRegistryTemplateName, "cmName": "docker-config"},
 		{"name": cbisTemplateName, "cmName": "cbis-template"},
 		{"name": jimTemplateName, "cmName": "jim-template"},
 	} {
