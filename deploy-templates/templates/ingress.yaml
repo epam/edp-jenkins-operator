@@ -18,6 +18,10 @@ spec:
   {{- if and $ingressSupportsIngressClassName .Values.jenkins.ingress.ingressClassName }}
   ingressClassName: {{ .Values.jenkins.ingress.ingressClassName }}
   {{- end }}
+{{- if .Values.jenkins.ingress.tls }}
+  tls:
+{{ tpl (toYaml .Values.jenkins.ingress.tls) $ | indent 4 }}
+{{- end }}
   rules:
     - host: {{ include "jenkins-operator.jenkinsBaseUrl" . }}
       http:
