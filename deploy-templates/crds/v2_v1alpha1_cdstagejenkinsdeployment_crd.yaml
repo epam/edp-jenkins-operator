@@ -27,6 +27,18 @@ spec:
                   required:
                     - codebase
                     - tag
+                tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      codebase:
+                        type: string
+                      tag:
+                        type: string
+                    required:
+                      - codebase
+                      - tag
             status:
               type: object
               additionalProperties: true

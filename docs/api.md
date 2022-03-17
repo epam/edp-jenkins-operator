@@ -111,11 +111,52 @@ Resource Types:
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b><a href="#cdstagejenkinsdeploymentspectagsindex">tags</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
 
 ### CDStageJenkinsDeployment.spec.tag
+<sup><sup>[↩ Parent](#cdstagejenkinsdeploymentspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>codebase</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>tag</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### CDStageJenkinsDeployment.spec.tags[index]
 <sup><sup>[↩ Parent](#cdstagejenkinsdeploymentspec)</sup></sup>
 
 

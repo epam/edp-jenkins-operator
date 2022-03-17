@@ -2,6 +2,7 @@ package chain
 
 import (
 	"encoding/json"
+
 	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/handler"
@@ -30,14 +31,14 @@ func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJen
 		return errors.Wrap(err, "couldn't create jenkins client")
 	}
 
-	c, err := json.Marshal(jenkinsDeploy.Spec.Tag)
+	codebaseTags, err := json.Marshal(jenkinsDeploy.Spec.Tags)
 	if err != nil {
 		return err
 	}
 
 	jobParameters := map[string]string{
 		"AUTODEPLOY":       "true",
-		"CODEBASE_VERSION": string(c),
+		"CODEBASE_VERSION": string(codebaseTags),
 	}
 
 	if err := jc.TriggerJob(jenkinsDeploy.Spec.Job, jobParameters); err != nil {

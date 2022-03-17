@@ -18,8 +18,9 @@ type CDStageJenkinsDeploymentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Job string `json:"job"`
-	Tag Tag    `json:"tag"`
+	Job  string `json:"job"`
+	Tag  Tag    `json:"tag"`
+	Tags []Tag  `json:"tags"`
 }
 
 type Tag struct {
