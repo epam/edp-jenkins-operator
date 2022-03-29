@@ -6,6 +6,7 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v1"
 )
 
@@ -49,14 +50,15 @@ func TestJenkinsClient_AssignRole(t *testing.T) {
 	}
 
 	err := jc.AssignRole("rt", "rn", "s")
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "role-strategy/strategy/getRole\": no responder found")
 
-	if !strings.Contains(err.Error(), "no responder") {
-		t.Log(err)
-		t.Fatal("wrong error returned")
-	}
+	httpmock.RegisterResponder("POST", "/role-strategy/strategy/getRole",
+		httpmock.NewJsonResponderOrPanic(200, Role{}))
+	httpmock.RegisterResponder("POST", "/role-strategy/strategy/assignRole",
+		httpmock.NewStringResponder(200, ""))
+	err = jc.AssignRole("rt", "rn", "s")
+	assert.NoError(t, err)
 }
 
 func TestJenkinsClient_RemoveRoles(t *testing.T) {
