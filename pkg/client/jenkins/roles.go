@@ -52,6 +52,10 @@ func (jc JenkinsClient) RemoveRoles(roleType string, roleNames []string) error {
 }
 
 func (jc JenkinsClient) AssignRole(roleType, roleName, subject string) error {
+	if _, err := jc.GetRole(roleType, roleName); err != nil {
+		return errors.Wrap(err, "unable to get role")
+	}
+
 	rsp, err := jc.resty.R().SetFormData(map[string]string{
 		"type":     roleType,
 		"roleName": roleName,
