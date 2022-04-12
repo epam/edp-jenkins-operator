@@ -38,6 +38,7 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.imagePullSecrets | string | `nil` |  |
 | jenkins.ingress.annotations | object | `{}` |  |
 | jenkins.ingress.pathType | string | `"Prefix"` |  |
+| jenkins.ingress.tls | list | `[]` |  |
 | jenkins.initImage | string | `"busybox:1.35.0"` |  |
 | jenkins.nodeSelector | object | `{}` |  |
 | jenkins.resources.limits.memory | string | `"3Gi"` |  |

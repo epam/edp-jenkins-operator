@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networkingV1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -105,47 +105,47 @@ func TestK8SService_Init(t *testing.T) {
 
 func TestK8SService_GetExternalEndpointErr(t *testing.T) {
 	ingress := &kmock.Ingress{}
-	extClient := &kmock.ExtensionsClient{}
+	netClient := &kmock.NetworkingClient{}
 	errTest := errors.New("test")
 
-	extClient.On("Ingresses", namespace).Return(ingress)
+	netClient.On("Ingresses", namespace).Return(ingress)
 	ingress.On("Get", context.TODO(), name, metav1.GetOptions{}).Return(nil, errTest)
 
-	service := K8SService{extensionsV1Client: extClient}
+	service := K8SService{networkingClient: netClient}
 	_, _, _, err := service.GetExternalEndpoint(namespace, name)
 	assert.Equal(t, errTest, err)
 	ingress.AssertExpectations(t)
-	extClient.AssertExpectations(t)
+	netClient.AssertExpectations(t)
 }
 
 func TestK8SService_GetExternalEndpoint(t *testing.T) {
 	host := "host"
 	ingress := &kmock.Ingress{}
-	extClient := &kmock.ExtensionsClient{}
-	ingressPath := v1beta1.HTTPIngressPath{
+	netClient := &kmock.NetworkingClient{}
+	ingressPath := networkingV1.HTTPIngressPath{
 		Path: name,
 	}
-	ingressRule := v1beta1.IngressRule{
+	ingressRule := networkingV1.IngressRule{
 		Host: host,
-		IngressRuleValue: v1beta1.IngressRuleValue{
-			HTTP: &v1beta1.HTTPIngressRuleValue{
-				Paths: []v1beta1.HTTPIngressPath{ingressPath},
+		IngressRuleValue: networkingV1.IngressRuleValue{
+			HTTP: &networkingV1.HTTPIngressRuleValue{
+				Paths: []networkingV1.HTTPIngressPath{ingressPath},
 			},
 		},
 	}
-	ingressInstance := &v1beta1.Ingress{Spec: v1beta1.IngressSpec{Rules: []v1beta1.IngressRule{ingressRule}}}
+	ingressInstance := &networkingV1.Ingress{Spec: networkingV1.IngressSpec{Rules: []networkingV1.IngressRule{ingressRule}}}
 
-	extClient.On("Ingresses", namespace).Return(ingress)
+	netClient.On("Ingresses", namespace).Return(ingress)
 	ingress.On("Get", context.TODO(), name, metav1.GetOptions{}).Return(ingressInstance, nil)
 
-	service := K8SService{extensionsV1Client: extClient}
+	service := K8SService{networkingClient: netClient}
 	endpoint, scheme, path, err := service.GetExternalEndpoint(namespace, name)
 	assert.NoError(t, err)
 	assert.Equal(t, host, endpoint)
 	assert.Equal(t, jenkinsDefaultSpec.RouteHTTPSScheme, scheme)
 	assert.Equal(t, name, path)
 	ingress.AssertExpectations(t)
-	extClient.AssertExpectations(t)
+	netClient.AssertExpectations(t)
 }
 
 func TestK8SService_IsDeploymentReadyErr(t *testing.T) {

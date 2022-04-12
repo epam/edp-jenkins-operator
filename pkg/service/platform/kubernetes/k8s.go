@@ -21,7 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	appsV1Client "k8s.io/client-go/kubernetes/typed/apps/v1"
-	extensionsV1Client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	networkingV1Client "k8s.io/client-go/kubernetes/typed/networking/v1"
 	authV1Client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -38,11 +38,11 @@ var log = ctrl.Log.WithName("platform")
 
 // K8SService struct for K8S platform service
 type K8SService struct {
-	Scheme             *runtime.Scheme
-	client             client.Client
-	authClient         authV1Client.RbacV1Client
-	extensionsV1Client extensionsV1Client.ExtensionsV1beta1Interface
-	appsV1Client       appsV1Client.AppsV1Interface
+	Scheme           *runtime.Scheme
+	client           client.Client
+	authClient       authV1Client.RbacV1Client
+	networkingClient networkingV1Client.NetworkingV1Interface
+	appsV1Client     appsV1Client.AppsV1Interface
 }
 
 // Init initializes K8SService
@@ -56,11 +56,11 @@ func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient
 	s.authClient = *authClient
 	s.client = k8sClient
 
-	extensionsClient, err := extensionsV1Client.NewForConfig(config)
+	ncl, err := networkingV1Client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init extensions V1 client for K8S")
+		return errors.Wrap(err, "Failed to init networking V1 client for K8S")
 	}
-	s.extensionsV1Client = extensionsClient
+	s.networkingClient = ncl
 
 	appsClient, err := appsV1Client.NewForConfig(config)
 	if err != nil {
@@ -73,7 +73,7 @@ func (s *K8SService) Init(config *rest.Config, Scheme *runtime.Scheme, k8sClient
 
 // GetExternalEndpoint returns Ingress object and connection protocol from Kubernetes
 func (s K8SService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	ingress, err := s.extensionsV1Client.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	ingress, err := s.networkingClient.Ingresses(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil && k8sErrors.IsNotFound(err) {
 		return "", "", "", errors.New(fmt.Sprintf("Ingress %v in namespace %v not found", name, namespace))
 	} else if err != nil {
