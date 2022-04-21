@@ -19,7 +19,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/edp-jenkins-python-38-agent:2.0.4</image>
+      <image>epamedp/edp-jenkins-python-38-agent:3.0.2</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
