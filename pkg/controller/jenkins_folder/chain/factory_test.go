@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
@@ -108,14 +108,14 @@ func TestCreateTriggerBuildProvisionChain(t *testing.T) {
 }
 
 func Test_nextServeOrNil(t *testing.T) {
-	jenkinsFolder := &v1alpha1.JenkinsFolder{}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{}
 	jenkinsFolder.Name = "name"
 	err := nextServeOrNil(nil, jenkinsFolder)
 	assert.NoError(t, err)
 }
 
 func Test_nextServeOrNilErr(t *testing.T) {
-	jenkinsFolder := &v1alpha1.JenkinsFolder{}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{}
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	errTest := errors.New("test")
 	jenkinsFolderHandler.On("ServeRequest", jenkinsFolder).Return(errTest)

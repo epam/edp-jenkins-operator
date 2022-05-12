@@ -4,7 +4,7 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 // +k8s:openapi-gen=true
 type JenkinsAuthorizationRoleMappingSpec struct {
-	OwnerName *string  `json:"ownerName"`
+	OwnerName *string  `json:"ownerName,omitempty"`
 	Group     string   `json:"group"`
 	RoleType  string   `json:"roleType"`
 	Roles     []string `json:"roles"`
@@ -18,6 +18,7 @@ type JenkinsAuthorizationRoleMappingStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion
 type JenkinsAuthorizationRoleMapping struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

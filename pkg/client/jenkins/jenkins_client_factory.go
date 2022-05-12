@@ -2,11 +2,12 @@ package jenkins
 
 import (
 	"github.com/bndr/gojenkins"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	plutil "github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 type ClientInterface interface {

@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kmock "github.com/epam/edp-jenkins-operator/v2/mock/kubernetes"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 )
 
@@ -36,7 +36,7 @@ func TestK8SService_CreateConfigMap(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cm)
-	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(jenkinsApi.AddToScheme(scheme))
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&cm).Build()
 
@@ -45,7 +45,7 @@ func TestK8SService_CreateConfigMap(t *testing.T) {
 		Scheme: scheme,
 	}
 
-	ji := &v1alpha1.Jenkins{ObjectMeta: metav1.ObjectMeta{Name: "test"}}
+	ji := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{Name: "test"}}
 	_, err := svc.CreateConfigMap(ji, "test", map[string]string{"bar": "baz"}, map[string]string{"lol": "lol"})
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestK8SService_CreateJenkinsScript(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cm)
-	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(jenkinsApi.AddToScheme(scheme))
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&cm).Build()
 
@@ -149,7 +149,7 @@ func TestK8SService_GetExternalEndpoint(t *testing.T) {
 }
 
 func TestK8SService_IsDeploymentReadyErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
@@ -166,7 +166,7 @@ func TestK8SService_IsDeploymentReadyErr(t *testing.T) {
 }
 
 func TestK8SService_IsDeploymentReadyFalse(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	deploymentInstance := &appsv1.Deployment{}
 
 	appClient := &kmock.AppsV1Client{}
@@ -185,7 +185,7 @@ func TestK8SService_IsDeploymentReadyFalse(t *testing.T) {
 }
 
 func TestK8SService_IsDeploymentReadyTrue(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	deploymentInstance := &appsv1.Deployment{
 		Status: appsv1.DeploymentStatus{
 			UpdatedReplicas:   1,
@@ -233,7 +233,7 @@ func TestK8SService_GetSecretData(t *testing.T) {
 func TestK8SService_CreateSecretErr(t *testing.T) {
 	data := map[string][]byte{name: []byte(namespace)}
 	scheme := runtime.NewScheme()
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 	client := fake.NewClientBuilder().Build()
 	service := K8SService{client: client, Scheme: scheme}
 	err := service.CreateSecret(instance, namespace, data)
@@ -244,8 +244,8 @@ func TestK8SService_CreateSecretErr(t *testing.T) {
 func TestK8SService_CreateSecret(t *testing.T) {
 	data := map[string][]byte{name: []byte(namespace)}
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.Jenkins{}, &v1.Secret{})
-	instance := &v1alpha1.Jenkins{}
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{}, &v1.Secret{})
+	instance := &jenkinsApi.Jenkins{}
 	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 	service := K8SService{client: client, Scheme: scheme}
 	err := service.CreateSecret(instance, namespace, data)
@@ -253,7 +253,7 @@ func TestK8SService_CreateSecret(t *testing.T) {
 }
 
 func TestK8SService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := K8SService{}
@@ -264,7 +264,7 @@ func TestK8SService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_DeploymentGetErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 
 	errTest := errors.New("test")
 
@@ -284,7 +284,7 @@ func TestK8SService_AddVolumeToInitContainer_DeploymentGetErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_NotFoundErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 	deploymentInstance := &appsv1.Deployment{}
 
 	appClient.On("Deployments", "").Return(deployment)
@@ -304,7 +304,7 @@ func TestK8SService_AddVolumeToInitContainer_NotFoundErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer_SelectContainerErr(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 	deploymentInstance := appsv1.Deployment{
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},
@@ -339,7 +339,7 @@ func TestK8SService_AddVolumeToInitContainer_SelectContainerErr(t *testing.T) {
 func TestK8SService_AddVolumeToInitContainer(t *testing.T) {
 	appClient := &kmock.AppsV1Client{}
 	deployment := &kmock.Deployment{}
-	instance := &v1alpha1.Jenkins{}
+	instance := &jenkinsApi.Jenkins{}
 	deploymentInstance := appsv1.Deployment{
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},
@@ -419,7 +419,7 @@ func TestK8SService_CreateKeycloakClient(t *testing.T) {
 }
 
 func TestK8SService_CreateEDPComponentIfNotExist_GetErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	client := fake.NewClientBuilder().Build()
 
 	service := K8SService{client: client}
@@ -429,7 +429,7 @@ func TestK8SService_CreateEDPComponentIfNotExist_GetErr(t *testing.T) {
 }
 
 func TestK8SService_CreateEDPComponentIfNotExist_AlreadyExist(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: metav1.ObjectMeta{
+	instance := jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,
 	}}
@@ -448,13 +448,13 @@ func TestK8SService_CreateEDPComponentIfNotExist_AlreadyExist(t *testing.T) {
 }
 
 func TestK8SService_CreateEDPComponentIfNotExist(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: metav1.ObjectMeta{
+	instance := jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,
 	}}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &edpCompApi.EDPComponent{}, &v1alpha1.Jenkins{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &edpCompApi.EDPComponent{}, &jenkinsApi.Jenkins{})
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects().Build()
 

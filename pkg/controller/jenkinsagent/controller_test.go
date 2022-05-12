@@ -6,31 +6,29 @@ import (
 	"testing"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 )
 
 func TestSpecUpdate(t *testing.T) {
-	agent1 := v1alpha1.JenkinsAgent{
-		Spec: v1alpha1.JenkinsAgentSpec{
+	agent1 := jenkinsApi.JenkinsAgent{
+		Spec: jenkinsApi.JenkinsAgentSpec{
 			Name: "1",
 		},
 	}
 
-	agent2 := v1alpha1.JenkinsAgent{
-		Spec: v1alpha1.JenkinsAgentSpec{
+	agent2 := jenkinsApi.JenkinsAgent{
+		Spec: jenkinsApi.JenkinsAgentSpec{
 			Name: "2",
 		},
 	}
@@ -44,19 +42,19 @@ func TestSpecUpdate(t *testing.T) {
 }
 
 func TestReconcile_Reconcile(t *testing.T) {
-	agent := v1alpha1.JenkinsAgent{
+	agent := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "agent1",
 			Namespace: "ns",
 		},
-		Spec: v1alpha1.JenkinsAgentSpec{
+		Spec: jenkinsApi.JenkinsAgentSpec{
 			Name:     "agent1",
 			Template: "agent-cm",
 		},
 	}
 
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 	utilruntime.Must(corev1.AddToScheme(s))
 
 	slavesCM := corev1.ConfigMap{
@@ -93,7 +91,7 @@ func TestReconcile_Reconcile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkAgent v1alpha1.JenkinsAgent
+	var checkAgent jenkinsApi.JenkinsAgent
 	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
 		t.Fatal(err)
 	}
@@ -119,20 +117,20 @@ func TestReconcile_Reconcile(t *testing.T) {
 }
 
 func TestReconcile_Reconcile_Delete(t *testing.T) {
-	agent := v1alpha1.JenkinsAgent{
+	agent := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "agent1",
 			Namespace:         "ns",
 			DeletionTimestamp: &metav1.Time{Time: time.Now()},
 		},
-		Spec: v1alpha1.JenkinsAgentSpec{
+		Spec: jenkinsApi.JenkinsAgentSpec{
 			Name:     "agent1",
 			Template: "foo-bar",
 		},
 	}
 
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 	utilruntime.Must(corev1.AddToScheme(s))
 
 	slavesCM := corev1.ConfigMap{
@@ -169,7 +167,7 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkAgent v1alpha1.JenkinsAgent
+	var checkAgent jenkinsApi.JenkinsAgent
 	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +190,7 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 
 func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 
 	k8sClient := fake.NewClientBuilder().Build()
 	mockLogger := helper.LoggerMock{}
@@ -215,20 +213,20 @@ func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 }
 
 func TestReconcile_Reconcile_FailureSlavesNoConfigMap(t *testing.T) {
-	agent := v1alpha1.JenkinsAgent{
+	agent := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "agent1",
 			Namespace:         "ns",
 			DeletionTimestamp: &metav1.Time{Time: time.Now()},
 		},
-		Spec: v1alpha1.JenkinsAgentSpec{
+		Spec: jenkinsApi.JenkinsAgentSpec{
 			Name:     "agent1",
 			Template: "agent-cm",
 		},
 	}
 
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 	utilruntime.Must(corev1.AddToScheme(s))
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&agent).Build()
@@ -242,7 +240,7 @@ func TestReconcile_Reconcile_FailureSlavesNoConfigMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkAgent v1alpha1.JenkinsAgent
+	var checkAgent jenkinsApi.JenkinsAgent
 	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
 		t.Fatal(err)
 	}

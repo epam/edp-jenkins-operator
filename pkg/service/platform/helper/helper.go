@@ -9,7 +9,7 @@ import (
 	authV1Api "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util"
 )
@@ -27,7 +27,7 @@ type JenkinsScriptData struct {
 	KeycloakIsPrivate      bool
 	KeycloakClientSecret   string
 	JenkinsUrl             string
-	JenkinsSharedLibraries []v1alpha1.JenkinsSharedLibraries
+	JenkinsSharedLibraries []jenkinsApi.JenkinsSharedLibraries
 }
 
 // GenerateLabels returns map with labels for k8s objects
@@ -37,7 +37,7 @@ func GenerateLabels(name string) map[string]string {
 	}
 }
 
-func GetNewRoleBindingObject(instance v1alpha1.Jenkins, roleBindingName string, roleName string, kind string) (*authV1Api.RoleBinding, error) {
+func GetNewRoleBindingObject(instance jenkinsApi.Jenkins, roleBindingName string, roleName string, kind string) (*authV1Api.RoleBinding, error) {
 	return &authV1Api.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      roleBindingName,
@@ -56,7 +56,7 @@ func GetNewRoleBindingObject(instance v1alpha1.Jenkins, roleBindingName string, 
 	}, nil
 }
 
-func GetNewClusterRoleBindingObject(instance v1alpha1.Jenkins, clusterRoleBindingName string, clusterRoleName string) (*authV1Api.ClusterRoleBinding, error) {
+func GetNewClusterRoleBindingObject(instance jenkinsApi.Jenkins, clusterRoleBindingName string, clusterRoleName string) (*authV1Api.ClusterRoleBinding, error) {
 	return &authV1Api.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      clusterRoleBindingName,

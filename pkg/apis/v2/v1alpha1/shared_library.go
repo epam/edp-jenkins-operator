@@ -6,7 +6,7 @@ type JenkinsSharedLibrarySpec struct {
 	OwnerName    *string `json:"ownerName,omitempty"`
 	Name         string  `json:"name"`
 	CredentialID string  `json:"secret"`
-	Tag          string  `json:"tag"`
+	Tag          string  `json:"tag,omitempty"`
 	URL          string  `json:"url"`
 }
 
@@ -15,6 +15,7 @@ type JenkinsSharedLibraryStatus struct {
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:deprecatedversion
 type JenkinsSharedLibrary struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

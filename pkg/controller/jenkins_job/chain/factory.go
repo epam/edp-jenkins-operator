@@ -6,7 +6,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -84,7 +84,7 @@ func (c TriggerJobProvisionChain) Build() jobhandler.JenkinsJobHandler {
 	}
 }
 
-func nextServeOrNil(next jobhandler.JenkinsJobHandler, jj *v1alpha1.JenkinsJob) error {
+func nextServeOrNil(next jobhandler.JenkinsJobHandler, jj *jenkinsApi.JenkinsJob) error {
 	if next != nil {
 		return next.ServeRequest(jj)
 	}

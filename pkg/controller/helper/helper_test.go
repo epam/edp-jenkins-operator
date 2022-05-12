@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 func TestNewJenkinsUser(t *testing.T) {
@@ -64,7 +64,7 @@ func TestNewTrue(t *testing.T) {
 }
 
 func TestTryToDelete_AddFinalizers(t *testing.T) {
-	ja := v1alpha1.JenkinsAgent{
+	ja := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ja1",
 			Namespace: "ns1",
@@ -85,7 +85,7 @@ func TestTryToDelete_AddFinalizers(t *testing.T) {
 }
 
 func TestTryToDelete_RemoveFinalizers(t *testing.T) {
-	ja := v1alpha1.JenkinsAgent{
+	ja := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "ja1",
 			Namespace:         "ns1",
@@ -108,7 +108,7 @@ func TestTryToDelete_RemoveFinalizers(t *testing.T) {
 }
 
 func TestTryToDelete_DeleteFuncFailure(t *testing.T) {
-	ja := v1alpha1.JenkinsAgent{
+	ja := jenkinsApi.JenkinsAgent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "ja1",
 			Namespace:         "ns1",

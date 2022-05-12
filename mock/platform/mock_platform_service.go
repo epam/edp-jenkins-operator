@@ -10,7 +10,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 
 	v1v1alpha1 "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
 )
@@ -21,11 +21,11 @@ type PlatformService struct {
 }
 
 // AddVolumeToInitContainer provides a mock function with given fields: instance, containerName, vol, volMount
-func (_m *PlatformService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins, containerName string, vol []v1.Volume, volMount []v1.VolumeMount) error {
+func (_m *PlatformService) AddVolumeToInitContainer(instance *jenkinsApi.Jenkins, containerName string, vol []v1.Volume, volMount []v1.VolumeMount) error {
 	ret := _m.Called(instance, containerName, vol, volMount)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, []v1.Volume, []v1.VolumeMount) error); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins, string, []v1.Volume, []v1.VolumeMount) error); ok {
 		r0 = rf(*instance, containerName, vol, volMount)
 	} else {
 		r0 = ret.Error(0)
@@ -35,7 +35,7 @@ func (_m *PlatformService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins, 
 }
 
 // CreateConfigMap provides a mock function with given fields: instance, name, data, labels
-func (_m *PlatformService) CreateConfigMap(instance *v1alpha1.Jenkins, name string, data map[string]string, labels ...map[string]string) (*v1.ConfigMap, error) {
+func (_m *PlatformService) CreateConfigMap(instance *jenkinsApi.Jenkins, name string, data map[string]string, labels ...map[string]string) (*v1.ConfigMap, error) {
 	_va := make([]interface{}, len(labels))
 	for _i := range labels {
 		_va[_i] = labels[_i]
@@ -46,7 +46,7 @@ func (_m *PlatformService) CreateConfigMap(instance *v1alpha1.Jenkins, name stri
 	ret := _m.Called(_ca...)
 
 	var r0 *v1.ConfigMap
-	if rf, ok := ret.Get(0).(func(*v1alpha1.Jenkins, string, map[string]string, ...map[string]string) *v1.ConfigMap); ok {
+	if rf, ok := ret.Get(0).(func(*jenkinsApi.Jenkins, string, map[string]string, ...map[string]string) *v1.ConfigMap); ok {
 		r0 = rf(instance, name, data, labels...)
 	} else {
 		if ret.Get(0) != nil {
@@ -55,7 +55,7 @@ func (_m *PlatformService) CreateConfigMap(instance *v1alpha1.Jenkins, name stri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*v1alpha1.Jenkins, string, map[string]string, ...map[string]string) error); ok {
+	if rf, ok := ret.Get(1).(func(*jenkinsApi.Jenkins, string, map[string]string, ...map[string]string) error); ok {
 		r1 = rf(instance, name, data, labels...)
 	} else {
 		r1 = ret.Error(1)
@@ -65,7 +65,7 @@ func (_m *PlatformService) CreateConfigMap(instance *v1alpha1.Jenkins, name stri
 }
 
 // CreateConfigMapFromFileOrDir provides a mock function with given fields: instance, configMapName, configMapKey, path, ownerReference, customLabels
-func (_m *PlatformService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
+func (_m *PlatformService) CreateConfigMapFromFileOrDir(instance *jenkinsApi.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
 	_va := make([]interface{}, len(customLabels))
 	for _i := range customLabels {
 		_va[_i] = customLabels[_i]
@@ -76,7 +76,7 @@ func (_m *PlatformService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenki
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, *string, string, metav1.Object, ...map[string]string) error); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins, string, *string, string, metav1.Object, ...map[string]string) error); ok {
 		r0 = rf(*instance, configMapName, configMapKey, path, ownerReference, customLabels...)
 	} else {
 		r0 = ret.Error(0)
@@ -86,7 +86,7 @@ func (_m *PlatformService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenki
 }
 
 // CreateConfigMapWithUpdate provides a mock function with given fields: instance, name, data, labels
-func (_m *PlatformService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name string, data map[string]string, labels ...map[string]string) (bool, error) {
+func (_m *PlatformService) CreateConfigMapWithUpdate(instance *jenkinsApi.Jenkins, name string, data map[string]string, labels ...map[string]string) (bool, error) {
 	_va := make([]interface{}, len(labels))
 	for _i := range labels {
 		_va[_i] = labels[_i]
@@ -97,14 +97,14 @@ func (_m *PlatformService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins,
 	ret := _m.Called(_ca...)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, map[string]string, ...map[string]string) bool); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins, string, map[string]string, ...map[string]string) bool); ok {
 		r0 = rf(*instance, name, data, labels...)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(v1alpha1.Jenkins, string, map[string]string, ...map[string]string) error); ok {
+	if rf, ok := ret.Get(1).(func(jenkinsApi.Jenkins, string, map[string]string, ...map[string]string) error); ok {
 		r1 = rf(*instance, name, data, labels...)
 	} else {
 		r1 = ret.Error(1)
@@ -114,11 +114,11 @@ func (_m *PlatformService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins,
 }
 
 // CreateEDPComponentIfNotExist provides a mock function with given fields: instance, url, icon
-func (_m *PlatformService) CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error {
+func (_m *PlatformService) CreateEDPComponentIfNotExist(instance jenkinsApi.Jenkins, url string, icon string) error {
 	ret := _m.Called(instance, url, icon)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, string) error); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins, string, string) error); ok {
 		r0 = rf(instance, url, icon)
 	} else {
 		r0 = ret.Error(0)
@@ -128,15 +128,15 @@ func (_m *PlatformService) CreateEDPComponentIfNotExist(instance v1alpha1.Jenkin
 }
 
 // CreateJenkinsScript provides a mock function with given fields: namespace, configMap, forceExecute
-func (_m *PlatformService) CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*v1alpha1.JenkinsScript, error) {
+func (_m *PlatformService) CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*jenkinsApi.JenkinsScript, error) {
 	ret := _m.Called(namespace, configMap, forceExecute)
 
-	var r0 *v1alpha1.JenkinsScript
-	if rf, ok := ret.Get(0).(func(string, string, bool) *v1alpha1.JenkinsScript); ok {
+	var r0 *jenkinsApi.JenkinsScript
+	if rf, ok := ret.Get(0).(func(string, string, bool) *jenkinsApi.JenkinsScript); ok {
 		r0 = rf(namespace, configMap, forceExecute)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*v1alpha1.JenkinsScript)
+			r0 = ret.Get(0).(*jenkinsApi.JenkinsScript)
 		}
 	}
 
@@ -165,11 +165,11 @@ func (_m *PlatformService) CreateKeycloakClient(kc *v1v1alpha1.KeycloakClient) e
 }
 
 // CreateSecret provides a mock function with given fields: instance, name, data
-func (_m *PlatformService) CreateSecret(instance *v1alpha1.Jenkins, name string, data map[string][]byte) error {
+func (_m *PlatformService) CreateSecret(instance *jenkinsApi.Jenkins, name string, data map[string][]byte) error {
 	ret := _m.Called(instance, name)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins, string, map[string][]byte) error); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins, string, map[string][]byte) error); ok {
 		r0 = rf(*instance, name, data)
 	} else {
 		r0 = ret.Error(0)
@@ -302,18 +302,18 @@ func (_m *PlatformService) GetSecretData(namespace string, name string) (map[str
 }
 
 // IsDeploymentReady provides a mock function with given fields: instance
-func (_m *PlatformService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+func (_m *PlatformService) IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error) {
 	ret := _m.Called(instance)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(v1alpha1.Jenkins) bool); ok {
+	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins) bool); ok {
 		r0 = rf(instance)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(v1alpha1.Jenkins) error); ok {
+	if rf, ok := ret.Get(1).(func(jenkinsApi.Jenkins) error); ok {
 		r1 = rf(instance)
 	} else {
 		r1 = ret.Error(1)

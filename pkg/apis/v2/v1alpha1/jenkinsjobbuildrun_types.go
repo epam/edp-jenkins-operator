@@ -17,6 +17,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion
 type JenkinsJobBuildRun struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -35,7 +36,7 @@ type JenkinsJobBuildRunList struct {
 // +k8s:openapi-gen=true
 type JenkinsJobBuildRunSpec struct {
 	JobPath                       string            `json:"jobpath"`
-	Params                        map[string]string `json:"params"`
+	Params                        map[string]string `json:"params,omitempty"`
 	Retry                         int               `json:"retry"`
 	OwnerName                     *string           `json:"ownerName,omitempty"`
 	DeleteAfterCompletionInterval *string           `json:"deleteAfterCompletionInterval,omitempty"`
@@ -56,8 +57,8 @@ func (in *JenkinsJobBuildRun) GetDeleteAfterCompletionInterval() time.Duration {
 
 // +k8s:openapi-gen=true
 type JenkinsJobBuildRunStatus struct {
-	Status      string    `json:"status"`
-	Launches    int       `json:"launches"`
-	BuildNumber int64     `json:"buildNumber"`
-	LastUpdated time.Time `json:"lastUpdated"`
+	Status      string      `json:"status"`
+	Launches    int         `json:"launches"`
+	BuildNumber int64       `json:"buildNumber"`
+	LastUpdated metav1.Time `json:"lastUpdated"`
 }

@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -141,7 +141,7 @@ func (r ReconcileJenkinsServiceAccount) updateAvailableStatus(ctx context.Contex
 	log := r.log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
 	if instance.Status.Available != value {
 		instance.Status.Available = value
-		instance.Status.LastTimeUpdated = time.Now()
+		instance.Status.LastTimeUpdated = metav1.NewTime(time.Now())
 		err := r.client.Status().Update(ctx, instance)
 		if err != nil {
 			err := r.client.Update(ctx, instance)
@@ -158,7 +158,7 @@ func (r ReconcileJenkinsServiceAccount) updateCreatedStatus(ctx context.Context,
 	log := r.log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
 	if instance.Status.Created != value {
 		instance.Status.Created = value
-		instance.Status.LastTimeUpdated = time.Now()
+		instance.Status.LastTimeUpdated = metav1.NewTime(time.Now())
 		err := r.client.Status().Update(ctx, instance)
 		if err != nil {
 			err := r.client.Update(ctx, instance)

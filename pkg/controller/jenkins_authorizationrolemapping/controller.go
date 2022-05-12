@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -45,13 +45,13 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v2v1alpha1.JenkinsAuthorizationRoleMapping{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.JenkinsAuthorizationRoleMapping{}, builder.WithPredicates(p)).
 		Complete(r)
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*v2v1alpha1.JenkinsAuthorizationRoleMapping)
-	no := e.ObjectNew.(*v2v1alpha1.JenkinsAuthorizationRoleMapping)
+	oo := e.ObjectOld.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
+	no := e.ObjectNew.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
 
 	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
 		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
@@ -61,7 +61,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRoleMapping has been started")
 
-	var instance v2v1alpha1.JenkinsAuthorizationRoleMapping
+	var instance jenkinsApi.JenkinsAuthorizationRoleMapping
 	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.Info("instance not found")
@@ -94,7 +94,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	return
 }
 
-func (r *Reconcile) tryToReconcile(ctx context.Context, instance *v2v1alpha1.JenkinsAuthorizationRoleMapping,
+func (r *Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
 	jc jenkins.ClientInterface) error {
 
 	for _, rl := range instance.Spec.Roles {
@@ -117,7 +117,7 @@ func (r *Reconcile) tryToReconcile(ctx context.Context, instance *v2v1alpha1.Jen
 	return nil
 }
 
-func makeDeletionFunc(instance *v2v1alpha1.JenkinsAuthorizationRoleMapping,
+func makeDeletionFunc(instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
 	jc jenkins.ClientInterface) func() error {
 	return func() error {
 		for _, rl := range instance.Spec.Roles {

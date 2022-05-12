@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
@@ -97,7 +97,7 @@ func TestInitTriggerJobProvisionChain(t *testing.T) {
 }
 
 func Test_nextServeOrNil(t *testing.T) {
-	jj := &v1alpha1.JenkinsJob{}
+	jj := &jenkinsApi.JenkinsJob{}
 	jj.Name = "name"
 	err := nextServeOrNil(nil, jj)
 	assert.NoError(t, err)

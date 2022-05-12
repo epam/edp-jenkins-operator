@@ -20,7 +20,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApiV1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	jenkinsApiV1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins"
@@ -62,7 +63,9 @@ const (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(jenkinsApi.AddToScheme(scheme))
+	utilruntime.Must(jenkinsApiV1alpha1.AddToScheme(scheme))
+
+	utilruntime.Must(jenkinsApiV1.AddToScheme(scheme))
 
 	utilruntime.Must(cdPipeApi.AddToScheme(scheme))
 

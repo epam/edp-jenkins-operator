@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,9 +24,9 @@ type JenkinsScriptStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool      `json:"available,omitempty"`
-	Executed        bool      `json:"executed,omitempty"`
-	LastTimeUpdated time.Time `json:"lastTimeUpdated,omitempty"`
+	Available       bool        `json:"available,omitempty"`
+	Executed        bool        `json:"executed,omitempty"`
+	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -36,6 +34,7 @@ type JenkinsScriptStatus struct {
 // JenkinsScript is the Schema for the jenkinsscripts API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion
 type JenkinsScript struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -18,7 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins"
 	jenkinsService "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -54,13 +53,13 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.JenkinsSharedLibrary{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.JenkinsSharedLibrary{}, builder.WithPredicates(p)).
 		Complete(r)
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*v1alpha1.JenkinsSharedLibrary)
-	no := e.ObjectNew.(*v1alpha1.JenkinsSharedLibrary)
+	oo := e.ObjectOld.(*jenkinsApi.JenkinsSharedLibrary)
+	no := e.ObjectNew.(*jenkinsApi.JenkinsSharedLibrary)
 
 	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
 		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
@@ -71,7 +70,7 @@ func (r Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (re
 	reqLogger.V(2).Info("Reconciling JenkinsSharedLibrary has been started")
 
 	var (
-		instance v1alpha1.JenkinsSharedLibrary
+		instance jenkinsApi.JenkinsSharedLibrary
 		result   reconcile.Result
 	)
 	if err := r.client.Get(ctx, request.NamespacedName, &instance); err != nil {
@@ -99,7 +98,7 @@ func (r Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (re
 	return result, nil
 }
 
-func (r Reconcile) tryToReconcile(ctx context.Context, instance *v1alpha1.JenkinsSharedLibrary) error {
+func (r Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.JenkinsSharedLibrary) error {
 	if instance.Status.Value == helper.StatusSuccess && instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		return nil
 	}
@@ -142,10 +141,10 @@ func (r Reconcile) tryToReconcile(ctx context.Context, instance *v1alpha1.Jenkin
 }
 
 func (r Reconcile) prepareSharedLibraries(ctx context.Context,
-	instance *v1alpha1.JenkinsSharedLibrary,
-	rootLibraries []v1alpha1.JenkinsSharedLibraries) ([]v1alpha1.JenkinsSharedLibraries, error) {
+	instance *jenkinsApi.JenkinsSharedLibrary,
+	rootLibraries []jenkinsApi.JenkinsSharedLibraries) ([]jenkinsApi.JenkinsSharedLibraries, error) {
 
-	var libList v1alpha1.JenkinsSharedLibraryList
+	var libList jenkinsApi.JenkinsSharedLibraryList
 
 	if err := r.client.List(ctx, &libList, &client.ListOptions{Namespace: instance.Namespace}); err != nil {
 		return nil, errors.Wrap(err, "unable to list jenkins shared libraries")
@@ -161,7 +160,7 @@ func (r Reconcile) prepareSharedLibraries(ctx context.Context,
 		}
 
 		if libOwnerName == instanceOwnerName && lib.Name != instance.Name {
-			rootLibraries = append(rootLibraries, v1alpha1.JenkinsSharedLibraries{
+			rootLibraries = append(rootLibraries, jenkinsApi.JenkinsSharedLibraries{
 				Name:         lib.Spec.Name,
 				CredentialID: &lib.Spec.CredentialID,
 				Tag:          lib.Spec.Tag,
@@ -171,7 +170,7 @@ func (r Reconcile) prepareSharedLibraries(ctx context.Context,
 	}
 
 	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
-		rootLibraries = append(rootLibraries, v1alpha1.JenkinsSharedLibraries{
+		rootLibraries = append(rootLibraries, jenkinsApi.JenkinsSharedLibraries{
 			Name:         instance.Spec.Name,
 			CredentialID: &instance.Spec.CredentialID,
 			Tag:          instance.Spec.Tag,
@@ -182,8 +181,8 @@ func (r Reconcile) prepareSharedLibraries(ctx context.Context,
 	return rootLibraries, nil
 }
 
-func (r Reconcile) createLibrariesScript(rootJenkins *v1alpha1.Jenkins,
-	sharedLibraries []v1alpha1.JenkinsSharedLibraries) error {
+func (r Reconcile) createLibrariesScript(rootJenkins *jenkinsApi.Jenkins,
+	sharedLibraries []jenkinsApi.JenkinsSharedLibraries) error {
 	buffer, err := platformHelper.ParseTemplate(
 		platformHelper.JenkinsScriptData{JenkinsSharedLibraries: sharedLibraries},
 		path.Join(r.templatesPath, jenkinsService.SharedLibrariesTemplateName),

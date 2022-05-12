@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -48,13 +49,13 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v2v1alpha1.JenkinsJobBuildRun{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.JenkinsJobBuildRun{}, builder.WithPredicates(p)).
 		Complete(r)
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*v2v1alpha1.JenkinsJobBuildRun)
-	no := e.ObjectNew.(*v2v1alpha1.JenkinsJobBuildRun)
+	oo := e.ObjectOld.(*jenkinsApi.JenkinsJobBuildRun)
+	no := e.ObjectNew.(*jenkinsApi.JenkinsJobBuildRun)
 
 	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
 		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
@@ -64,7 +65,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.V(2).Info("Reconciling JenkinsJobBuildRun has been started")
 
-	var instance v2v1alpha1.JenkinsJobBuildRun
+	var instance jenkinsApi.JenkinsJobBuildRun
 	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.Info("instance not found")
@@ -74,7 +75,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 		return reconcile.Result{}, errors.Wrap(err, "unable to get JenkinsJobBuildRun instance")
 	}
 
-	if instance.Status.Status == v2v1alpha1.JobBuildRunStatusCompleted {
+	if instance.Status.Status == jenkinsApi.JobBuildRunStatusCompleted {
 		reqLogger.V(2).Info("Reconciling JenkinsJobBuildRun has been finished, job already completed")
 		resError = r.deleteExpiredBuilds(&instance)
 		return
@@ -92,7 +93,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 	result.RequeueAfter = requeue
-	instance.Status.LastUpdated = time.Now()
+	instance.Status.LastUpdated = metav1.NewTime(time.Now())
 
 	if err := r.client.Status().Update(context.Background(), &instance); err != nil {
 		r.log.Error(err, "unable to update status", "instance", instance)
@@ -102,13 +103,13 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	return
 }
 
-func tryToReconcile(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientInterface) (time.Duration, error) {
+func tryToReconcile(instance *jenkinsApi.JenkinsJobBuildRun, jc jenkins.ClientInterface) (time.Duration, error) {
 	//check if job exists
 	job, err := jc.GetJobByName(instance.Spec.JobPath)
 	if err != nil {
 		if helper.JenkinsIsNotFoundErr(err) {
 			//job is not found, returning error and setting not found status for CR
-			instance.Status.Status = v2v1alpha1.JobBuildRunStatusNotFound
+			instance.Status.Status = jenkinsApi.JobBuildRunStatusNotFound
 			return 0, nil
 		}
 		//unknown error
@@ -129,13 +130,13 @@ func tryToReconcile(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientIn
 	return interval, nil
 }
 
-func checkLastBuild(job *gojenkins.Job, instance *v2v1alpha1.JenkinsJobBuildRun,
+func checkLastBuild(job *gojenkins.Job, instance *jenkinsApi.JenkinsJobBuildRun,
 	jc jenkins.ClientInterface) (time.Duration, error) {
 	build, err := jc.GetLastBuild(job)
 	if err != nil {
 		//job does not have any builds so we can trigger new one
 		if helper.JenkinsIsNotFoundErr(err) {
-			return retryInterval, triggerNewBuild(instance, jc, v2v1alpha1.JobBuildRunStatusCreated)
+			return retryInterval, triggerNewBuild(instance, jc, jenkinsApi.JobBuildRunStatusCreated)
 		}
 		//unknown error
 		return 0, errors.Wrap(err, "unable to get last build")
@@ -147,24 +148,24 @@ func checkLastBuild(job *gojenkins.Job, instance *v2v1alpha1.JenkinsJobBuildRun,
 	//if job has latest build we must check if it was created by this controller
 	if build.GetBuildNumber() == instance.Status.BuildNumber { //build created by this controller
 		if build.GetResult() == gojenkins.STATUS_SUCCESS { //build finished with success, so we can set Completed status to CR and exit
-			instance.Status.Status = v2v1alpha1.JobBuildRunStatusCompleted
+			instance.Status.Status = jenkinsApi.JobBuildRunStatusCompleted
 			return instance.GetDeleteAfterCompletionInterval(), nil
 		}
 		//build was not finished with success so we must check how many time we already started it
 		if instance.Spec.Retry > instance.Status.Launches { //launches is less than amount of specified retries
-			return retryInterval, triggerNewBuild(instance, jc, v2v1alpha1.JobBuildRunStatusRetrying)
+			return retryInterval, triggerNewBuild(instance, jc, jenkinsApi.JobBuildRunStatusRetrying)
 		}
 
 		//we reach amount of specified retries so job is failed, exit
-		instance.Status.Status = v2v1alpha1.JobBuildRunStatusFailed
+		instance.Status.Status = jenkinsApi.JobBuildRunStatusFailed
 		return 0, nil
 	}
 
 	//latest job was not created by this controller so we can trigger a new one
-	return retryInterval, triggerNewBuild(instance, jc, v2v1alpha1.JobBuildRunStatusCreated)
+	return retryInterval, triggerNewBuild(instance, jc, jenkinsApi.JobBuildRunStatusCreated)
 }
 
-func triggerNewBuild(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientInterface,
+func triggerNewBuild(instance *jenkinsApi.JenkinsJobBuildRun, jc jenkins.ClientInterface,
 	status string) error {
 	buildNumber, err := jc.BuildJob(instance.Spec.JobPath, instance.Spec.Params)
 	if err != nil {
@@ -177,7 +178,7 @@ func triggerNewBuild(instance *v2v1alpha1.JenkinsJobBuildRun, jc jenkins.ClientI
 	return nil
 }
 
-func (r *Reconcile) deleteExpiredBuilds(instance *v2v1alpha1.JenkinsJobBuildRun) error {
+func (r *Reconcile) deleteExpiredBuilds(instance *jenkinsApi.JenkinsJobBuildRun) error {
 	if time.Now().After(
 		instance.Status.LastUpdated.Add(instance.GetDeleteAfterCompletionInterval())) {
 		if err := r.client.Delete(context.Background(), instance); err != nil {

@@ -11,10 +11,11 @@ import (
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	jobhandler "github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_job/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -29,25 +30,25 @@ type PutJenkinsPipeline struct {
 	log    logr.Logger
 }
 
-func (h PutJenkinsPipeline) ServeRequest(jj *v1alpha1.JenkinsJob) error {
+func (h PutJenkinsPipeline) ServeRequest(jj *jenkinsApi.JenkinsJob) error {
 	h.log.Info("start creating Jenkins CD Pipeline")
-	if err := h.setStatus(jj, consts.StatusInProgress, v1alpha1.CreateJenkinsPipeline, nil); err != nil {
+	if err := h.setStatus(jj, consts.StatusInProgress, jenkinsApi.CreateJenkinsPipeline, nil); err != nil {
 		return errors.Wrap(err, "set status err")
 	}
 	if err := h.tryToCreateJob(jj); err != nil {
-		if err := h.setStatus(jj, consts.StatusFailed, v1alpha1.CreateJenkinsPipeline, &err); err != nil {
+		if err := h.setStatus(jj, consts.StatusFailed, jenkinsApi.CreateJenkinsPipeline, &err); err != nil {
 			return err
 		}
 		return err
 	}
-	if err := h.setStatus(jj, consts.StatusFinished, v1alpha1.CreateJenkinsPipeline, nil); err != nil {
+	if err := h.setStatus(jj, consts.StatusFinished, jenkinsApi.CreateJenkinsPipeline, nil); err != nil {
 		return err
 	}
 	h.log.Info("end creating Jenkins CD Pipeline")
 	return nextServeOrNil(h.next, jj)
 }
 
-func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
+func (h PutJenkinsPipeline) tryToCreateJob(jj *jenkinsApi.JenkinsJob) error {
 	jc, err := h.initGoJenkinsClient(jj)
 	if err != nil {
 		return err
@@ -76,7 +77,7 @@ func (h PutJenkinsPipeline) tryToCreateJob(jj *v1alpha1.JenkinsJob) error {
 	return nil
 }
 
-func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *string, jj *v1alpha1.JenkinsJob) error {
+func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *string, jj *jenkinsApi.JenkinsJob) error {
 	if jj.Spec.JenkinsFolder != nil && *jj.Spec.JenkinsFolder != "" {
 		pfn := fmt.Sprintf("%v-%v", *jj.Spec.JenkinsFolder, "cd-pipeline")
 		_, err := jc.GoJenkins.CreateJobInFolder(*conf, jj.Spec.Job.Name, pfn)
@@ -94,7 +95,7 @@ func (h PutJenkinsPipeline) createJob(jc *jenkinsClient.JenkinsClient, conf *str
 	return nil
 }
 
-func (h PutJenkinsPipeline) initGoJenkinsClient(jj *v1alpha1.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {
+func (h PutJenkinsPipeline) initGoJenkinsClient(jj *jenkinsApi.JenkinsJob) (*jenkinsClient.JenkinsClient, error) {
 	j, err := plutil.GetJenkinsInstanceOwner(h.client, jj.Name, jj.Namespace, jj.Spec.OwnerName, jj.GetOwnerReferences())
 	if err != nil {
 		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins job %v", jj.Name)
@@ -186,11 +187,11 @@ func getPathToRepository(strategy, name string, url *string) string {
 	return "/" + name
 }
 
-func (h PutJenkinsPipeline) setStatus(jj *v1alpha1.JenkinsJob, status string, action v1alpha1.ActionType, err *error) error {
-	jj.Status = v1alpha1.JenkinsJobStatus{
+func (h PutJenkinsPipeline) setStatus(jj *jenkinsApi.JenkinsJob, status string, action jenkinsApi.ActionType, err *error) error {
+	jj.Status = jenkinsApi.JenkinsJobStatus{
 		Status:          status,
 		Available:       status == consts.StatusFinished,
-		LastTimeUpdated: time.Now(),
+		LastTimeUpdated: metav1.NewTime(time.Now()),
 		Action:          action,
 		Result:          getResult(status),
 		Username:        "system",
@@ -205,11 +206,11 @@ func (h PutJenkinsPipeline) setStatus(jj *v1alpha1.JenkinsJob, status string, ac
 	return updateStatus(h.client, jj)
 }
 
-func getResult(status string) v1alpha1.Result {
+func getResult(status string) jenkinsApi.Result {
 	if status == consts.StatusFinished {
-		return v1alpha1.Success
+		return jenkinsApi.Success
 	} else if status == consts.StatusFailed {
-		return v1alpha1.Error
+		return jenkinsApi.Error
 	}
 	return "success"
 }
@@ -223,7 +224,7 @@ func getValue(status string) string {
 	return "inactive"
 }
 
-func updateStatus(c client.Client, jj *v1alpha1.JenkinsJob) error {
+func updateStatus(c client.Client, jj *jenkinsApi.JenkinsJob) error {
 	if err := c.Status().Update(context.TODO(), jj); err != nil {
 		if err := c.Update(context.TODO(), jj); err != nil {
 			return errors.Wrap(err, "couldn't update jenkins job status")

@@ -16,13 +16,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
-func getTestJenkinsAuthorizationRoleMapping() *v1alpha1.JenkinsAuthorizationRoleMapping {
-	return &v1alpha1.JenkinsAuthorizationRoleMapping{
+func getTestJenkinsAuthorizationRoleMapping() *jenkinsApi.JenkinsAuthorizationRoleMapping {
+	return &jenkinsApi.JenkinsAuthorizationRoleMapping{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
 			Namespace: "nss",
@@ -31,7 +31,7 @@ func getTestJenkinsAuthorizationRoleMapping() *v1alpha1.JenkinsAuthorizationRole
 			Kind:       "JenkinsAuthorizationRoleMapping",
 			APIVersion: "apps/v1",
 		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleMappingSpec{
+		Spec: jenkinsApi.JenkinsAuthorizationRoleMappingSpec{
 			RoleType: "rt",
 			Group:    "mke@test.com",
 			Roles:    []string{"tolr1", "tooo2"},
@@ -100,7 +100,7 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkInstance v1alpha1.JenkinsAuthorizationRoleMapping
+	var checkInstance jenkinsApi.JenkinsAuthorizationRoleMapping
 	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
 		&checkInstance); err != nil {
 		t.Fatal(err)
@@ -143,7 +143,7 @@ func TestReconcile_Reconcile_Delete_Failure_UnsetRoles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkInstance v1alpha1.JenkinsAuthorizationRoleMapping
+	var checkInstance jenkinsApi.JenkinsAuthorizationRoleMapping
 	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
 		&checkInstance); err != nil {
 		t.Fatal(err)

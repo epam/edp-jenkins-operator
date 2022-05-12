@@ -14,7 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 const (
@@ -39,7 +39,7 @@ func CreateMockResty() *resty.Client {
 
 func TestInitJenkinsClient_GetExternalEndpointErr(t *testing.T) {
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{
+	instance := &jenkinsApi.Jenkins{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -54,7 +54,7 @@ func TestInitJenkinsClient_GetExternalEndpointErr(t *testing.T) {
 
 func TestInitJenkinsClient_EmptySecretName(t *testing.T) {
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{
+	instance := &jenkinsApi.Jenkins{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -69,7 +69,7 @@ func TestInitJenkinsClient_EmptySecretName(t *testing.T) {
 
 func TestInitJenkinsClient_GetSecretDataErr(t *testing.T) {
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{
+	instance := &jenkinsApi.Jenkins{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -200,7 +200,7 @@ func TestJenkinsClient_GetSlavesErr(t *testing.T) {
 
 func TestJenkinsClient_CreateUser_GetCrumbErr(t *testing.T) {
 	restyClient := CreateMockResty()
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	jc := JenkinsClient{
 		resty: restyClient,
 	}
@@ -211,7 +211,7 @@ func TestJenkinsClient_CreateUser_GetCrumbErr(t *testing.T) {
 func TestJenkinsClient_CreateUser_GetSecretDataErr(t *testing.T) {
 	restyClient := CreateMockResty()
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	instance.Namespace = namespace
 	instance.Spec.Credentials = name
 	errTest := errors.New("test")
@@ -234,7 +234,7 @@ func TestJenkinsClient_CreateUser_NewJenkinsUserErr(t *testing.T) {
 
 	restyClient := CreateMockResty()
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	instance.Namespace = namespace
 	instance.Spec.Credentials = name
 
@@ -253,7 +253,7 @@ func TestJenkinsClient_CreateUser_PostErr(t *testing.T) {
 
 	restyClient := CreateMockResty()
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	instance.Namespace = namespace
 	instance.Spec.Credentials = name
 	instance.Spec.Type = "ssh"
@@ -274,7 +274,7 @@ func TestJenkinsClient_CreateUser_WrongStatusCode(t *testing.T) {
 
 	restyClient := CreateMockResty()
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	instance.Namespace = namespace
 	instance.Spec.Credentials = name
 	instance.Spec.Type = "ssh"
@@ -299,7 +299,7 @@ func TestJenkinsClient_CreateUser(t *testing.T) {
 
 	restyClient := CreateMockResty()
 	platformService := pmock.PlatformService{}
-	instance := &v1alpha1.JenkinsServiceAccount{}
+	instance := &jenkinsApi.JenkinsServiceAccount{}
 	instance.Namespace = namespace
 	instance.Spec.Credentials = name
 	instance.Spec.Type = "ssh"
@@ -602,13 +602,13 @@ func TestInitGoJenkinsClient(t *testing.T) {
 	httpmock.RegisterResponder(http.MethodGet, "http://hostpath/api/json",
 		httpmock.NewStringResponder(http.StatusOK, ""))
 
-	ji := v1alpha1.Jenkins{
+	ji := jenkinsApi.Jenkins{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "ns1",
 			Name:      "name1",
 		},
-		Spec: v1alpha1.JenkinsSpec{},
-		Status: v1alpha1.JenkinsStatus{
+		Spec: jenkinsApi.JenkinsSpec{},
+		Status: jenkinsApi.JenkinsStatus{
 			AdminSecretName: "admin-secret",
 		},
 	}
@@ -625,13 +625,13 @@ func TestInitGoJenkinsClient(t *testing.T) {
 }
 
 func TestInitJenkinsClient(t *testing.T) {
-	ji := v1alpha1.Jenkins{
+	ji := jenkinsApi.Jenkins{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "ns1",
 			Name:      "name1",
 		},
-		Spec: v1alpha1.JenkinsSpec{},
-		Status: v1alpha1.JenkinsStatus{
+		Spec: jenkinsApi.JenkinsSpec{},
+		Status: jenkinsApi.JenkinsStatus{
 			AdminSecretName: "admin-secret",
 		},
 	}

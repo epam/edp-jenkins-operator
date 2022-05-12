@@ -1,11 +1,12 @@
 package chain
 
 import (
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/handler"
-	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/handler"
+	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
 func CreateDefChain(client client.Client, service ps.PlatformService) handler.CDStageJenkinsDeploymentHandler {

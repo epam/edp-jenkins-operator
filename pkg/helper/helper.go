@@ -2,9 +2,10 @@ package helper
 
 import (
 	"fmt"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	"os"
 	"path/filepath"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 )
 
 func GetExecutableFilePath() (string, error) {

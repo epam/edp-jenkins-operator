@@ -5,7 +5,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain/handler"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -46,7 +46,7 @@ func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c client.Client) (handl
 	}, nil
 }
 
-func nextServeOrNil(next handler.JenkinsFolderHandler, jf *v1alpha1.JenkinsFolder) error {
+func nextServeOrNil(next handler.JenkinsFolderHandler, jf *jenkinsApi.JenkinsFolder) error {
 	if next != nil {
 		return next.ServeRequest(jf)
 	}

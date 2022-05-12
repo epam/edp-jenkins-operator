@@ -18,9 +18,10 @@ type CDStageJenkinsDeploymentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Job  string `json:"job"`
-	Tag  Tag    `json:"tag"`
-	Tags []Tag  `json:"tags"`
+	Job string `json:"job,omitempty"`
+	Tag Tag    `json:"tag,omitempty"`
+	// +nullable
+	Tags []Tag `json:"tags,omitempty"`
 }
 
 type Tag struct {
@@ -34,12 +35,13 @@ type CDStageJenkinsDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Status       string `json:"status"`
-	Message      string `json:"message"`
-	FailureCount int64  `json:"failureCount"`
+	Status       string `json:"status,omitempty"`
+	Message      string `json:"message,omitempty"`
+	FailureCount int64  `json:"failureCount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:deprecatedversion
 
 // CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API
 // +k8s:openapi-gen=true

@@ -8,7 +8,7 @@ type JenkinsAuthorizationRoleSpec struct {
 	RoleType    string   `json:"roleType"`
 	Permissions []string `json:"permissions"`
 	Pattern     string   `json:"pattern"`
-	OwnerName   *string  `json:"ownerName"`
+	OwnerName   *string  `json:"ownerName,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -19,6 +19,7 @@ type JenkinsAuthorizationRoleStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion
 type JenkinsAuthorizationRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

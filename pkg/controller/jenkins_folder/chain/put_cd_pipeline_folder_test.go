@@ -19,7 +19,7 @@ import (
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 const (
@@ -42,7 +42,7 @@ func ObjectMeta() v1.ObjectMeta {
 }
 
 func TestPutCDPipelineJenkinsFolder_ServeRequest_tryToSetCDPipelineOwnerRefErr(t *testing.T) {
-	jenkinsFolder := &v1alpha1.JenkinsFolder{}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{}
 
 	scheme := runtime.NewScheme()
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
@@ -62,19 +62,19 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_tryToSetCDPipelineOwnerRefErr(t
 }
 
 func TestPutCDPipelineJenkinsFolder_ServeRequest_initGoJenkinsClientErr(t *testing.T) {
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta()}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta()}
 	cd := &cdPipeApi.CDPipeline{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
 	mockClient := mocks.Client{}
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &v1alpha1.JenkinsFolder{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{})
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd).Build()
 	platform := pmock.PlatformService{}
 
 	mockClient.On("Get", nsn(), &cdPipeApi.CDPipeline{}).Return(client)
 	mockClient.On("Update").Return(nil)
-	mockClient.On("List", &v1alpha1.JenkinsList{}).Return(errors.New(""))
+	mockClient.On("List", &jenkinsApi.JenkinsList{}).Return(errors.New(""))
 
 	p := PutCDPipelineJenkinsFolder{
 		scheme: scheme,
@@ -97,9 +97,9 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_setStatusErr(t *testing.T) {
 		"username": {'a'},
 		"password": {'k'},
 	}
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta()}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta()}
 	cd := &cdPipeApi.CDPipeline{ObjectMeta: ObjectMeta()}
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	jenkins.Status.AdminSecretName = name
 
 	errTest := errors.New("test")
@@ -107,15 +107,15 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_setStatusErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	mockClient := mocks.Client{}
 	statusWriter := &mocks.StatusWriter{}
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &v1alpha1.JenkinsFolder{}, &v1alpha1.Jenkins{}, &v1alpha1.JenkinsList{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsList{})
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd, jenkins).Build()
 	platform := pmock.PlatformService{}
 
 	mockClient.On("Get", nsn(), &cdPipeApi.CDPipeline{}).Return(client)
 	mockClient.On("Update").Return(nil).Once()
-	mockClient.On("List", &v1alpha1.JenkinsList{}).Return(client)
-	mockClient.On("Get", nsn(), &v1alpha1.Jenkins{}).Return(client)
+	mockClient.On("List", &jenkinsApi.JenkinsList{}).Return(client)
+	mockClient.On("Get", nsn(), &jenkinsApi.Jenkins{}).Return(client)
 	platform.On("GetExternalEndpoint", namespace, name).Return("", URLScheme, "", nil)
 	platform.On("GetSecretData", namespace, name).Return(secretData, nil)
 	mockClient.On("Status").Return(statusWriter)
@@ -150,10 +150,10 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest(t *testing.T) {
 		"username": {'a'},
 		"password": {'k'},
 	}
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta()}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta()}
 	cd := &cdPipeApi.CDPipeline{ObjectMeta: ObjectMeta()}
 
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	jenkins.Status.AdminSecretName = name
 
 	errTest := errors.New("test")
@@ -161,15 +161,15 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest(t *testing.T) {
 	scheme := runtime.NewScheme()
 	mockClient := mocks.Client{}
 	statusWriter := &mocks.StatusWriter{}
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &v1alpha1.JenkinsFolder{}, &v1alpha1.Jenkins{}, &v1alpha1.JenkinsList{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsList{})
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd, jenkins).Build()
 	platform := pmock.PlatformService{}
 
 	mockClient.On("Get", nsn(), &cdPipeApi.CDPipeline{}).Return(client)
 	mockClient.On("Update").Return(nil)
-	mockClient.On("List", &v1alpha1.JenkinsList{}).Return(client)
-	mockClient.On("Get", nsn(), &v1alpha1.Jenkins{}).Return(client)
+	mockClient.On("List", &jenkinsApi.JenkinsList{}).Return(client)
+	mockClient.On("Get", nsn(), &jenkinsApi.Jenkins{}).Return(client)
 	platform.On("GetExternalEndpoint", namespace, name).Return("a", URLScheme, "b", nil)
 	platform.On("GetSecretData", namespace, name).Return(secretData, nil)
 	mockClient.On("Status").Return(statusWriter)

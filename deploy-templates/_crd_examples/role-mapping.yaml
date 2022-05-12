@@ -1,4 +1,4 @@
-apiVersion: v2.edp.epam.com/v1alpha1
+apiVersion: v2.edp.epam.com/v1
 kind: JenkinsAuthorizationRoleMapping
 metadata:
   name: map-mk1
@@ -7,3 +7,4 @@ spec:
   roles:
     - mk1-role
   group: user1@example.com
+  ownerName: "owner"

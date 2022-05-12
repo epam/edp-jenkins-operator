@@ -1,9 +1,10 @@
-apiVersion: v2.edp.epam.com/v1alpha1
+apiVersion: v2.edp.epam.com/v1
 kind: JenkinsAuthorizationRole
 metadata:
   name: mk1-role
 spec:
   name: mk1-role
+  ownerName: "owner"
   roleType: "projectRoles"
   pattern: ".*"
   permissions:

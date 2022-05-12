@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 func TestMakeClientBuilder(t *testing.T) {
@@ -39,7 +39,7 @@ func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
 	var (
 		k8sClient = fake.NewClientBuilder().Build()
 		ps        pmock.PlatformService
-		jar       v1alpha1.JenkinsAuthorizationRole
+		jar       jenkinsApi.JenkinsAuthorizationRole
 		cb        = MakeClientBuilder(&ps, k8sClient)
 	)
 
@@ -56,21 +56,21 @@ func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
 func TestClientBuilder_MakeNewClient(t *testing.T) {
 	var (
 		ps  pmock.PlatformService
-		jar v1alpha1.JenkinsAuthorizationRole
-		ji  = v1alpha1.Jenkins{
+		jar jenkinsApi.JenkinsAuthorizationRole
+		ji  = jenkinsApi.Jenkins{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "ns1",
 				Name:      "name1",
 			},
-			Spec: v1alpha1.JenkinsSpec{},
-			Status: v1alpha1.JenkinsStatus{
+			Spec: jenkinsApi.JenkinsSpec{},
+			Status: jenkinsApi.JenkinsStatus{
 				AdminSecretName: "admin-secret",
 			},
 		}
 	)
 
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 	utilruntime.Must(corev1.AddToScheme(s))
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&ji, &jar).Build()
@@ -94,21 +94,21 @@ func TestClientBuilder_MakeNewClient(t *testing.T) {
 func TestClientBuilder_MakeNewClient_FailureGetExternalEndpoint(t *testing.T) {
 	var (
 		ps  pmock.PlatformService
-		jar v1alpha1.JenkinsAuthorizationRole
-		ji  = v1alpha1.Jenkins{
+		jar jenkinsApi.JenkinsAuthorizationRole
+		ji  = jenkinsApi.Jenkins{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "ns1",
 				Name:      "name1",
 			},
-			Spec: v1alpha1.JenkinsSpec{},
-			Status: v1alpha1.JenkinsStatus{
+			Spec: jenkinsApi.JenkinsSpec{},
+			Status: jenkinsApi.JenkinsStatus{
 				AdminSecretName: "admin-secret",
 			},
 		}
 	)
 
 	s := scheme.Scheme
-	utilruntime.Must(v1alpha1.AddToScheme(s))
+	utilruntime.Must(jenkinsApi.AddToScheme(s))
 	utilruntime.Must(corev1.AddToScheme(s))
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(&ji, &jar).Build()

@@ -5,9 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	v2v1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
@@ -19,6 +16,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 )
 
 const finalizerName = "jenkinsagent.jenkins.finalizer.name"
@@ -41,13 +42,13 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v2v1alpha1.JenkinsAgent{}, builder.WithPredicates(p)).
+		For(&jenkinsApi.JenkinsAgent{}, builder.WithPredicates(p)).
 		Complete(r)
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*v2v1alpha1.JenkinsAgent)
-	no := e.ObjectNew.(*v2v1alpha1.JenkinsAgent)
+	oo := e.ObjectOld.(*jenkinsApi.JenkinsAgent)
+	no := e.ObjectNew.(*jenkinsApi.JenkinsAgent)
 
 	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
 		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
@@ -57,7 +58,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.V(2).Info("Reconciling JenkinsAgent has been started")
 
-	var instance v2v1alpha1.JenkinsAgent
+	var instance jenkinsApi.JenkinsAgent
 	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.V(2).Info("JenkinsAgent is not found")
@@ -84,7 +85,7 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	return
 }
 
-func (r *Reconcile) tryToReconcile(ctx context.Context, instance *v2v1alpha1.JenkinsAgent) error {
+func (r *Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.JenkinsAgent) error {
 	var slavesCm v1.ConfigMap
 	if err := r.client.Get(ctx,
 		types.NamespacedName{Namespace: instance.Namespace, Name: jenkins.SlavesTemplateName}, &slavesCm); err != nil {
@@ -111,7 +112,7 @@ func (r *Reconcile) tryToReconcile(ctx context.Context, instance *v2v1alpha1.Jen
 	return nil
 }
 
-func makeDeletionFunc(ctx context.Context, k8sClient client.Client, instance *v2v1alpha1.JenkinsAgent) func() error {
+func makeDeletionFunc(ctx context.Context, k8sClient client.Client, instance *jenkinsApi.JenkinsAgent) func() error {
 	return func() error {
 		var slavesCm v1.ConfigMap
 		if err := k8sClient.Get(ctx,

@@ -14,13 +14,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr(t *testing.T) {
 	client := fake.NewClientBuilder().Build()
 	platform := pmock.PlatformService{}
-	jenkinsJob := &v1alpha1.JenkinsJob{}
+	jenkinsJob := &jenkinsApi.JenkinsJob{}
 	logger := common.Logger{}
 
 	trigger := TriggerJobProvision{
@@ -35,10 +35,10 @@ func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr(t *testing.T) {
 }
 
 func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr2(t *testing.T) {
-	jenkinsJob := &v1alpha1.JenkinsJob{ObjectMeta: ObjectMeta()}
+	jenkinsJob := &jenkinsApi.JenkinsJob{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsJob{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkinsJob).Build()
 	platform := pmock.PlatformService{}
 	logger := common.Logger{}
@@ -68,23 +68,23 @@ func TestTriggerJobProvision_ServeRequest(t *testing.T) {
 	raw, err := json.Marshal(data)
 	assert.NoError(t, err)
 
-	jenkinsJob := &v1alpha1.JenkinsJob{
+	jenkinsJob := &jenkinsApi.JenkinsJob{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            name,
 			Namespace:       namespace,
 			OwnerReferences: []v1.OwnerReference{ownerReference},
 		},
-		Spec: v1alpha1.JenkinsJobSpec{
-			Job: v1alpha1.Job{
+		Spec: jenkinsApi.JenkinsJobSpec{
+			Job: jenkinsApi.Job{
 				Config: string(raw),
 			},
 		},
 	}
 
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsJob{}, &v1alpha1.Jenkins{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &jenkinsApi.Jenkins{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkinsJob, jenkins).Build()
 	platform := pmock.PlatformService{}
 	logger := common.Logger{}

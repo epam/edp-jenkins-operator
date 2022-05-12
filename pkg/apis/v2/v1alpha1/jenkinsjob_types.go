@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -47,15 +45,15 @@ type JenkinsJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available                      bool       `json:"available,omitempty"`
-	LastTimeUpdated                time.Time  `json:"lastTimeUpdated,omitempty"`
-	Status                         string     `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64      `json:"jenkinsJobProvisionBuildNumber"`
-	Username                       string     `json:"username"`
-	Action                         ActionType `json:"action"`
-	Result                         Result     `json:"result"`
-	DetailedMessage                string     `json:"detailedMessage"`
-	Value                          string     `json:"value"`
+	Available                      bool        `json:"available,omitempty"`
+	LastTimeUpdated                metav1.Time `json:"lastTimeUpdated,omitempty"`
+	Status                         string      `json:"status,omitempty"`
+	JenkinsJobProvisionBuildNumber int64       `json:"jenkinsJobProvisionBuildNumber"`
+	Username                       string      `json:"username"`
+	Action                         ActionType  `json:"action"`
+	Result                         Result      `json:"result"`
+	DetailedMessage                string      `json:"detailedMessage"`
+	Value                          string      `json:"value"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -63,6 +61,7 @@ type JenkinsJobStatus struct {
 // JenkinsFolder is the Schema for the jenkins API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion
 type JenkinsJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

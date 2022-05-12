@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -17,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
@@ -188,7 +189,7 @@ func (r *ReconcileJenkins) updateStatus(ctx context.Context, instance *jenkinsAp
 	log := r.log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
 	currentStatus := instance.Status.Status
 	instance.Status.Status = newStatus
-	instance.Status.LastTimeUpdated = time.Now()
+	instance.Status.LastTimeUpdated = metav1.NewTime(time.Now())
 	err := r.client.Status().Update(ctx, instance)
 	if err != nil {
 		err := r.client.Update(ctx, instance)
@@ -204,7 +205,7 @@ func (r ReconcileJenkins) updateAvailableStatus(ctx context.Context, instance *j
 	log := r.log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
 	if instance.Status.Available != value {
 		instance.Status.Available = value
-		instance.Status.LastTimeUpdated = time.Now()
+		instance.Status.LastTimeUpdated = metav1.NewTime(time.Now())
 		err := r.client.Status().Update(ctx, instance)
 		if err != nil {
 			err := r.client.Update(ctx, instance)
@@ -219,7 +220,7 @@ func (r ReconcileJenkins) updateAvailableStatus(ctx context.Context, instance *j
 
 func (r ReconcileJenkins) updateInstanceStatus(ctx context.Context, instance *jenkinsApi.Jenkins) error {
 	log := r.log.WithValues("Request.Namespace", instance.Namespace, "Request.Name", instance.Name).WithName("status_update")
-	instance.Status.LastTimeUpdated = time.Now()
+	instance.Status.LastTimeUpdated = metav1.NewTime(time.Now())
 	err := r.client.Status().Update(ctx, instance)
 	if err != nil {
 		err := r.client.Update(ctx, instance)

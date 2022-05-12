@@ -18,7 +18,7 @@ import (
 
 	jjmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_job"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 const (
@@ -35,7 +35,7 @@ func ObjectMeta() v1.ObjectMeta {
 }
 
 func TestPutJenkinsPipeline_ServeRequest_setStatusErr(t *testing.T) {
-	jenkinsJob := &v1alpha1.JenkinsJob{ObjectMeta: ObjectMeta()}
+	jenkinsJob := &jenkinsApi.JenkinsJob{ObjectMeta: ObjectMeta()}
 
 	client := fake.NewClientBuilder().Build()
 	jenkinsJobHandler := jjmock.JenkinsJobHandler{}
@@ -54,10 +54,10 @@ func TestPutJenkinsPipeline_ServeRequest_setStatusErr(t *testing.T) {
 }
 
 func TestPutJenkinsPipeline_ServeRequest_tryToCreateJobErr(t *testing.T) {
-	jenkinsJob := &v1alpha1.JenkinsJob{ObjectMeta: ObjectMeta()}
+	jenkinsJob := &jenkinsApi.JenkinsJob{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsJob{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkinsJob).Build()
 	jh := jjmock.JenkinsJobHandler{}
@@ -76,10 +76,10 @@ func TestPutJenkinsPipeline_ServeRequest_tryToCreateJobErr(t *testing.T) {
 }
 
 func TestPutJenkinsPipeline_ServeRequest_setStatusErr2(t *testing.T) {
-	jenkinsJob := &v1alpha1.JenkinsJob{ObjectMeta: ObjectMeta()}
+	jenkinsJob := &jenkinsApi.JenkinsJob{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsJob{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkinsJob).Build()
 	jh := jjmock.JenkinsJobHandler{}
@@ -103,15 +103,15 @@ func TestPutJenkinsPipeline_ServeRequest(t *testing.T) {
 
 	orJenkins := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	orStage := v1.OwnerReference{Kind: "Stage", Name: name}
-	jenkinsJob := &v1alpha1.JenkinsJob{ObjectMeta: ObjectMeta()}
+	jenkinsJob := &jenkinsApi.JenkinsJob{ObjectMeta: ObjectMeta()}
 	jenkinsJob.ObjectMeta.OwnerReferences = []v1.OwnerReference{orJenkins, orStage}
 	jenkinsJob.Spec.Job.Name = name
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	stage := &cdPipeApi.Stage{TypeMeta: v1.TypeMeta{Kind: "Stage", APIVersion: "meta.k8s.io/v1"},
 		ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsJob{}, &v1alpha1.JenkinsList{}, &v1alpha1.Jenkins{},
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{},
 		&cdPipeApi.Stage{})
 
 	secretData := map[string][]byte{

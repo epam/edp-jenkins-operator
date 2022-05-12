@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
@@ -85,7 +85,7 @@ func (s K8SService) GetExternalEndpoint(namespace string, name string) (string, 
 }
 
 // AddVolumeToInitContainer adds volume to Jenkins init container
-func (s K8SService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins, containerName string,
+func (s K8SService) AddVolumeToInitContainer(instance *jenkinsApi.Jenkins, containerName string,
 	vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if len(vol) == 0 || len(volMount) == 0 {
@@ -120,7 +120,7 @@ func (s K8SService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins, contain
 	return nil
 }
 
-func (s K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+func (s K8SService) IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error) {
 	deployment, err := s.appsV1Client.Deployments(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
@@ -134,7 +134,7 @@ func (s K8SService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
 }
 
 //CreateSecret creates secret object in K8s cluster
-func (s K8SService) CreateSecret(instance *v1alpha1.Jenkins, name string, data map[string][]byte) error {
+func (s K8SService) CreateSecret(instance *jenkinsApi.Jenkins, name string, data map[string][]byte) error {
 	_, err := s.getSecret(name, instance.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -166,7 +166,7 @@ func (s K8SService) getSecret(name, namespace string) (*coreV1Api.Secret, error)
 	return secret, nil
 }
 
-func (s K8SService) createSecret(jenkins *v1alpha1.Jenkins, secret *coreV1Api.Secret) error {
+func (s K8SService) createSecret(jenkins *jenkinsApi.Jenkins, secret *coreV1Api.Secret) error {
 	if err := controllerutil.SetControllerReference(jenkins, secret, s.Scheme); err != nil {
 		return errors.Wrapf(err, "Couldn't set reference for Secret %v object", secret.Name)
 	}
@@ -191,7 +191,7 @@ func (s K8SService) GetSecretData(namespace, name string) (map[string][]byte, er
 	return secret.Data, nil
 }
 
-func (s K8SService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name string, data map[string]string,
+func (s K8SService) CreateConfigMapWithUpdate(instance *jenkinsApi.Jenkins, name string, data map[string]string,
 	labels ...map[string]string) (isUpdated bool, err error) {
 	currentConfigMap, err := s.CreateConfigMap(instance, name, data, labels...)
 	if err != nil {
@@ -210,7 +210,7 @@ func (s K8SService) CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name s
 	return true, nil
 }
 
-func (s K8SService) CreateConfigMap(instance *v1alpha1.Jenkins, name string, data map[string]string,
+func (s K8SService) CreateConfigMap(instance *jenkinsApi.Jenkins, name string, data map[string]string,
 	labels ...map[string]string) (*coreV1Api.ConfigMap, error) {
 
 	currentConfigMap, err := s.getConfigMap(name, instance.Namespace)
@@ -254,7 +254,7 @@ func (s K8SService) getConfigMap(name, namespace string) (*coreV1Api.ConfigMap, 
 	return cm, nil
 }
 
-func (s K8SService) createConfigMap(jenkins *v1alpha1.Jenkins, cm *coreV1Api.ConfigMap) error {
+func (s K8SService) createConfigMap(jenkins *jenkinsApi.Jenkins, cm *coreV1Api.ConfigMap) error {
 	if err := controllerutil.SetControllerReference(jenkins, cm, s.Scheme); err != nil {
 		return errors.Wrapf(err, "Couldn't set reference for Config Map %v object", cm.Name)
 	}
@@ -267,7 +267,7 @@ func (s K8SService) createConfigMap(jenkins *v1alpha1.Jenkins, cm *coreV1Api.Con
 }
 
 // CreateConfigMapFromFileOrDir performs creating ConfigMap in K8S
-func (s K8SService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, configMapName string,
+func (s K8SService) CreateConfigMapFromFileOrDir(instance *jenkinsApi.Jenkins, configMapName string,
 	configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error {
 	configMapData, err := s.fillConfigMapData(path, configMapKey)
 	if err != nil {
@@ -289,7 +289,7 @@ func (s K8SService) CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, con
 	return nil
 }
 
-func (s K8SService) CreateEDPComponentIfNotExist(jen v1alpha1.Jenkins, url string, icon string) error {
+func (s K8SService) CreateEDPComponentIfNotExist(jen jenkinsApi.Jenkins, url string, icon string) error {
 	c, err := s.getEDPComponent(jen.Name, jen.Namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
@@ -313,7 +313,7 @@ func (s K8SService) getEDPComponent(name, namespace string) (*edpCompApi.EDPComp
 	}
 	return c, nil
 }
-func (s K8SService) createEDPComponent(jen v1alpha1.Jenkins, url string, icon string) error {
+func (s K8SService) createEDPComponent(jen jenkinsApi.Jenkins, url string, icon string) error {
 	c := &edpCompApi.EDPComponent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jen.Name,
@@ -434,16 +434,16 @@ func (s K8SService) GetKeycloakClient(name, namespace string) (keycloakV1Api.Key
 	return out, nil
 }
 
-func (s K8SService) CreateJenkinsScript(namespace, name string, forceRecreate bool) (*v1alpha1.JenkinsScript, error) {
+func (s K8SService) CreateJenkinsScript(namespace, name string, forceRecreate bool) (*jenkinsApi.JenkinsScript, error) {
 	js, err := s.getJenkinsScript(name, namespace)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			js := &v1alpha1.JenkinsScript{
+			js := &jenkinsApi.JenkinsScript{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: namespace,
 				},
-				Spec: v1alpha1.JenkinsScriptSpec{
+				Spec: jenkinsApi.JenkinsScriptSpec{
 					SourceCmName: name,
 				},
 			}
@@ -460,12 +460,12 @@ func (s K8SService) CreateJenkinsScript(namespace, name string, forceRecreate bo
 			return nil, errors.Wrap(err, "unable to delete jenkins script")
 		}
 
-		js = &v1alpha1.JenkinsScript{
+		js = &jenkinsApi.JenkinsScript{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
-			Spec: v1alpha1.JenkinsScriptSpec{
+			Spec: jenkinsApi.JenkinsScriptSpec{
 				SourceCmName: name,
 			},
 		}
@@ -478,8 +478,8 @@ func (s K8SService) CreateJenkinsScript(namespace, name string, forceRecreate bo
 	return js, nil
 }
 
-func (s K8SService) getJenkinsScript(name, namespace string) (*v1alpha1.JenkinsScript, error) {
-	js := &v1alpha1.JenkinsScript{}
+func (s K8SService) getJenkinsScript(name, namespace string) (*jenkinsApi.JenkinsScript, error) {
+	js := &jenkinsApi.JenkinsScript{}
 	err := s.client.Get(context.TODO(), types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,

@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	omock "github.com/epam/edp-jenkins-operator/v2/mock/openshift"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 const (
@@ -103,7 +103,7 @@ func TestOpenshiftService_GetExternalEndpoint(t *testing.T) {
 }
 
 func TestOpenshiftService_AddVolumeToInitContainer_EmptyArgs(t *testing.T) {
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := OpenshiftService{}
@@ -132,7 +132,7 @@ func (s *TestOpenShiftAlternativeSuite) AfterTest(suiteName, testName string) {
 func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_IsDeploymentReadyErr() {
 
 	t := s.T()
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 	errTest := errors.New("test")
@@ -152,7 +152,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_IsDeploymentReadyEr
 func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_IsDeploymentReadyFalse() {
 	t := s.T()
 	deploymentConfInstance := appv1.DeploymentConfig{}
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 
@@ -177,7 +177,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_IsDeploymentReadyTr
 			AvailableReplicas: 1,
 		}}
 
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 
@@ -195,7 +195,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_IsDeploymentReadyTr
 
 func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitContainer_EmptyArgs2() {
 	t := s.T()
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	var vol []v1.Volume
 	var volMount []v1.VolumeMount
 	service := OpenshiftService{}
@@ -205,7 +205,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 
 func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitContainer_CantGet() {
 	t := s.T()
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 	errTest := errors.New("test")
@@ -229,7 +229,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	deploymentConfInstance := appv1.DeploymentConfig{Spec: appv1.DeploymentConfigSpec{
 		Template: &v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: ""}}}},
 	}}
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 
@@ -255,7 +255,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	deploymentConfInstance := appv1.DeploymentConfig{Spec: appv1.DeploymentConfigSpec{
 		Template: &v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},
 	}}
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 
@@ -281,7 +281,7 @@ func (s *TestOpenShiftAlternativeSuite) TestOpenshiftService_AddVolumeToInitCont
 	deploymentConfInstance := appv1.DeploymentConfig{Spec: appv1.DeploymentConfigSpec{
 		Template: &v1.PodTemplateSpec{Spec: v1.PodSpec{InitContainers: []v1.Container{{Name: name}}}},
 	}}
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	appClient := &omock.AppsV1Client{}
 	deploymentConf := &omock.DeploymentConfig{}
 

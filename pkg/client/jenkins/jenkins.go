@@ -13,7 +13,7 @@ import (
 	"gopkg.in/resty.v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
@@ -29,14 +29,14 @@ var log = ctrl.Log.WithName("jenkins_client")
 
 // JenkinsClient abstraction fo Jenkins client
 type JenkinsClient struct {
-	instance        *v1alpha1.Jenkins
+	instance        *jenkinsApi.Jenkins
 	PlatformService platform.PlatformService
 	resty           *resty.Client
 	GoJenkins       *gojenkins.Jenkins
 }
 
 // InitNewRestClient performs initialization of Jenkins connection
-func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
+func InitJenkinsClient(instance *jenkinsApi.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
 	h, s, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
@@ -59,7 +59,7 @@ func InitJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.Plat
 	return jc, nil
 }
 
-func InitGoJenkinsClient(instance *v1alpha1.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
+func InitGoJenkinsClient(instance *jenkinsApi.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
 	h, shm, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
@@ -172,7 +172,7 @@ func (jc JenkinsClient) GetSlaves() ([]string, error) {
 }
 
 // CreateUser creates new non-interactive user in Jenkins
-func (jc JenkinsClient) CreateUser(instance v1alpha1.JenkinsServiceAccount) error {
+func (jc JenkinsClient) CreateUser(instance jenkinsApi.JenkinsServiceAccount) error {
 	crumb, err := jc.GetCrumb()
 	if err != nil {
 		return err

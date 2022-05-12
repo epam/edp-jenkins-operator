@@ -21,7 +21,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
@@ -87,7 +87,7 @@ func (service OpenshiftService) GetExternalEndpoint(namespace string, name strin
 	return route.Spec.Host, routeScheme, strings.TrimRight(route.Spec.Path, platformHelper.UrlCutset), nil
 }
 
-func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error) {
+func (service OpenshiftService) IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error) {
 	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {
 		deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
 		if err != nil {
@@ -103,7 +103,7 @@ func (service OpenshiftService) IsDeploymentReady(instance v1alpha1.Jenkins) (bo
 	return service.K8SService.IsDeploymentReady(instance)
 }
 
-func (service OpenshiftService) AddVolumeToInitContainer(instance *v1alpha1.Jenkins,
+func (service OpenshiftService) AddVolumeToInitContainer(instance *jenkinsApi.Jenkins,
 	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
 
 	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {

@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -17,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkins_folder/chain"
@@ -119,7 +120,7 @@ func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf jenkinsApi.JenkinsFolder)
 func (r ReconcileJenkinsFolder) setStatus(ctx context.Context, jf *jenkinsApi.JenkinsFolder, available bool, status string) error {
 	jf.Status = jenkinsApi.JenkinsFolderStatus{
 		Available:                      available,
-		LastTimeUpdated:                time.Time{},
+		LastTimeUpdated:                metav1.NewTime(time.Now()),
 		Status:                         status,
 		JenkinsJobProvisionBuildNumber: jf.Status.JenkinsJobProvisionBuildNumber,
 	}

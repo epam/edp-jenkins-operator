@@ -20,7 +20,7 @@ import (
 
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 )
@@ -60,7 +60,7 @@ func CreateKeycloakClient() *keycloakV1Api.KeycloakClient {
 }
 
 func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
-	ji := &v1alpha1.Jenkins{}
+	ji := &jenkinsApi.Jenkins{}
 	platformMock := pmock.PlatformService{}
 	jenkinsScriptData := platformHelper.JenkinsScriptData{}
 	data := map[string]string{"context": "lol"}
@@ -85,7 +85,7 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 	}()
 
 	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp", data).Return(false, nil)
-	platformMock.On("CreateJenkinsScript", "", "-temp", false).Return(&v1alpha1.JenkinsScript{}, nil)
+	platformMock.On("CreateJenkinsScript", "", "-temp", false).Return(&jenkinsApi.JenkinsScript{}, nil)
 
 	if err := createTemplateScript("/tmp", "temp.tpl", &platformMock, jenkinsScriptData, ji); err != nil {
 		t.Fatalf("%+v", err)
@@ -93,8 +93,8 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
-	ji := &v1alpha1.Jenkins{
-		Spec: v1alpha1.JenkinsSpec{
+	ji := &jenkinsApi.Jenkins{
+		Spec: jenkinsApi.JenkinsSpec{
 			Version: "0",
 		},
 	}
@@ -165,8 +165,8 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_Integration_GetExternalEndpointErr(t *testing.T) {
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -210,7 +210,7 @@ func TestJenkinsServiceImpl_Integration_mountGerritCredentialsErr(t *testing.T) 
 					Mode: &mode,
 				}}}}}}
 
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -256,7 +256,7 @@ func TestJenkinsServiceImpl_Integration(t *testing.T) {
 					Mode: &mode,
 				}}}}}}
 
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -272,8 +272,8 @@ func TestJenkinsServiceImpl_Integration(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_Integration_CreateKeycloakClientErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -291,8 +291,8 @@ func TestJenkinsServiceImpl_Integration_CreateKeycloakClientErr(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_Integration_GetKeycloakClientErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
@@ -311,8 +311,8 @@ func TestJenkinsServiceImpl_Integration_GetKeycloakClientErr(t *testing.T) {
 }
 
 func TestJenkinsServiceImpl_Integration_GetOwnerKeycloakRealmErr(t *testing.T) {
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	keycloakHelper := keycloakControllerHelper.Helper{}
 	impl := JenkinsServiceImpl{
@@ -336,8 +336,8 @@ func TestJenkinsServiceImpl_Integration_GetOwnerKeycloakErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &keycloakV1Api.KeycloakRealm{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(keycloakRealm).Build()
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	keycloakHelper := keycloakControllerHelper.MakeHelper(client, scheme, logr.Discard())
 	impl := JenkinsServiceImpl{
@@ -371,8 +371,8 @@ func TestJenkinsServiceImpl_Integration_ParseTemplateErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &keycloakV1Api.KeycloakRealm{}, &keycloakV1Api.Keycloak{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(keycloakRealm, keycloak).Build()
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true}}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true}}}
 	platform := pmock.PlatformService{}
 	keycloakHelper := keycloakControllerHelper.MakeHelper(client, scheme, logr.Discard())
 	impl := JenkinsServiceImpl{
@@ -408,8 +408,8 @@ func TestJenkinsServiceImpl_Integration_GetSecretDataErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &keycloakV1Api.KeycloakRealm{}, &keycloakV1Api.Keycloak{})
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(keycloakRealm, keycloak).Build()
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsSpec{KeycloakSpec: v1alpha1.KeycloakSpec{Enabled: true, IsPrivate: true}}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{KeycloakSpec: jenkinsApi.KeycloakSpec{Enabled: true, IsPrivate: true}}}
 	platform := pmock.PlatformService{}
 	keycloakHelper := keycloakControllerHelper.MakeHelper(client, scheme, logr.Discard())
 	impl := JenkinsServiceImpl{
@@ -439,7 +439,7 @@ func TestJenkinsServiceImpl_Integration_GetSecretDataErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_ExposeConfiguration_InitJenkinsClientErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	errTest := errors.New("test")
 
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
@@ -458,7 +458,7 @@ func TestJenkinsServiceImpl_ExposeConfiguration_InitJenkinsClientErr(t *testing.
 
 func TestJenkinsServiceImpl_ExposeConfiguration_NilClientErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	platform.On("GetExternalEndpoint", namespace, name).Return(urlName, URLScheme, domain, nil)
 
@@ -476,8 +476,8 @@ func TestJenkinsServiceImpl_ExposeConfiguration_NilClientErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_ExposeConfiguration_GetSlavesErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name}}
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
@@ -500,7 +500,7 @@ func TestJenkinsServiceImpl_ExposeConfiguration_GetSlavesErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_Configure_InitJenkinsClientErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	errTest := errors.New("test")
 
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
@@ -519,7 +519,7 @@ func TestJenkinsServiceImpl_Configure_InitJenkinsClientErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_Configure_NilClientErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	platform.On("GetExternalEndpoint", namespace, name).Return(urlName, URLScheme, domain, nil)
 
@@ -537,8 +537,8 @@ func TestJenkinsServiceImpl_Configure_NilClientErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_Configure_GetSecretDataErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name}}
 
 	errTest := errors.New("test")
 	secretData := map[string][]byte{
@@ -565,8 +565,8 @@ func TestJenkinsServiceImpl_Configure_GetSecretDataErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_Configure_GetAdminTokenErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name}}
 
 	secretData := map[string][]byte{
 		"username": {'a'},
@@ -592,8 +592,8 @@ func TestJenkinsServiceImpl_Configure_GetAdminTokenErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_Configure_ReadDirErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
+	instance := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name}}
 
 	secretData := map[string][]byte{
 		"username": {'a'},
@@ -619,7 +619,7 @@ func TestJenkinsServiceImpl_Configure_ReadDirErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_IsDeploymentReady(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	platform.On("IsDeploymentReady", instance).Return(true, nil)
 
 	impl := JenkinsServiceImpl{
@@ -633,7 +633,7 @@ func TestJenkinsServiceImpl_IsDeploymentReady(t *testing.T) {
 
 func TestJenkinsServiceImpl_CreateAdminPassword_CreateSecretErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	errTest := errors.New("test")
 	platform.On("CreateSecret", &instance, "name-admin-password").Return(errTest)
@@ -649,7 +649,7 @@ func TestJenkinsServiceImpl_CreateAdminPassword_CreateSecretErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_setAdminSecretInStatusErr(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 	statusWriter := &mocks.StatusWriter{}
 	client := mocks.Client{}
 
@@ -674,8 +674,8 @@ func TestJenkinsServiceImpl_setAdminSecretInStatusErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_CreateAdminPassword(t *testing.T) {
 	platform := pmock.PlatformService{}
-	instance := v1alpha1.Jenkins{ObjectMeta: ObjectMeta(),
-		Status: v1alpha1.JenkinsStatus{AdminSecretName: name}}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name}}
 
 	platform.On("CreateSecret", &instance, "name-admin-password").Return(nil)
 
@@ -690,7 +690,7 @@ func TestJenkinsServiceImpl_CreateAdminPassword(t *testing.T) {
 func Test_setAnnotation(t *testing.T) {
 	key := "key"
 	value := "val"
-	instance := v1alpha1.Jenkins{}
+	instance := jenkinsApi.Jenkins{}
 	setAnnotation(&instance, key, value)
 	assert.Equal(t, value, instance.Annotations[key])
 }

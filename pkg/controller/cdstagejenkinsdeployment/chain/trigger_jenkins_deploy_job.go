@@ -3,14 +3,15 @@ package chain
 import (
 	"encoding/json"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain/handler"
 	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/platform"
-	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type TriggerJenkinsDeployJob struct {
@@ -22,7 +23,7 @@ type TriggerJenkinsDeployJob struct {
 
 const JenkinsKey = "jenkinsName"
 
-func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) error {
+func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) error {
 	log := h.log.WithValues("job", jenkinsDeploy.Spec.Job)
 	log.Info("triggering deploy job.")
 
@@ -48,7 +49,7 @@ func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *v1alpha1.CDStageJen
 	log.Info("deploy job has been triggered.")
 	return nextServeOrNil(h.next, jenkinsDeploy)
 }
-func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) (*jenkinsClient.JenkinsClient, error) {
+func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) (*jenkinsClient.JenkinsClient, error) {
 	j, err := h.getJenkins(jenkinsDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't get jenkins")
@@ -56,6 +57,6 @@ func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *v1alpha1.CDSta
 	return jenkinsClient.InitGoJenkinsClient(j, h.platform)
 }
 
-func (h TriggerJenkinsDeployJob) getJenkins(jenkinsDeploy *v1alpha1.CDStageJenkinsDeployment) (*v1alpha1.Jenkins, error) {
+func (h TriggerJenkinsDeployJob) getJenkins(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) (*jenkinsApi.Jenkins, error) {
 	return platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[JenkinsKey], jenkinsDeploy.Namespace)
 }

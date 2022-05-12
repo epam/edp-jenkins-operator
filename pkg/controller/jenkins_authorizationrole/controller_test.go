@@ -16,13 +16,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
-func getTestJenkinsAuthorizationRole() *v1alpha1.JenkinsAuthorizationRole {
-	return &v1alpha1.JenkinsAuthorizationRole{
+func getTestJenkinsAuthorizationRole() *jenkinsApi.JenkinsAuthorizationRole {
+	return &jenkinsApi.JenkinsAuthorizationRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
 			Namespace: "nss",
@@ -31,7 +31,7 @@ func getTestJenkinsAuthorizationRole() *v1alpha1.JenkinsAuthorizationRole {
 			Kind:       "JenkinsAuthorizationRole",
 			APIVersion: "apps/v1",
 		},
-		Spec: v1alpha1.JenkinsAuthorizationRoleSpec{
+		Spec: jenkinsApi.JenkinsAuthorizationRoleSpec{
 			Name:        "test",
 			RoleType:    "rt",
 			Permissions: []string{"foo", "bat"},
@@ -99,7 +99,7 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkInstance v1alpha1.JenkinsAuthorizationRole
+	var checkInstance jenkinsApi.JenkinsAuthorizationRole
 	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jar.Namespace, Name: jar.Name}, &checkInstance); err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +139,7 @@ func TestReconcile_Reconcile_Delete_FailureRemoveRoles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var checkInstance v1alpha1.JenkinsAuthorizationRole
+	var checkInstance jenkinsApi.JenkinsAuthorizationRole
 	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jar.Namespace, Name: jar.Name}, &checkInstance); err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +175,7 @@ func TestNewReconciler(t *testing.T) {
 
 func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsAuthorizationRole{})
+	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsAuthorizationRole{})
 
 	k8sClient := fake.NewClientBuilder().Build()
 	logger := helper.LoggerMock{}

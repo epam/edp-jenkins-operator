@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
 )
@@ -24,21 +24,21 @@ const (
 
 // PlatformService interface
 type PlatformService interface {
-	CreateSecret(instance *v1alpha1.Jenkins, name string, data map[string][]byte) error
-	CreateConfigMapFromFileOrDir(instance *v1alpha1.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
+	CreateSecret(instance *jenkinsApi.Jenkins, name string, data map[string][]byte) error
+	CreateConfigMapFromFileOrDir(instance *jenkinsApi.Jenkins, configMapName string, configMapKey *string, path string, ownerReference metav1.Object, customLabels ...map[string]string) error
 	GetExternalEndpoint(namespace string, name string) (string, string, string, error)
-	IsDeploymentReady(instance v1alpha1.Jenkins) (bool, error)
+	IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error)
 	GetSecretData(namespace string, name string) (map[string][]byte, error)
 	GetConfigMapData(namespace string, name string) (map[string]string, error)
-	AddVolumeToInitContainer(instance *v1alpha1.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error
+	AddVolumeToInitContainer(instance *jenkinsApi.Jenkins, containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error
 	CreateKeycloakClient(kc *keycloakV1Api.KeycloakClient) error
 	GetKeycloakClient(name string, namespace string) (keycloakV1Api.KeycloakClient, error)
-	CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*v1alpha1.JenkinsScript, error)
-	CreateConfigMap(instance *v1alpha1.Jenkins, name string, data map[string]string,
+	CreateJenkinsScript(namespace string, configMap string, forceExecute bool) (*jenkinsApi.JenkinsScript, error)
+	CreateConfigMap(instance *jenkinsApi.Jenkins, name string, data map[string]string,
 		labels ...map[string]string) (*coreV1Api.ConfigMap, error)
-	CreateConfigMapWithUpdate(instance *v1alpha1.Jenkins, name string, data map[string]string,
+	CreateConfigMapWithUpdate(instance *jenkinsApi.Jenkins, name string, data map[string]string,
 		labels ...map[string]string) (isUpdated bool, err error)
-	CreateEDPComponentIfNotExist(instance v1alpha1.Jenkins, url string, icon string) error
+	CreateEDPComponentIfNotExist(instance jenkinsApi.Jenkins, url string, icon string) error
 	CreateStageJSON(stage cdPipeApi.Stage) (string, error)
 }
 

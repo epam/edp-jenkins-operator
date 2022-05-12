@@ -17,13 +17,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
-func getTestJenkinsJobBuildRun() *v1alpha1.JenkinsJobBuildRun {
-	return &v1alpha1.JenkinsJobBuildRun{
+func getTestJenkinsJobBuildRun() *jenkinsApi.JenkinsJobBuildRun {
+	return &jenkinsApi.JenkinsJobBuildRun{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "run1",
 			Namespace: "ns",
@@ -32,11 +32,11 @@ func getTestJenkinsJobBuildRun() *v1alpha1.JenkinsJobBuildRun {
 			Kind:       "JenkinsJobBuildRun",
 			APIVersion: "apps/v1",
 		},
-		Spec: v1alpha1.JenkinsJobBuildRunSpec{
+		Spec: jenkinsApi.JenkinsJobBuildRunSpec{
 			JobPath: "path/job",
 			Retry:   2,
 		},
-		Status: v1alpha1.JenkinsJobBuildRunStatus{
+		Status: jenkinsApi.JenkinsJobBuildRunStatus{
 			BuildNumber: 5,
 		},
 	}
@@ -73,12 +73,12 @@ func TestReconcile_ReconcileJobNotFound(t *testing.T) {
 		t.Fatal("RequeueAfter is set")
 	}
 
-	var checkJenkinsJobBuildRun v1alpha1.JenkinsJobBuildRun
+	var checkJenkinsJobBuildRun jenkinsApi.JenkinsJobBuildRun
 	if err := k8sClient.Get(context.Background(), req.NamespacedName, &checkJenkinsJobBuildRun); err != nil {
 		t.Fatal(err)
 	}
 
-	if checkJenkinsJobBuildRun.Status.Status != v1alpha1.JobBuildRunStatusNotFound {
+	if checkJenkinsJobBuildRun.Status.Status != jenkinsApi.JobBuildRunStatusNotFound {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 }
@@ -131,12 +131,12 @@ func TestReconcile_ReconcileNewBuild(t *testing.T) {
 		t.Fatal("RequeueAfter is not set")
 	}
 
-	var checkJenkinsJobBuildRun v1alpha1.JenkinsJobBuildRun
+	var checkJenkinsJobBuildRun jenkinsApi.JenkinsJobBuildRun
 	if err := k8sClient.Get(context.Background(), req.NamespacedName, &checkJenkinsJobBuildRun); err != nil {
 		t.Fatal(err)
 	}
 
-	if checkJenkinsJobBuildRun.Status.Status != v1alpha1.JobBuildRunStatusCreated {
+	if checkJenkinsJobBuildRun.Status.Status != jenkinsApi.JobBuildRunStatusCreated {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 }
@@ -190,12 +190,12 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 		t.Fatal("RequeueAfter is not set")
 	}
 
-	var checkJenkinsJobBuildRun v1alpha1.JenkinsJobBuildRun
+	var checkJenkinsJobBuildRun jenkinsApi.JenkinsJobBuildRun
 	if err := k8sClient.Get(context.Background(), req.NamespacedName, &checkJenkinsJobBuildRun); err != nil {
 		t.Fatal(err)
 	}
 
-	if checkJenkinsJobBuildRun.Status.Status != v1alpha1.JobBuildRunStatusRetrying {
+	if checkJenkinsJobBuildRun.Status.Status != jenkinsApi.JobBuildRunStatusRetrying {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 
@@ -210,7 +210,7 @@ func TestReconcile_ReconcileOldBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if checkJenkinsJobBuildRun.Status.Status != v1alpha1.JobBuildRunStatusFailed {
+	if checkJenkinsJobBuildRun.Status.Status != jenkinsApi.JobBuildRunStatusFailed {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 }
@@ -268,12 +268,12 @@ func TestReconcile_ReconcileDeleteExpiredBuilds(t *testing.T) {
 		t.Fatal("RequeueAfter is not set")
 	}
 
-	var checkJenkinsJobBuildRun v1alpha1.JenkinsJobBuildRun
+	var checkJenkinsJobBuildRun jenkinsApi.JenkinsJobBuildRun
 	if err := k8sClient.Get(context.Background(), req.NamespacedName, &checkJenkinsJobBuildRun); err != nil {
 		t.Fatal(err)
 	}
 
-	if checkJenkinsJobBuildRun.Status.Status != v1alpha1.JobBuildRunStatusCompleted {
+	if checkJenkinsJobBuildRun.Status.Status != jenkinsApi.JobBuildRunStatusCompleted {
 		t.Fatalf("wrong job status: %s", checkJenkinsJobBuildRun.Status.Status)
 	}
 

@@ -21,7 +21,7 @@ import (
 
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )

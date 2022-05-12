@@ -16,7 +16,7 @@ import (
 
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
-	"github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
+	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
 
 func TestTriggerBuildJobProvision_ServeRequest_setStatusErr(t *testing.T) {
@@ -24,9 +24,9 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr(t *testing.T) {
 	client := fake.NewClientBuilder().Build()
 	platform := pmock.PlatformService{}
 
-	jf := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsFolderSpec{
-			Job: &v1alpha1.Job{}}}
+	jf := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{}}}
 	jf.Spec.Job.Name = name
 
 	tr := TriggerBuildJobProvision{
@@ -41,11 +41,11 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr(t *testing.T) {
 
 func TestTriggerBuildJobProvision_ServeRequest_triggerBuildJobProvisionErr(t *testing.T) {
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.JenkinsFolder{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{})
 
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsFolderSpec{
-			Job: &v1alpha1.Job{}}}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{}}}
 	jenkinsFolder.Spec.Job.Name = name
 
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
@@ -67,7 +67,7 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr2(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.Jenkins{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{})
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
@@ -77,15 +77,15 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr2(t *testing.T) {
 	raw, err := json.Marshal(resp)
 	assert.NoError(t, err)
 
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkins).Build()
 	platform := pmock.PlatformService{}
 
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsFolderSpec{
-			Job: &v1alpha1.Job{}}}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{}}}
 	jenkinsFolder.Spec.Job.Name = name
 	ownerReference := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	jenkinsFolder.ObjectMeta.OwnerReferences = []v1.OwnerReference{ownerReference}
@@ -111,17 +111,17 @@ func TestTriggerBuildJobProvision_ServeRequest_UnmarshallErr(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.Jenkins{}, &v1alpha1.JenkinsFolder{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsFolder{})
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
 	}
 
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsFolderSpec{
-			Job: &v1alpha1.Job{}}}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{}}}
 	jenkinsFolder.Spec.Job.Name = name
 	ownerReference := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	jenkinsFolder.ObjectMeta.OwnerReferences = []v1.OwnerReference{ownerReference}
@@ -151,22 +151,22 @@ func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &v1alpha1.Jenkins{}, &v1alpha1.JenkinsFolder{})
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsFolder{})
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
 	}
 
-	jenkinsFolder := &v1alpha1.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: v1alpha1.JenkinsFolderSpec{
-			Job: &v1alpha1.Job{}}}
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{}}}
 	jenkinsFolder.Spec.Job.Name = name
 
 	resp := gojenkins.BuildResponse{Result: "SUCCESS"}
 	raw, err := json.Marshal(resp)
 	assert.NoError(t, err)
 
-	jenkins := &v1alpha1.Jenkins{ObjectMeta: ObjectMeta()}
+	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkins, jenkinsFolder).Build()
