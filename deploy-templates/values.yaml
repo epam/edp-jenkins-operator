@@ -27,7 +27,7 @@ jenkins:
   deploy: true
   initImage: "busybox:1.35.0"
   image: "epamedp/edp-jenkins"
-  version: "2.11.0-SNAPSHOT"
+  version: "2.12.0-SNAPSHOT"
   imagePullPolicy: "IfNotPresent"
   storage:
     class: gp2

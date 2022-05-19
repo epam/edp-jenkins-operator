@@ -53,7 +53,7 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.storage.class | string | `"gp2"` |  |
 | jenkins.storage.size | string | `"10Gi"` |  |
 | jenkins.tolerations | list | `[]` |  |
-| jenkins.version | string | `"2.11.0-SNAPSHOT"` |  |
+| jenkins.version | string | `"2.12.0-SNAPSHOT"` |  |
 | name | string | `"jenkins-operator"` |  |
 | nodeSelector | object | `{}` |  |
 | resources.limits.memory | string | `"192Mi"` |  |
