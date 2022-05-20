@@ -147,7 +147,7 @@ func (r Reconcile) prepareSharedLibraries(ctx context.Context,
 
 	var libList v1alpha1.JenkinsSharedLibraryList
 
-	if err := r.client.List(ctx, &libList); err != nil {
+	if err := r.client.List(ctx, &libList, &client.ListOptions{Namespace: instance.Namespace}); err != nil {
 		return nil, errors.Wrap(err, "unable to list jenkins shared libraries")
 	}
 
