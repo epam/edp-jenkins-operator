@@ -41,10 +41,9 @@ func (h TriggerBuildJobProvision) ServeRequest(jf *jenkinsApi.JenkinsFolder) err
 
 func (h TriggerBuildJobProvision) setStatus(jf *jenkinsApi.JenkinsFolder, status string) error {
 	jf.Status = jenkinsApi.JenkinsFolderStatus{
-		Available:                      true,
-		LastTimeUpdated:                metav1.NewTime(time.Now()),
-		Status:                         status,
-		JenkinsJobProvisionBuildNumber: jf.Status.JenkinsJobProvisionBuildNumber,
+		Available:       true,
+		LastTimeUpdated: metav1.NewTime(time.Now()),
+		Status:          status,
 	}
 	return h.updateStatus(jf)
 }
@@ -77,14 +76,6 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *jenkinsApi.Jenkin
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
 	}
-	success, err := jc.IsBuildSuccessful(jf.Spec.Job.Name, jf.Status.JenkinsJobProvisionBuildNumber)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't check build status for job %v", jf.Spec.Job.Name)
-	}
-	if success {
-		log.V(2).Info("last build was successful. triggering of job provision is skipped")
-		return nil
-	}
 
 	var jpc map[string]string
 	err = json.Unmarshal([]byte(jf.Spec.Job.Config), &jpc)
@@ -96,7 +87,7 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *jenkinsApi.Jenkin
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
 	}
-	jf.Status.JenkinsJobProvisionBuildNumber = *bn
-	log.Info("end triggering build job", "name", jf.Spec.Job.Name)
+
+	log.Info("end triggering build job", "name", jf.Spec.Job.Name, "with BUILD_ID", *bn)
 	return nil
 }

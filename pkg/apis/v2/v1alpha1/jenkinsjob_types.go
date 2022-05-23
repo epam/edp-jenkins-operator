@@ -58,13 +58,12 @@ type JenkinsJobStatus struct {
 	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 	// +optional
-	Status                         string     `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64      `json:"jenkinsJobProvisionBuildNumber"`
-	Username                       string     `json:"username"`
-	Action                         ActionType `json:"action"`
-	Result                         Result     `json:"result"`
-	DetailedMessage                string     `json:"detailedMessage"`
-	Value                          string     `json:"value"`
+	Status          string     `json:"status,omitempty"`
+	Username        string     `json:"username"`
+	Action          ActionType `json:"action"`
+	Result          Result     `json:"result"`
+	DetailedMessage string     `json:"detailedMessage"`
+	Value           string     `json:"value"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

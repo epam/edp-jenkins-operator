@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/bndr/gojenkins"
@@ -291,37 +290,6 @@ func (jc JenkinsClient) GetJobProvisions(jobPath string) ([]string, error) {
 	}
 
 	return pl, nil
-}
-
-func (jc JenkinsClient) IsBuildSuccessful(jobName string, buildNumber int64) (bool, error) {
-	log.V(2).Info("start checking build", "job name", jobName, "build number", buildNumber)
-	job, err := jc.GoJenkins.GetJob(jobName)
-	if err != nil {
-		return false, errors.Wrapf(err, "could't get job %v", jobName)
-	}
-
-	b, err := getBuild(jobName, job, buildNumber)
-	if err != nil {
-		if helper.JenkinsIsNotFoundErr(err) {
-			log.Info("couldn't find build", "build number", buildNumber)
-			return false, nil
-		}
-		return false, errors.Wrapf(err, "could't get build %v", jobName)
-	}
-	return b.GetResult() == "SUCCESS", nil
-}
-
-func getBuild(jp string, job *gojenkins.Job, id int64) (*gojenkins.Build, error) {
-	endpoint := "/job/" + jp
-	build := gojenkins.Build{Jenkins: job.Jenkins, Job: job, Raw: new(gojenkins.BuildResponse), Depth: 1, Base: endpoint + "/" + strconv.FormatInt(id, 10)}
-	status, err := build.Poll()
-	if err != nil {
-		return nil, err
-	}
-	if status == http.StatusOK {
-		return &build, nil
-	}
-	return nil, errors.New(strconv.Itoa(status))
 }
 
 func (jc JenkinsClient) BuildJob(jobName string, parameters map[string]string) (*int64, error) {

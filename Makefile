@@ -72,17 +72,22 @@ else
 endif
 
 .PHONY: api-docs
-api-docs: ## generate CRD docs
-	crdoc --resources deploy-templates/crds --output docs/api.md
+api-docs: crdoc ## generate CRD docs
+	$(CRDOC) --resources deploy-templates/crds --output docs/api.md
 
 .PHONY: helm-docs
 helm-docs: ## generate helm docs
 	helm-docs
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+CRDOC = ${CURRENT_DIR}/bin/crdoc
+.PHONY: crdoc
+crdoc: ## Download crdoc locally if necessary.
+	$(call go-get-tool,$(CRDOC), fybrik.io/crdoc,v0.6.1)
+
+CONTROLLER_GEN = ${CURRENT_DIR}/bin/controller-gen
 .PHONY: controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,v0.8.0)
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -93,7 +98,8 @@ TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
 go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+go get -d $(2)@$(3) ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef

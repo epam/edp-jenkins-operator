@@ -119,10 +119,9 @@ func (r ReconcileJenkinsFolder) initGoJenkinsClient(jf jenkinsApi.JenkinsFolder)
 
 func (r ReconcileJenkinsFolder) setStatus(ctx context.Context, jf *jenkinsApi.JenkinsFolder, available bool, status string) error {
 	jf.Status = jenkinsApi.JenkinsFolderStatus{
-		Available:                      available,
-		LastTimeUpdated:                metav1.NewTime(time.Now()),
-		Status:                         status,
-		JenkinsJobProvisionBuildNumber: jf.Status.JenkinsJobProvisionBuildNumber,
+		Available:       available,
+		LastTimeUpdated: metav1.NewTime(time.Now()),
+		Status:          status,
 	}
 	return r.updateStatus(ctx, jf)
 }

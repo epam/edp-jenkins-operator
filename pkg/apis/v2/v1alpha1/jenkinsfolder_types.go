@@ -36,8 +36,7 @@ type JenkinsFolderStatus struct {
 	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 	// +optional
-	Status                         string `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64  `json:"jenkinsJobProvisionBuildNumber"`
+	Status string `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

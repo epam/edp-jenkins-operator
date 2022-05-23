@@ -97,10 +97,9 @@ func (h PutCDPipelineJenkinsFolder) initGoJenkinsClient(jf jenkinsApi.JenkinsFol
 
 func (h PutCDPipelineJenkinsFolder) setStatus(jf *jenkinsApi.JenkinsFolder, status string) error {
 	jf.Status = jenkinsApi.JenkinsFolderStatus{
-		Available:                      true,
-		LastTimeUpdated:                metav1.NewTime(time.Now()),
-		Status:                         status,
-		JenkinsJobProvisionBuildNumber: jf.Status.JenkinsJobProvisionBuildNumber,
+		Available:       true,
+		LastTimeUpdated: metav1.NewTime(time.Now()),
+		Status:          status,
 	}
 	return h.updateStatus(jf)
 }

@@ -472,62 +472,6 @@ func TestJenkinsClient_GetJobProvisions_NotEqual(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), "is not a Jenkins folder"))
 }
 
-func TestJenkinsClient_IsBuildSuccessful_GetJobErr(t *testing.T) {
-	jenkins, err := createMockClient()
-	assert.NoError(t, err)
-	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-
-	jc := JenkinsClient{
-		GoJenkins: jenkins,
-	}
-	_, err = jc.IsBuildSuccessful("", int64(1))
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "could't get job "))
-}
-
-func TestJenkinsClient_IsBuildSuccessful_getBuildErr(t *testing.T) {
-	jenkins, err := createMockClient()
-	assert.NoError(t, err)
-	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	jc := JenkinsClient{
-		GoJenkins: jenkins,
-	}
-	_, err = jc.IsBuildSuccessful("", int64(1))
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "could't get build"))
-}
-
-func TestJenkinsClient_IsBuildSuccessful_getBuildNotFound(t *testing.T) {
-	jenkins, err := createMockClient()
-
-	assert.NoError(t, err)
-	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job/api/json", httpmock.NewStringResponder(http.StatusNotFound, ""))
-	jc := JenkinsClient{
-		GoJenkins: jenkins,
-	}
-	successful, err := jc.IsBuildSuccessful("", int64(1))
-	if err != nil {
-		return
-	}
-	assert.NoError(t, err)
-	assert.False(t, successful)
-}
-
-func TestJenkinsClient_IsBuildSuccessful(t *testing.T) {
-	jenkins, err := createMockClient()
-	httpmock.RegisterResponder(http.MethodGet, "https://job/name/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job/name/1/api/json?depth=1", httpmock.NewStringResponder(http.StatusOK, ""))
-
-	assert.NoError(t, err)
-	jc := JenkinsClient{
-		GoJenkins: jenkins,
-	}
-	_, err = jc.IsBuildSuccessful(name, int64(1))
-	assert.NoError(t, err)
-}
-
 func TestJenkinsClient_BuildJob_Err(t *testing.T) {
 	params := map[string]string{}
 	jenkins, err := createMockClient()

@@ -1230,15 +1230,6 @@ JenkinsFolderStatus defines the observed state of JenkinsFolder
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>jenkinsJobProvisionBuildNumber</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Format</i>: int64<br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
         <td><b>available</b></td>
         <td>boolean</td>
         <td>
@@ -1597,15 +1588,6 @@ JenkinsJobStatus defines the observed state of JenkinsJob
         <td>string</td>
         <td>
           <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>jenkinsJobProvisionBuildNumber</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Format</i>: int64<br/>
         </td>
         <td>true</td>
       </tr><tr>
@@ -3282,15 +3264,6 @@ JenkinsFolderStatus defines the observed state of Jenkins
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>jenkinsJobProvisionBuildNumber</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Format</i>: int64<br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
         <td><b>available</b></td>
         <td>boolean</td>
         <td>
@@ -3649,15 +3622,6 @@ JenkinsFolderStatus defines the observed state of Jenkins
         <td>string</td>
         <td>
           <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>jenkinsJobProvisionBuildNumber</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Format</i>: int64<br/>
         </td>
         <td>true</td>
       </tr><tr>

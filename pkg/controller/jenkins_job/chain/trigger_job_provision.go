@@ -43,12 +43,11 @@ func (h TriggerJobProvision) ServeRequest(jj *jenkinsApi.JenkinsJob) error {
 
 func (h TriggerJobProvision) setStatus(jj *jenkinsApi.JenkinsJob, status string, result jenkinsApi.Result) error {
 	jj.Status = jenkinsApi.JenkinsJobStatus{
-		Available:                      true,
-		LastTimeUpdated:                metav1.NewTime(time.Now()),
-		Status:                         status,
-		JenkinsJobProvisionBuildNumber: jj.Status.JenkinsJobProvisionBuildNumber,
-		Action:                         jenkinsApi.TriggerJobProvision,
-		Result:                         result,
+		Available:       true,
+		LastTimeUpdated: metav1.NewTime(time.Now()),
+		Status:          status,
+		Action:          jenkinsApi.TriggerJobProvision,
+		Result:          result,
 	}
 	return h.updateStatus(jj)
 }
@@ -87,8 +86,8 @@ func (h TriggerJobProvision) triggerJobProvision(jj *jenkinsApi.JenkinsJob) erro
 	if err != nil {
 		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
 	}
-	jj.Status.JenkinsJobProvisionBuildNumber = *bn
-	h.log.Info("end triggering build job", "name", jj.Spec.Job.Name)
+
+	h.log.Info("end triggering build job", "name", jj.Spec.Job.Name, "with BUILD_ID", *bn)
 	return nil
 }
 

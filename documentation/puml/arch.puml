@@ -75,7 +75,6 @@ package jenkins-operator {
         Boolean available
         Date lastTimeUpdated
         String status
-        Integer jenkinsJobProvisionBuildNumber
   }
 
     JenkinsFolder "1" -l-> "0..1" JobConfig : internal structure
@@ -97,7 +96,6 @@ package jenkins-operator {
         Boolean available
         Date lastTimeUpdated
         String status
-        Integer jenkinsJobProvisionBuildNumber
         String username
         ActionType action
         Result result

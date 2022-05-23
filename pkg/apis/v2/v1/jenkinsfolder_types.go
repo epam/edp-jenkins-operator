@@ -24,8 +24,7 @@ type JenkinsFolderStatus struct {
 	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 	// +optional
-	Status                         string `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64  `json:"jenkinsJobProvisionBuildNumber"`
+	Status string `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

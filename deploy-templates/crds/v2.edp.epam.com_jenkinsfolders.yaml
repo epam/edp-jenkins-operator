@@ -62,16 +62,11 @@ spec:
             properties:
               available:
                 type: boolean
-              jenkinsJobProvisionBuildNumber:
-                format: int64
-                type: integer
               lastTimeUpdated:
                 format: date-time
                 type: string
               status:
                 type: string
-            required:
-            - jenkinsJobProvisionBuildNumber
             type: object
         type: object
     served: true
@@ -133,16 +128,11 @@ spec:
                   code after modifying this file Add custom validation using kubebuilder
                   tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                 type: boolean
-              jenkinsJobProvisionBuildNumber:
-                format: int64
-                type: integer
               lastTimeUpdated:
                 format: date-time
                 type: string
               status:
                 type: string
-            required:
-            - jenkinsJobProvisionBuildNumber
             type: object
         type: object
     served: true

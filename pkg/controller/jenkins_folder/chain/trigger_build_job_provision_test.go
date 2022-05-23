@@ -157,14 +157,19 @@ func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 		"password": {'k'},
 	}
 
-	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
-		Spec: jenkinsApi.JenkinsFolderSpec{
-			Job: &jenkinsApi.Job{}}}
-	jenkinsFolder.Spec.Job.Name = name
-
-	resp := gojenkins.BuildResponse{Result: "SUCCESS"}
-	raw, err := json.Marshal(resp)
+	data := map[string]string{"str1": "str2"}
+	raw, err := json.Marshal(data)
 	assert.NoError(t, err)
+
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{
+		ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsFolderSpec{
+			Job: &jenkinsApi.Job{
+				Name:   name,
+				Config: string(raw),
+			},
+		},
+	}
 
 	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
@@ -175,11 +180,13 @@ func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 	ownerReference := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	jenkinsFolder.ObjectMeta.OwnerReferences = []v1.OwnerReference{ownerReference}
 
+	// look at taskResponse struct from goJenkins queue.go
+	taskResponseRaw := []byte("{\"executable\":{\"number\":1,\"url\":\"\"}}")
+
 	platform.On("GetExternalEndpoint", namespace, name).Return("", URLScheme, "", nil)
 	platform.On("GetSecretData", namespace, "").Return(secretData, nil)
 	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job/name/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodGet, "https://job/name/0/api/json?depth=1", httpmock.NewBytesResponder(http.StatusOK, raw))
+	httpmock.RegisterResponder(http.MethodGet, "https://queue/item/0/api/json", httpmock.NewBytesResponder(http.StatusOK, taskResponseRaw))
 	jenkinsFolderHandler.On("ServeRequest", jenkinsFolder).Return(nil)
 
 	tr := TriggerBuildJobProvision{
