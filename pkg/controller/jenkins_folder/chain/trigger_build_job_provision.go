@@ -68,6 +68,10 @@ func (h TriggerBuildJobProvision) initGoJenkinsClient(jf jenkinsApi.JenkinsFolde
 }
 
 func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *jenkinsApi.JenkinsFolder) error {
+	if jf.Spec.Job == nil {
+		return errors.New("failed to start to build - job field is empty in spec")
+	}
+
 	log.V(2).Info("start triggering build job", "name", jf.Spec.Job.Name)
 	jc, err := h.initGoJenkinsClient(*jf)
 	if err != nil {

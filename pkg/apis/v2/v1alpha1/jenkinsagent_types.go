@@ -26,15 +26,19 @@ type JenkinsAgentStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:deprecatedversion
 type JenkinsAgent struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              JenkinsAgentSpec   `json:"spec,omitempty"`
-	Status            JenkinsAgentStatus `json:"status,omitempty"`
+	// +optional
+	Spec JenkinsAgentSpec `json:"spec,omitempty"`
+	// +optional
+	Status JenkinsAgentStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type JenkinsAgentList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsAgent `json:"items"`
 }

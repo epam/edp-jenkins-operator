@@ -8,13 +8,17 @@ import (
 type JenkinsServiceAccountSpec struct {
 	Type        string `json:"type"`
 	Credentials string `json:"credentials"`
-	OwnerName   string `json:"ownerName,omitempty"`
+	// +optional
+	OwnerName string `json:"ownerName,omitempty"`
 }
 
 // JenkinsServiceAccountStatus defines the observed state of JenkinsServiceAccount
 type JenkinsServiceAccountStatus struct {
-	Available       bool        `json:"available,omitempty"`
-	Created         bool        `json:"created,omitempty"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	Created bool `json:"created,omitempty"`
+	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 }
 
@@ -24,10 +28,13 @@ type JenkinsServiceAccountStatus struct {
 
 // JenkinsServiceAccount is the Schema for the jenkinsserviceaccounts API
 type JenkinsServiceAccount struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JenkinsServiceAccountSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsServiceAccountSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsServiceAccountStatus `json:"status,omitempty"`
 }
 
@@ -36,6 +43,7 @@ type JenkinsServiceAccount struct {
 // JenkinsServiceAccountList contains a list of JenkinsServiceAccount
 type JenkinsServiceAccountList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsServiceAccount `json:"items"`
 }

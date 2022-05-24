@@ -23,15 +23,19 @@ type JenkinsAgentStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 type JenkinsAgent struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              JenkinsAgentSpec   `json:"spec,omitempty"`
-	Status            JenkinsAgentStatus `json:"status,omitempty"`
+	// +optional
+	Spec JenkinsAgentSpec `json:"spec,omitempty"`
+	// +optional
+	Status JenkinsAgentStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 type JenkinsAgentList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsAgent `json:"items"`
 }

@@ -6,17 +6,26 @@ import (
 
 // JenkinsFolderSpec defines the desired state of JenkinsFolder
 type JenkinsFolderSpec struct {
+	// +optional
+	// +nullable
 	CodebaseName *string `json:"codebaseName,omitempty"`
-	OwnerName    *string `json:"ownerName,omitempty"`
-	Job          *Job    `json:"job"`
+	// +optional
+	// +nullable
+	OwnerName *string `json:"ownerName,omitempty"`
+	// +nullable
+	// +optional
+	Job *Job `json:"job"`
 }
 
 // JenkinsFolderStatus defines the observed state of JenkinsFolder
 type JenkinsFolderStatus struct {
-	Available                      bool        `json:"available,omitempty"`
-	LastTimeUpdated                metav1.Time `json:"lastTimeUpdated,omitempty"`
-	Status                         string      `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64       `json:"jenkinsJobProvisionBuildNumber"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
+	// +optional
+	Status                         string `json:"status,omitempty"`
+	JenkinsJobProvisionBuildNumber int64  `json:"jenkinsJobProvisionBuildNumber"`
 }
 
 //+kubebuilder:object:root=true
@@ -25,10 +34,13 @@ type JenkinsFolderStatus struct {
 
 // JenkinsFolder is the Schema for the jenkinsfolder API
 type JenkinsFolder struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JenkinsFolderSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsFolderSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsFolderStatus `json:"status,omitempty"`
 }
 
@@ -37,6 +49,7 @@ type JenkinsFolder struct {
 // JenkinsFolderList contains a list of JenkinsFolder
 type JenkinsFolderList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsFolder `json:"items"`
 }

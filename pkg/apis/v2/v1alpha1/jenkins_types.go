@@ -18,15 +18,20 @@ type JenkinsSpec struct {
 	Image     string `json:"image"`
 	Version   string `json:"version"`
 	InitImage string `json:"initImage"`
-	BasePath  string `json:"basePath,omitempty"`
+	// +optional
+	BasePath string `json:"basePath,omitempty"`
 	// +nullable
+	// +optional
 	ImagePullSecrets []coreV1Api.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// +nullable
+	// +optional
 	Volumes []JenkinsVolumes `json:"volumes,omitempty"`
 	// +nullable
+	// +optional
 	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries,omitempty"`
 	KeycloakSpec    KeycloakSpec             `json:"keycloakSpec"`
-	EdpSpec         EdpSpec                  `json:"edpSpec,omitempty"`
+	// +optional
+	EdpSpec EdpSpec `json:"edpSpec,omitempty"`
 }
 
 type EdpSpec struct {
@@ -40,11 +45,15 @@ type JenkinsVolumes struct {
 }
 
 type JenkinsSharedLibraries struct {
-	Name         string  `json:"name"`
-	URL          string  `json:"url"`
-	Tag          string  `json:"tag"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Tag  string `json:"tag"`
+	// +nullable
+	// +optional
 	CredentialID *string `json:"secret,omitempty"`
-	Type         *string `json:"type,omitempty"`
+	// +nullable
+	// +optional
+	Type *string `json:"type,omitempty"`
 }
 
 // JenkinsStatus defines the observed state of Jenkins
@@ -53,17 +62,24 @@ type JenkinsStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available       bool        `json:"available,omitempty"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
-	Status          string      `json:"status,omitempty"`
-	AdminSecretName string      `json:"adminSecretName,omitempty"`
+	// +optional
+	Status string `json:"status,omitempty"`
+	// +optional
+	AdminSecretName string `json:"adminSecretName,omitempty"`
 	// +nullable
+	// +optional
 	Slaves []Slave `json:"slaves,omitempty"`
 	// +nullable
+	// +optional
 	JobProvisions []JobProvision `json:"jobProvisions,omitempty"`
 }
 
 type Slave struct {
+	// +optional
 	Name string `json:"name,omitempty"`
 }
 
@@ -73,9 +89,12 @@ type JobProvision struct {
 }
 
 type KeycloakSpec struct {
-	Enabled    bool   `json:"enabled"`
-	Realm      string `json:"realm,omitempty"`
-	IsPrivate  bool   `json:"isPrivate,omitempty"`
+	Enabled bool `json:"enabled"`
+	// +optional
+	Realm string `json:"realm,omitempty"`
+	// +optional
+	IsPrivate bool `json:"isPrivate,omitempty"`
+	// +optional
 	SecretName string `json:"secretName,omitempty"`
 }
 
@@ -86,10 +105,12 @@ type KeycloakSpec struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 type Jenkins struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   JenkinsSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsStatus `json:"status,omitempty"`
 }
 
@@ -98,6 +119,7 @@ type Jenkins struct {
 // JenkinsList contains a list of Jenkins
 type JenkinsList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Jenkins `json:"items"`
 }

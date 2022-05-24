@@ -5,14 +5,20 @@ import (
 )
 
 type JenkinsScriptSpec struct {
-	SourceCmName string  `json:"sourceConfigMapName,omitempty"`
-	OwnerName    *string `json:"ownerName,omitempty"`
+	// +optional
+	SourceCmName string `json:"sourceConfigMapName,omitempty"`
+	// +nullable
+	// +optional
+	OwnerName *string `json:"ownerName,omitempty"`
 }
 
 // JenkinsScriptStatus defines the observed state of JenkinsScript
 type JenkinsScriptStatus struct {
-	Available       bool        `json:"available,omitempty"`
-	Executed        bool        `json:"executed,omitempty"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	Executed bool `json:"executed,omitempty"`
+	// +optional
 	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
 }
 
@@ -22,10 +28,13 @@ type JenkinsScriptStatus struct {
 
 // JenkinsScript is the Schema for the jenkinsscripts API
 type JenkinsScript struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JenkinsScriptSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsScriptSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsScriptStatus `json:"status,omitempty"`
 }
 
@@ -34,6 +43,7 @@ type JenkinsScript struct {
 // JenkinsScriptList contains a list of JenkinsScript
 type JenkinsScriptList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsScript `json:"items"`
 }

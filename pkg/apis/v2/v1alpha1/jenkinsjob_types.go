@@ -27,15 +27,23 @@ type JenkinsJobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	OwnerName     *string `json:"ownerName,omitempty"`
-	StageName     *string `json:"stageName,omitempty"`
+	// +nullable
+	// +optional
+	OwnerName *string `json:"ownerName,omitempty"`
+	// +nullable
+	// +optional
+	StageName *string `json:"stageName,omitempty"`
+	// +nullable
+	// +optional
 	JenkinsFolder *string `json:"jenkinsFolder,omitempty"`
 	Job           Job     `json:"job"`
 }
 
 type Job struct {
-	Name              string `json:"name"`
-	Config            string `json:"config"`
+	Name   string `json:"name"`
+	Config string `json:"config"`
+	// +nullable
+	// +optional
 	AutoTriggerPeriod *int32 `json:"autoTriggerPeriod,omitempty"`
 }
 
@@ -45,15 +53,18 @@ type JenkinsJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available                      bool        `json:"available,omitempty"`
-	LastTimeUpdated                metav1.Time `json:"lastTimeUpdated,omitempty"`
-	Status                         string      `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64       `json:"jenkinsJobProvisionBuildNumber"`
-	Username                       string      `json:"username"`
-	Action                         ActionType  `json:"action"`
-	Result                         Result      `json:"result"`
-	DetailedMessage                string      `json:"detailedMessage"`
-	Value                          string      `json:"value"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
+	// +optional
+	Status                         string     `json:"status,omitempty"`
+	JenkinsJobProvisionBuildNumber int64      `json:"jenkinsJobProvisionBuildNumber"`
+	Username                       string     `json:"username"`
+	Action                         ActionType `json:"action"`
+	Result                         Result     `json:"result"`
+	DetailedMessage                string     `json:"detailedMessage"`
+	Value                          string     `json:"value"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -63,10 +74,12 @@ type JenkinsJobStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:deprecatedversion
 type JenkinsJob struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   JenkinsJobSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsJobSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsJobStatus `json:"status,omitempty"`
 }
 
@@ -88,6 +101,7 @@ func (jj JenkinsJob) IsAutoTriggerEnabled() bool {
 // JenkinsFolderList contains a list of Jenkins
 type JenkinsJobList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsJob `json:"items"`
 }

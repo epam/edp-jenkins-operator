@@ -1146,15 +1146,15 @@ JenkinsFolderSpec defines the desired state of JenkinsFolder
         </tr>
     </thead>
     <tbody><tr>
-        <td><b><a href="#jenkinsfolderspecjob">job</a></b></td>
-        <td>object</td>
+        <td><b>codebaseName</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
-        <td>true</td>
+        <td>false</td>
       </tr><tr>
-        <td><b>codebaseName</b></td>
-        <td>string</td>
+        <td><b><a href="#jenkinsfolderspecjob">job</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -3198,17 +3198,17 @@ JenkinsFolder is the Schema for the jenkins API
         </tr>
     </thead>
     <tbody><tr>
-        <td><b><a href="#jenkinsfolderspecjob-1">job</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
         <td><b>codebaseName</b></td>
         <td>string</td>
         <td>
           INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#jenkinsfolderspecjob-1">job</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr><tr>

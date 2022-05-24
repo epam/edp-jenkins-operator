@@ -18,9 +18,12 @@ type CDStageJenkinsDeploymentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// +optional
 	Job string `json:"job,omitempty"`
-	Tag Tag    `json:"tag,omitempty"`
+	// +optional
+	Tag Tag `json:"tag,omitempty"`
 	// +nullable
+	// +optional
 	Tags []Tag `json:"tags,omitempty"`
 }
 
@@ -35,9 +38,12 @@ type CDStageJenkinsDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Status       string `json:"status,omitempty"`
-	Message      string `json:"message,omitempty"`
-	FailureCount int64  `json:"failureCount,omitempty"`
+	// +optional
+	Status string `json:"status,omitempty"`
+	// +optional
+	Message string `json:"message,omitempty"`
+	// +optional
+	FailureCount int64 `json:"failureCount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -47,10 +53,12 @@ type CDStageJenkinsDeploymentStatus struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 type CDStageJenkinsDeployment struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   CDStageJenkinsDeploymentSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec CDStageJenkinsDeploymentSpec `json:"spec,omitempty"`
+	// +optional
 	Status CDStageJenkinsDeploymentStatus `json:"status,omitempty"`
 }
 
@@ -64,6 +72,7 @@ func (in *CDStageJenkinsDeployment) SetFailedStatus(err error) {
 // CDStageJenkinsDeploymentList contains a list of CDStageJenkinsDeployment
 type CDStageJenkinsDeploymentList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []CDStageJenkinsDeployment `json:"items"`
 }

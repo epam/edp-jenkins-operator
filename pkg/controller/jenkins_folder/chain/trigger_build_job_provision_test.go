@@ -192,3 +192,19 @@ func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 	platform.AssertExpectations(t)
 	jenkinsFolderHandler.AssertExpectations(t)
 }
+
+func TestTriggerBuildJobProvision_ServeRequest_SkipBuild(t *testing.T) {
+	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
+	client := fake.NewClientBuilder().Build()
+	platform := pmock.PlatformService{}
+
+	tr := TriggerBuildJobProvision{
+		next:   &jenkinsFolderHandler,
+		client: client,
+		ps:     &platform,
+	}
+
+	err := tr.ServeRequest(&jenkinsApi.JenkinsFolder{})
+
+	assert.Error(t, err)
+}

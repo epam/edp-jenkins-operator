@@ -34,14 +34,17 @@ spec:
           spec:
             properties:
               deleteAfterCompletionInterval:
+                nullable: true
                 type: string
               jobpath:
                 type: string
               ownerName:
+                nullable: true
                 type: string
               params:
                 additionalProperties:
                   type: string
+                nullable: true
                 type: object
               retry:
                 type: integer
@@ -92,10 +95,12 @@ spec:
           spec:
             properties:
               deleteAfterCompletionInterval:
+                nullable: true
                 type: string
               jobpath:
                 type: string
               ownerName:
+                nullable: true
                 type: string
               params:
                 additionalProperties:

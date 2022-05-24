@@ -35,11 +35,13 @@ spec:
           spec:
             properties:
               jenkinsFolder:
+                nullable: true
                 type: string
               job:
                 properties:
                   autoTriggerPeriod:
                     format: int32
+                    nullable: true
                     type: integer
                   config:
                     type: string
@@ -50,8 +52,10 @@ spec:
                 - name
                 type: object
               ownerName:
+                nullable: true
                 type: string
               stageName:
+                nullable: true
                 type: string
             required:
             - job
@@ -113,11 +117,13 @@ spec:
           spec:
             properties:
               jenkinsFolder:
+                nullable: true
                 type: string
               job:
                 properties:
                   autoTriggerPeriod:
                     format: int32
+                    nullable: true
                     type: integer
                   config:
                     type: string
@@ -132,8 +138,10 @@ spec:
                   Important: Run "operator-sdk generate k8s" to regenerate code after
                   modifying this file Add custom validation using kubebuilder tags:
                   https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                nullable: true
                 type: string
               stageName:
+                nullable: true
                 type: string
             required:
             - job

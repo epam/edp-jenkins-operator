@@ -18,29 +18,40 @@ const (
 )
 
 type JenkinsJobSpec struct {
-	OwnerName     *string `json:"ownerName,omitempty"`
-	StageName     *string `json:"stageName,omitempty"`
+	// +nullable
+	// +optional
+	OwnerName *string `json:"ownerName,omitempty"`
+	// +nullable
+	// +optional
+	StageName *string `json:"stageName,omitempty"`
+	// +nullable
+	// +optional
 	JenkinsFolder *string `json:"jenkinsFolder,omitempty"`
 	Job           Job     `json:"job"`
 }
 
 type Job struct {
-	Name              string `json:"name"`
-	Config            string `json:"config"`
+	Name   string `json:"name"`
+	Config string `json:"config"`
+	// +nullable
+	// +optional
 	AutoTriggerPeriod *int32 `json:"autoTriggerPeriod,omitempty"`
 }
 
 // JenkinsJobStatus defines the observed state of JenkinsJob
 type JenkinsJobStatus struct {
-	Available                      bool        `json:"available,omitempty"`
-	LastTimeUpdated                metav1.Time `json:"lastTimeUpdated,omitempty"`
-	Status                         string      `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64       `json:"jenkinsJobProvisionBuildNumber"`
-	Username                       string      `json:"username"`
-	Action                         ActionType  `json:"action"`
-	Result                         Result      `json:"result"`
-	DetailedMessage                string      `json:"detailedMessage"`
-	Value                          string      `json:"value"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
+	// +optional
+	Status                         string     `json:"status,omitempty"`
+	JenkinsJobProvisionBuildNumber int64      `json:"jenkinsJobProvisionBuildNumber"`
+	Username                       string     `json:"username"`
+	Action                         ActionType `json:"action"`
+	Result                         Result     `json:"result"`
+	DetailedMessage                string     `json:"detailedMessage"`
+	Value                          string     `json:"value"`
 }
 
 //+kubebuilder:object:root=true
@@ -49,10 +60,13 @@ type JenkinsJobStatus struct {
 
 // JenkinsJob is the Schema for the jenkinsjob API
 type JenkinsJob struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JenkinsJobSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsJobSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsJobStatus `json:"status,omitempty"`
 }
 
@@ -74,6 +88,7 @@ func (jj JenkinsJob) IsAutoTriggerEnabled() bool {
 // JenkinsJobList contains a list of JenkinsJob
 type JenkinsJobList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsJob `json:"items"`
 }

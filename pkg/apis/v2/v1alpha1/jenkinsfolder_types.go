@@ -14,9 +14,15 @@ type JenkinsFolderSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// +nullable
+	// +optional
 	CodebaseName *string `json:"codebaseName,omitempty"`
-	OwnerName    *string `json:"ownerName,omitempty"`
-	Job          *Job    `json:"job"`
+	// +nullable
+	// +optional
+	OwnerName *string `json:"ownerName,omitempty"`
+	// +nullable
+	// +optional
+	Job *Job `json:"job"`
 }
 
 // JenkinsFolderStatus defines the observed state of Jenkins
@@ -25,10 +31,13 @@ type JenkinsFolderStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Available                      bool        `json:"available,omitempty"`
-	LastTimeUpdated                metav1.Time `json:"lastTimeUpdated,omitempty"`
-	Status                         string      `json:"status,omitempty"`
-	JenkinsJobProvisionBuildNumber int64       `json:"jenkinsJobProvisionBuildNumber"`
+	// +optional
+	Available bool `json:"available,omitempty"`
+	// +optional
+	LastTimeUpdated metav1.Time `json:"lastTimeUpdated,omitempty"`
+	// +optional
+	Status                         string `json:"status,omitempty"`
+	JenkinsJobProvisionBuildNumber int64  `json:"jenkinsJobProvisionBuildNumber"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -38,10 +47,12 @@ type JenkinsFolderStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:deprecatedversion
 type JenkinsFolder struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   JenkinsFolderSpec   `json:"spec,omitempty"`
+	// +optional
+	Spec JenkinsFolderSpec `json:"spec,omitempty"`
+	// +optional
 	Status JenkinsFolderStatus `json:"status,omitempty"`
 }
 
@@ -50,6 +61,7 @@ type JenkinsFolder struct {
 // JenkinsFolderList contains a list of Jenkins
 type JenkinsFolderList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []JenkinsFolder `json:"items"`
 }
