@@ -60,7 +60,7 @@ spec:
             runAsUser: 999
             runAsGroup: 998
       containers:
-        - name: jenkins
+        - name: edp-jenkins
           image: {{.Values.jenkins.image}}:{{.Values.jenkins.version}}
           imagePullPolicy: "{{ .Values.jenkins.imagePullPolicy }}"
           ports:

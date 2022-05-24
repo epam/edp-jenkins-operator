@@ -55,7 +55,7 @@ spec:
               value: openshift
           image: {{.Values.jenkins.image}}:{{.Values.jenkins.version}}
           imagePullPolicy: "{{ .Values.jenkins.imagePullPolicy }}"
-          name: jenkins
+          name: edp-jenkins
           ports:
             - containerPort: 8080
               protocol: TCP
