@@ -23,20 +23,14 @@ annotations:
   artifacthub.io/license: Apache-2.0
   artifacthub.io/operator: "true"
   artifacthub.io/images: |
-    - name: jenkins-operator:2.10.1
-      image: epamedp/jenkins-operator:2.10.1
-    - name: jenkins-operator:2.10.0
-      image: epamedp/jenkins-operator:2.10.0
-    - name: edp-jenkins:2.10.1
-      image: epamedp/edp-jenkins:2.10.1
-    - name: edp-jenkins:2.10.0
-      image: epamedp/edp-jenkins:2.10.0
-    - name: edp-jenkins:2.9.0
-      image: epamedp/edp-jenkins:2.9.0
+    - name: jenkins-operator:2.11.0
+      image: epamedp/jenkins-operator:2.11.0
+    - name: edp-jenkins:2.11.0
+      image: epamedp/edp-jenkins:2.11.0
     - name: busybox:1.35.0
       image: busybox:1.35.0
-    - name: alpine:3.13.7
-      image: alpine:3.13.7
+    - name: alpine:3.15.4
+      image: alpine:3.15.4
   artifacthub.io/operatorCapabilities: Full Lifecycle
   artifacthub.io/crds: |
     - kind: CDStageJenkinsDeployment
@@ -89,6 +83,11 @@ annotations:
       name: jenkinsserviceaccounts
       displayName: JenkinsServiceAccount
       description: Configure Jenkins service account
+    - kind: JenkinsSharedLibrary
+      version: v2.edp.epam.com/v1alpha1
+      name: jenkinssharedlibrary
+      displayName: JenkinsSharedLibrary
+      description: Configuring Jenkins Shared Library
   artifacthub.io/crdsExamples: |
     - apiVersion: v2.edp.epam.com/v1alpha1
       kind: Jenkins
@@ -113,7 +112,7 @@ annotations:
         volumes:
           - capacity: 10Gi
             name: data
-            storageClass: gp2-retain
+            storageClass: gp2
     - apiVersion: v2.edp.epam.com/v1alpha1
       kind: JenkinsFolder
       metadata:
@@ -152,6 +151,35 @@ annotations:
         credentials: gerrit-ciuser-sshkey
         ownerName: 'blank'
         type: ssh
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsSharedLibrary
+      metadata:
+        name: lib1
+      spec:
+        name: edp-library-stages-beta
+        secret: ssh
+        tag: beta
+        url: 'https://github.com/epam/edp-library-stages.git'
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsAuthorizationRole
+      metadata:
+        name: mk1-role
+      spec:
+        name: mk1-role
+        roleType: "projectRoles"
+        pattern: ".*"
+        permissions:
+          - "hudson.model.Item.Read"
+          - "hudson.model.Item.Build"
+    - apiVersion: v2.edp.epam.com/v1alpha1
+      kind: JenkinsAuthorizationRoleMapping
+      metadata:
+        name: map-mk1
+      spec:
+        roleType: "projectRoles"
+        roles:
+          - mk1-role
+        group: user1@example.com
   artifacthub.io/links: |
     - name: EDP Documentation
       url: https://epam.github.io/edp-install/
