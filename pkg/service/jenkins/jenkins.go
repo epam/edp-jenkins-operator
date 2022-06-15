@@ -12,10 +12,9 @@ import (
 	"strings"
 
 	"github.com/dchest/uniuri"
-	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
+	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
-	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
@@ -232,14 +231,14 @@ func (j JenkinsServiceImpl) Integration(instance *jenkinsApi.Jenkins) (*jenkinsA
 		}
 
 		webUrl := fmt.Sprintf("%v://%v%v", s, h, p)
-		keycloakClient := keycloakV1Api.KeycloakClient{}
+		keycloakClient := keycloakApi.KeycloakClient{}
 		keycloakClient.Name = instance.Name
 		keycloakClient.Namespace = instance.Namespace
 		keycloakClient.Spec.ClientId = instance.Name
 		keycloakClient.Spec.Public = !instance.Spec.KeycloakSpec.IsPrivate
 		keycloakClient.Spec.Secret = instance.Spec.KeycloakSpec.SecretName
 		keycloakClient.Spec.WebUrl = webUrl
-		keycloakClient.Spec.RealmRoles = &[]keycloakV1Api.RealmRole{
+		keycloakClient.Spec.RealmRoles = &[]keycloakApi.RealmRole{
 			{
 				Name:      "jenkins-administrators",
 				Composite: "administrator",

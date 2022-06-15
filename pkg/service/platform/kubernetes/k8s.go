@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
-	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1alpha1"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1"
 	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"

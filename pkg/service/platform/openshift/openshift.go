@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1alpha1"
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"

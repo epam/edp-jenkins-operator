@@ -15,12 +15,12 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bndr/gojenkins v0.2.1-0.20181125150310-de43c03cf849
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
-	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20211130105433-ab18815b74d0
-	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20211130102103-b05e463cf62b
+	github.com/epam/edp-cd-pipeline-operator/v2 v2.3.0-58.0.20220606105731-5ac7dbf2a088
+	github.com/epam/edp-codebase-operator/v2 v2.3.0-95.0.20220609142808-e5274ded7b97
 	github.com/epam/edp-common v0.0.0-20211206180607-3e1ca60d6e4a
-	github.com/epam/edp-component-operator v0.1.1-0.20211129100139-b5b7659f98f6
-	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20211130161209-15bf5aec5493
-	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20211130125231-d444d239995b
+	github.com/epam/edp-component-operator v0.1.1-0.20220520092339-3063cc593800
+	github.com/epam/edp-gerrit-operator/v2 v2.3.0-73.0.20220614120042-eacd77bcd8c7
+	github.com/epam/edp-keycloak-operator v1.3.0-alpha-81.0.20220607092017-8aa0376f96c8
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.19.5
 	github.com/jarcoal/httpmock v1.0.8

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	v1alpha12 "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1alpha1"
+	v1alpha12 "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1alpha1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"

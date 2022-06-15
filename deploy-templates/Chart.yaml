@@ -34,62 +34,62 @@ annotations:
   artifacthub.io/operatorCapabilities: Full Lifecycle
   artifacthub.io/crds: |
     - kind: CDStageJenkinsDeployment
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: cdstagejenkinsdeployment
       displayName: CDStageJenkinsDeployment
       description: CD Stage configuration
     - kind: Jenkins
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkins
       displayName: Jenkins
       description: Jenkins server configuration
     - kind: JenkinsAgent
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsagent
       displayName: JenkinsAgent
       description: Jenkins agent configuration
     - kind: JenkinsAuthorizationRole
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsauthorizationrole
       displayName: JenkinsAuthorizationRole
       description: Jenkins role configuration
     - kind: JenkinsAuthorizationRoleMapping
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsauthorizationrolemappings
       displayName: JenkinsAuthorizationRoleMapping
       description: Jenkins role mapping configuration
     - kind: JenkinsFolder
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsfolder
       displayName: JenkinsFolder
       description: Jenkins folder configuration
     - kind: JenkinsJob
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsjob
       displayName: JenkinsJob
       description: Jenkins job configuration
     - kind: JenkinsJobBuildRun
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsjobbuildrun
       displayName: JenkinsJobBuildRun
       description: Configure job pipeline
     - kind: JenkinsScript
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsscript
       displayName: JenkinsScript
       description: Starts Jenkins scripts
     - kind: JenkinsServiceAccount
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinsserviceaccounts
       displayName: JenkinsServiceAccount
       description: Configure Jenkins service account
     - kind: JenkinsSharedLibrary
-      version: v2.edp.epam.com/v1alpha1
+      version: v2.edp.epam.com/v1
       name: jenkinssharedlibrary
       displayName: JenkinsSharedLibrary
       description: Configuring Jenkins Shared Library
   artifacthub.io/crdsExamples: |
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: Jenkins
       metadata:
         name: jenkins
@@ -113,7 +113,7 @@ annotations:
           - capacity: 10Gi
             name: data
             storageClass: gp2
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsFolder
       metadata:
         name: test
@@ -124,7 +124,7 @@ annotations:
             {"BUILD_TOOL":"maven","DEFAULT_BRANCH":"master","GIT_CREDENTIALS_ID":"gerrit-ciuser-sshkey","GIT_SERVER_CR_NAME":"gerrit","GIT_SERVER_CR_VERSION":"v2","JIRA_INTEGRATION_ENABLED":"false","LANGUAGE":"Java","NAME":"test","PARAM":"true","PLATFORM_TYPE":"kubernetes","REPOSITORY_PATH":"ssh://jenkins@gerrit.example.com:30023/test"}
           name: job-provisions/job/ci/job/default
         ownerName: null
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsJob
       metadata:
         name: test
@@ -136,14 +136,14 @@ annotations:
             {"AUTODEPLOY":"false","DEPLOYMENT_TYPE":"container","GIT_SERVER_CR_VERSION":"v2","PIPELINE_NAME":"deploy","QG_STAGES":"{\"name\":\"manual\",\"step_name\":\"qa\"}","SOURCE_TYPE":"default","STAGE_NAME":"qa"}
           name: job-provisions/job/cd/job/default
         stageName: deploy-qa
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsScript
       metadata:
         name: gerrit-jenkins-plugin-config
       spec:
         ownerName: null
         sourceConfigMapName: gerrit-jenkins-plugin-config
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsServiceAccount
       metadata:
         name: gerrit-ciuser-sshkey
@@ -151,7 +151,7 @@ annotations:
         credentials: gerrit-ciuser-sshkey
         ownerName: 'blank'
         type: ssh
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsSharedLibrary
       metadata:
         name: lib1
@@ -160,7 +160,7 @@ annotations:
         secret: ssh
         tag: beta
         url: 'https://github.com/epam/edp-library-stages.git'
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsAuthorizationRole
       metadata:
         name: mk1-role
@@ -171,7 +171,7 @@ annotations:
         permissions:
           - "hudson.model.Item.Read"
           - "hudson.model.Item.Build"
-    - apiVersion: v2.edp.epam.com/v1alpha1
+    - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsAuthorizationRoleMapping
       metadata:
         name: map-mk1

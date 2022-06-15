@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1alpha1"
+	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
