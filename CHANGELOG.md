@@ -3,6 +3,27 @@
 
 ### Features
 
+- Add Kubernetes and GitOps libraries stages to job provisioners [EPMDEDP-8257](https://jiraeu.epam.com/browse/EPMDEDP-8257)
+- Switch all CRDs to V1 [EPMDEDP-8987](https://jiraeu.epam.com/browse/EPMDEDP-8987)
+
+### Bug Fixes
+
+- Switch shared library controller to namespace scope instead cluster scope [EPMDEDP-8396](https://jiraeu.epam.com/browse/EPMDEDP-8396)
+- Set nullable and optional fields for CRDs [EPMDEDP-8987](https://jiraeu.epam.com/browse/EPMDEDP-8987)
+
+### Routine
+
+- Update chart annotation [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
+- Update current development version [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
+- Update current development version [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
+- Change container name for jenkins [EPMDEDP-9199](https://jiraeu.epam.com/browse/EPMDEDP-9199)
+- Update npm agent image version [EPMDEDP-9243](https://jiraeu.epam.com/browse/EPMDEDP-9243)
+
+
+<a name="v2.11.0"></a>
+## [v2.11.0] - 2022-05-25
+### Features
+
 - Discard old builds for CD pipelines [EPMDEDP-8181](https://jiraeu.epam.com/browse/EPMDEDP-8181)
 - Update Makefile changelog target [EPMDEDP-8218](https://jiraeu.epam.com/browse/EPMDEDP-8218)
 - Use tags list for the CODEBASE_VERSION for auto deploy. [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
@@ -19,6 +40,7 @@
 - Fix changelog breaking change section [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
 - Fix GH Actions for release pipeline [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
 - Fix build dockerfile issue [EPMDEDP-8238](https://jiraeu.epam.com/browse/EPMDEDP-8238)
+- Switch shared library controller to namespace scope instead cluster scope [EPMDEDP-8396](https://jiraeu.epam.com/browse/EPMDEDP-8396)
 - Fix changelog generation in GH Release Action [EPMDEDP-8468](https://jiraeu.epam.com/browse/EPMDEDP-8468)
 - Correct image version [EPMDEDP-8471](https://jiraeu.epam.com/browse/EPMDEDP-8471)
 - Jenkins assign role [EPMDEDP-8867](https://jiraeu.epam.com/browse/EPMDEDP-8867)
@@ -62,11 +84,15 @@
 - Update agents image versions [EPMDEDP-8808](https://jiraeu.epam.com/browse/EPMDEDP-8808)
 - Update agents image versions [EPMDEDP-8808](https://jiraeu.epam.com/browse/EPMDEDP-8808)
 - Update agents image versions [EPMDEDP-8808](https://jiraeu.epam.com/browse/EPMDEDP-8808)
-- Update current development version [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
-- Update current development version [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
+- Bump version to 2.11.0 [EPMDEDP-8832](https://jiraeu.epam.com/browse/EPMDEDP-8832)
 - Update base docker image to alpine 3.15.4 [EPMDEDP-8853](https://jiraeu.epam.com/browse/EPMDEDP-8853)
 - Update changelog [EPMDEDP-9185](https://jiraeu.epam.com/browse/EPMDEDP-9185)
 - Update npm agent image version [EPMDEDP-9243](https://jiraeu.epam.com/browse/EPMDEDP-9243)
+
+### BREAKING CHANGE:
+
+
+Custom resource will have two keys: 'tag' for single tag and 'tags' for the list of tags.
 
 
 <a name="v2.10.1"></a>
@@ -174,7 +200,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...HEAD
+[v2.11.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...v2.11.0
 [v2.10.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...v2.10.1
 [v2.10.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...v2.10.0
 [v2.9.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.8.3...v2.9.0
