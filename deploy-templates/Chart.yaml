@@ -96,8 +96,6 @@ annotations:
       spec:
         edpSpec:
           dnsWildcard: example.com
-        image: epamedp/edp-jenkins
-        initImage: busybox
         keycloakSpec:
           enabled: true
           realm: main
@@ -108,11 +106,6 @@ annotations:
           - name: edp-library-pipelines
             tag: v2.11.0
             url: https://github.com/epam/edp-library-pipelines.git
-        version: 2.10.1
-        volumes:
-          - capacity: 10Gi
-            name: data
-            storageClass: gp2
     - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsFolder
       metadata:

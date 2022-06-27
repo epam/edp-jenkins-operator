@@ -44,22 +44,6 @@ spec:
                 required:
                 - dnsWildcard
                 type: object
-              image:
-                type: string
-              imagePullSecrets:
-                items:
-                  description: LocalObjectReference contains enough information to
-                    let you locate the referenced object inside the same namespace.
-                  properties:
-                    name:
-                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        TODO: Add other useful fields. apiVersion, kind, uid?'
-                      type: string
-                  type: object
-                nullable: true
-                type: array
-              initImage:
-                type: string
               keycloakSpec:
                 properties:
                   enabled:
@@ -95,29 +79,8 @@ spec:
                   type: object
                 nullable: true
                 type: array
-              version:
-                type: string
-              volumes:
-                items:
-                  properties:
-                    capacity:
-                      type: string
-                    name:
-                      type: string
-                    storageClass:
-                      type: string
-                  required:
-                  - capacity
-                  - name
-                  - storageClass
-                  type: object
-                nullable: true
-                type: array
             required:
-            - image
-            - initImage
             - keycloakSpec
-            - version
             type: object
           status:
             description: JenkinsStatus defines the observed state of Jenkins

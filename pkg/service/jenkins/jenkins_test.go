@@ -94,9 +94,7 @@ func TestJenkinsServiceImpl_createTemplateScript(t *testing.T) {
 
 func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 	ji := &jenkinsApi.Jenkins{
-		Spec: jenkinsApi.JenkinsSpec{
-			Version: "0",
-		},
+		Spec: jenkinsApi.JenkinsSpec{},
 	}
 	data := map[string]string{"context": "lol"}
 	platformMock := pmock.PlatformService{}
@@ -131,7 +129,7 @@ func TestJenkinsServiceImpl_createTemplateScript_Failure(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
-	ji.Spec.Version = "2"
+
 	platformMock.On("CreateConfigMapWithUpdate", ji, "-temp", data).
 		Return(false, errors.New("CreateConfigMap fatal")).Once()
 

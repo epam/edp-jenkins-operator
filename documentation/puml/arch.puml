@@ -9,12 +9,7 @@ skinparam class {
 package jenkins-operator {
     class Jenkins {
         -- spec --
-        String image
-        String version
-        String initImage
         String basePath
-        []LocalObjectReference imagePullSecrets
-        []JenkinsVolumes jenkinsVolumes
         []JenkinsSharedLibraries jenkinsSharedLibraries
         KeycloakSpec keycloakSpec
         EdpSpec edpSpec
@@ -24,13 +19,6 @@ package jenkins-operator {
         String status
         String adminSecretName
         []Slave slaves
-    }
-
-    JenkinsVolumes "0..*" *-- "1" Jenkins
-    class JenkinsVolumes <internal> {
-        String name
-        String storageClass
-        String capacity
     }
 
     JenkinsSharedLibraries "0..*" *-- "1" Jenkins
@@ -173,7 +161,6 @@ package jenkins-operator {
 class LocalObjectReference {
     String name
 }
-Jenkins -l-> LocalObjectReference : imagePullSecrets
 EdpComponent <-- Jenkins : creates, owns
 KeycloakClient <-- Jenkins : creates
 JenkinsFolder "1" -u-> "0..1" Codebase : owner ref (if jobName != nil) || codebaseName

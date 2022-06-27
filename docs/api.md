@@ -310,29 +310,8 @@ JenkinsSpec defines the desired state of Jenkins
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>image</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>initImage</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
         <td><b><a href="#jenkinsspeckeycloakspec">keycloakSpec</a></b></td>
         <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>version</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -352,21 +331,7 @@ JenkinsSpec defines the desired state of Jenkins
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#jenkinsspecimagepullsecretsindex">imagePullSecrets</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b><a href="#jenkinsspecsharedlibrariesindex">sharedLibraries</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#jenkinsspecvolumesindex">volumes</a></b></td>
         <td>[]object</td>
         <td>
           <br/>
@@ -451,33 +416,6 @@ JenkinsSpec defines the desired state of Jenkins
 </table>
 
 
-### Jenkins.spec.imagePullSecrets[index]
-<sup><sup>[↩ Parent](#jenkinsspec)</sup></sup>
-
-
-
-LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
 ### Jenkins.spec.sharedLibraries[index]
 <sup><sup>[↩ Parent](#jenkinsspec)</sup></sup>
 
@@ -529,47 +467,6 @@ LocalObjectReference contains enough information to let you locate the reference
           <br/>
         </td>
         <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### Jenkins.spec.volumes[index]
-<sup><sup>[↩ Parent](#jenkinsspec)</sup></sup>
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>capacity</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>storageClass</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
       </tr></tbody>
 </table>
 
@@ -2386,7 +2283,7 @@ Jenkins is the Schema for the jenkins API
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#jenkinsspecimagepullsecretsindex-1">imagePullSecrets</a></b></td>
+        <td><b><a href="#jenkinsspecimagepullsecretsindex">imagePullSecrets</a></b></td>
         <td>[]object</td>
         <td>
           <br/>
@@ -2400,7 +2297,7 @@ Jenkins is the Schema for the jenkins API
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#jenkinsspecvolumesindex-1">volumes</a></b></td>
+        <td><b><a href="#jenkinsspecvolumesindex">volumes</a></b></td>
         <td>[]object</td>
         <td>
           <br/>

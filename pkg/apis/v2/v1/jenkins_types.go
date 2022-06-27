@@ -1,23 +1,13 @@
 package v1
 
 import (
-	coreV1Api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // JenkinsSpec defines the desired state of Jenkins
 type JenkinsSpec struct {
-	Image     string `json:"image"`
-	Version   string `json:"version"`
-	InitImage string `json:"initImage"`
 	// +optional
 	BasePath string `json:"basePath,omitempty"`
-	// +nullable
-	// +optional
-	ImagePullSecrets []coreV1Api.LocalObjectReference `json:"imagePullSecrets,omitempty"`
-	// +nullable
-	// +optional
-	Volumes []JenkinsVolumes `json:"volumes,omitempty"`
 	// +nullable
 	// +optional
 	SharedLibraries []JenkinsSharedLibraries `json:"sharedLibraries,omitempty"`
@@ -28,12 +18,6 @@ type JenkinsSpec struct {
 
 type EdpSpec struct {
 	DnsWildcard string `json:"dnsWildcard"`
-}
-
-type JenkinsVolumes struct {
-	Name         string `json:"name"`
-	StorageClass string `json:"storageClass"`
-	Capacity     string `json:"capacity"`
 }
 
 type JenkinsSharedLibraries struct {
