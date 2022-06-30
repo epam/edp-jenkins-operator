@@ -2,8 +2,18 @@
 ## [Unreleased]
 
 
+<a name="v2.11.1"></a>
+## [v2.11.1] - 2022-06-30
+### Routine
+
+- Update edp-library-stages tag [EPMDEDP-10158](https://jiraeu.epam.com/browse/EPMDEDP-10158)
+- Backport Makefile from master branch [EPMDEDP-10158](https://jiraeu.epam.com/browse/EPMDEDP-10158)
+- Fix Jira Ticket pattern for changelog generator [EPMDEDP-10159](https://jiraeu.epam.com/browse/EPMDEDP-10159)
+- Update chart annotation [EPMDEDP-9515](https://jiraeu.epam.com/browse/EPMDEDP-9515)
+
+
 <a name="v2.11.0"></a>
-## [v2.11.0] - 2022-05-20
+## [v2.11.0] - 2022-05-25
 ### Features
 
 - Discard old builds for CD pipelines [EPMDEDP-8181](https://jiraeu.epam.com/browse/EPMDEDP-8181)
@@ -182,7 +192,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...HEAD
+[v2.11.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...v2.11.1
 [v2.11.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...v2.11.0
 [v2.10.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.0...v2.10.1
 [v2.10.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.9.0...v2.10.0
