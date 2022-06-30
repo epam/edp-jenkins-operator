@@ -45,7 +45,7 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.resources.requests.cpu | string | `"100m"` |  |
 | jenkins.resources.requests.memory | string | `"512Mi"` |  |
 | jenkins.sharedLibraries[0].name | string | `"edp-library-stages"` |  |
-| jenkins.sharedLibraries[0].tag | string | `"v2.13.0"` |  |
+| jenkins.sharedLibraries[0].tag | string | `"v2.13.2"` |  |
 | jenkins.sharedLibraries[0].url | string | `"https://github.com/epam/edp-library-stages.git"` |  |
 | jenkins.sharedLibraries[1].name | string | `"edp-library-pipelines"` |  |
 | jenkins.sharedLibraries[1].tag | string | `"v2.12.0"` |  |
