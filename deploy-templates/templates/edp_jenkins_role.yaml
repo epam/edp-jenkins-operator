@@ -6,7 +6,7 @@ metadata:
   name: edp-jenkins-role
 rules:
   - apiGroups: ["*"] # "" indicates the core API group
-    resources: ["codebases", "codebasebranches", "codebaseimagestreams", "cdpipelines", "nexuses", "stages",
+    resources: ["codebases", "codebasebranches", "codebasebranches/status", "codebaseimagestreams", "cdpipelines", "nexuses", "stages",
                 "gitservers", "adminconsoles", "jenkinses", "jenkins", "edpcomponents", "keycloakrealms",
                 "jirafixversions", "codebases/finalizers", "jiraissuemetadatas", "jiraissuemetadatas/finalizers",
                 "jiraissuemetadatas/status"]
