@@ -7,14 +7,6 @@ metadata:
   name: edp-{{ .Values.name }}-{{ .Values.global.edpName }}
 rules:
 - apiGroups:
-  - '*'
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - get
-  - list
-  - update
-- apiGroups:
     - '*'
   resources:
     - keycloaks

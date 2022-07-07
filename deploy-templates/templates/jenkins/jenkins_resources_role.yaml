@@ -3,7 +3,7 @@ kind: Role
 metadata:
   labels:
     {{- include "jenkins-operator.labels" . | nindent 4 }}
-  name: edp-jenkins-role
+  name: jenkins-resources-role
 rules:
   - apiGroups: ["*"] # "" indicates the core API group
     resources: ["codebases", "codebasebranches", "codebasebranches/status", "codebaseimagestreams", "cdpipelines", "nexuses", "stages",
