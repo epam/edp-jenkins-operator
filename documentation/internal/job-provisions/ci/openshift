@@ -81,7 +81,7 @@ stages['Build-library-codenarc'] = '[{"name": "checkout"},{"name": "get-version"
     "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-kaniko'] = '[{"name": "checkout"},{"name": "get-version"}' +
  ',{"name": "dockerfile-lint"},{"name": "build-image-kaniko"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
- +stages['Build-library-helm'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
+stages['Build-library-helm'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-kustomize'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-argocd'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-flux'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
