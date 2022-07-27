@@ -25,7 +25,7 @@ A Helm chart for EDP Jenkins Operator
 | annotations | object | `{}` |  |
 | global.dnsWildCard | string | `"example.com"` |  |
 | global.edpName | string | `""` |  |
-| global.openshift.deploymentType | string | `"deploymentConfigs"` |  |
+| global.openshift.deploymentType | string | `"deployments"` |  |
 | global.platform | string | `"openshift"` |  |
 | image.name | string | `"epamedp/jenkins-operator"` |  |
 | image.version | string | `nil` |  |
