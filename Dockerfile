@@ -1,4 +1,4 @@
-FROM alpine:3.15.4
+FROM alpine:3.16.1
 
 ENV OPERATOR=/usr/local/bin/jenkins-operator \
     USER_UID=1001 \
@@ -6,7 +6,7 @@ ENV OPERATOR=/usr/local/bin/jenkins-operator \
     HOME=/home/jenkins-operator
 
 RUN apk add --no-cache ca-certificates=20220614-r0 \
-                       openssh-client==8.8_p1-r1
+                       openssh-client==9.0_p1-r2
 
 # install operator binary
 COPY ./dist/go-binary ${OPERATOR}
