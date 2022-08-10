@@ -27,8 +27,8 @@ A Helm chart for EDP Jenkins Operator
 | global.edpName | string | `""` |  |
 | global.openshift.deploymentType | string | `"deployments"` |  |
 | global.platform | string | `"openshift"` |  |
-| image.name | string | `"epamedp/jenkins-operator"` |  |
-| image.version | string | `nil` |  |
+| image.repository | string | `"epamedp/jenkins-operator"` |  |
+| image.tag | string | `nil` |  |
 | imagePullPolicy | string | `"IfNotPresent"` |  |
 | jenkins.affinity | object | `{}` |  |
 | jenkins.annotations | object | `{}` |  |

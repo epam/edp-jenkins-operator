@@ -23,7 +23,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: {{ .Values.name }}
-          image: "{{ .Values.image.name }}:{{ .Values.image.version | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.imagePullPolicy }}"
           command:
             - {{ .Values.name }}

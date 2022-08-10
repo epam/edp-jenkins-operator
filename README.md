@@ -50,8 +50,8 @@ In order to install the EDP Jenkins Operator, follow the steps below:
      - global.platform                        # "openshift" or "kubernetes";
      - global.dnsWildCard                     # a cluster DNS wildcard name;
      - global.openshift.deploymentType        # Wich type of kind will be deployed to Openshift (values: deployments/deploymentConfigs);
-     - image.name                             # EDP jenkins-oprator Docker image name. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator;
-     - image.version                          # EDP jenkins-oprator Docker image tag. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator/tags;
+     - image.repository                       # EDP jenkins-oprator Docker image name. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator;
+     - image.tag                              # EDP jenkins-oprator Docker image tag. The released image can be found on https://hub.docker.com/r/epamedp/jenkins-operator/tags;
      - jenkins.deploy                         # Flag to enable/disable Jenkins deploy;
      - jenkins.image                          # EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins";
      - jenkins.version                        # EDP Jenkins Docker image tag. Default supported is "2.4.0";
