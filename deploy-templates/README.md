@@ -41,9 +41,9 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.ingress.tls | list | `[]` |  |
 | jenkins.initImage | string | `"busybox:1.35.0"` |  |
 | jenkins.nodeSelector | object | `{}` |  |
-| jenkins.resources.limits.memory | string | `"3Gi"` |  |
-| jenkins.resources.requests.cpu | string | `"100m"` |  |
-| jenkins.resources.requests.memory | string | `"512Mi"` |  |
+| jenkins.resources.limits.memory | string | `"5Gi"` |  |
+| jenkins.resources.requests.cpu | string | `"1000m"` |  |
+| jenkins.resources.requests.memory | string | `"1500Mi"` |  |
 | jenkins.sharedLibraries[0].name | string | `"edp-library-stages"` |  |
 | jenkins.sharedLibraries[0].tag | string | `"master"` |  |
 | jenkins.sharedLibraries[0].url | string | `"https://github.com/epam/edp-library-stages.git"` |  |
