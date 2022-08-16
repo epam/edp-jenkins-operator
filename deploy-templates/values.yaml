@@ -1,18 +1,25 @@
 global:
+  # -- namespace or a project name (in case of OpenShift)
   edpName: ""
+  # -- platform type that can be "kubernetes" or "openshift"
   platform: "openshift"
-  dnsWildCard: "example.com"
+  # -- a cluster DNS wildcard name
+  dnsWildCard:
   openshift:
+    # -- Wich type of kind will be deployed to Openshift (values: deployments/deploymentConfigs)
     deploymentType: "deployments"
 
+# -- component name
 name: jenkins-operator
 annotations: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
 image:
+  # -- EDP jenkins-operator Docker image name. The released image can be found on [Dockerhub](https://hub.docker.com/r/epamedp/jenkins-operator)
   repository: epamedp/jenkins-operator
   # if not defined then .Chart.AppVersion is used
+  # -- EDP jenkins-operator Docker image tag. The released image can be found on [Dockerhub](https://hub.docker.com/r/epamedp/jenkins-operator/tags)
   tag:
 imagePullPolicy: "IfNotPresent"
 
@@ -24,13 +31,19 @@ resources:
     memory: 64Mi
 
 jenkins:
+  # -- Flag to enable/disable Jenkins deploy
   deploy: true
+  # --  Init Docker image for Jenkins deployment. Default is "busybox"
   initImage: "busybox:1.35.0"
+  # -- EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins"
   image: "epamedp/edp-jenkins"
+  # -- EDP Jenkins Docker image tag
   version: "2.12.0-SNAPSHOT"
   imagePullPolicy: "IfNotPresent"
   storage:
+    # -- Storageclass for Jenkins data volume
     class: gp2
+    # -- Jenkins data volume capacity
     size: 10Gi
   annotations: {}
   nodeSelector: {}
@@ -38,18 +51,21 @@ jenkins:
   affinity: {}
   ingress:
     annotations: {}
-    # pathType is only for k8s >= 1.1=
+    # -- pathType is only for k8s >= 1.1=
     pathType: Prefix
-    # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
-    # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+    # -- For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+    # -- See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
     # ingressClassName: nginx
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
   sharedLibraries:
+      # -- EDP shared-library name
     - name: "edp-library-stages"
+      # -- EDP shared-library repository link
       url: "https://github.com/epam/edp-library-stages.git"
+      # -- EDP shared-library repository version
       tag: "master"
     - name: "edp-library-pipelines"
       url: "https://github.com/epam/edp-library-pipelines.git"
@@ -60,6 +76,7 @@ jenkins:
 #      tag: "stub-tag"
 #      secret: "stub-secret-name"
 #      type: "ssh" # can be "ssh", "password" or "token"
+  # -- Secrets to pull from private Docker registry
   imagePullSecrets:
 #  basePath: ""
 

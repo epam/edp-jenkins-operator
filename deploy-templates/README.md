@@ -23,38 +23,38 @@ A Helm chart for EDP Jenkins Operator
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
 | annotations | object | `{}` |  |
-| global.dnsWildCard | string | `"example.com"` |  |
-| global.edpName | string | `""` |  |
-| global.openshift.deploymentType | string | `"deployments"` |  |
-| global.platform | string | `"openshift"` |  |
-| image.repository | string | `"epamedp/jenkins-operator"` |  |
-| image.tag | string | `nil` |  |
+| global.dnsWildCard | string | `nil` | a cluster DNS wildcard name |
+| global.edpName | string | `""` | namespace or a project name (in case of OpenShift) |
+| global.openshift.deploymentType | string | `"deployments"` | Wich type of kind will be deployed to Openshift (values: deployments/deploymentConfigs) |
+| global.platform | string | `"openshift"` | platform type that can be "kubernetes" or "openshift" |
+| image.repository | string | `"epamedp/jenkins-operator"` | EDP jenkins-operator Docker image name. The released image can be found on [Dockerhub](https://hub.docker.com/r/epamedp/jenkins-operator) |
+| image.tag | string | `nil` | EDP jenkins-operator Docker image tag. The released image can be found on [Dockerhub](https://hub.docker.com/r/epamedp/jenkins-operator/tags) |
 | imagePullPolicy | string | `"IfNotPresent"` |  |
 | jenkins.affinity | object | `{}` |  |
 | jenkins.annotations | object | `{}` |  |
-| jenkins.deploy | bool | `true` |  |
-| jenkins.image | string | `"epamedp/edp-jenkins"` |  |
+| jenkins.deploy | bool | `true` | Flag to enable/disable Jenkins deploy |
+| jenkins.image | string | `"epamedp/edp-jenkins"` | EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins" |
 | jenkins.imagePullPolicy | string | `"IfNotPresent"` |  |
-| jenkins.imagePullSecrets | string | `nil` |  |
+| jenkins.imagePullSecrets | string | `nil` | Secrets to pull from private Docker registry |
 | jenkins.ingress.annotations | object | `{}` |  |
-| jenkins.ingress.pathType | string | `"Prefix"` |  |
-| jenkins.ingress.tls | list | `[]` |  |
-| jenkins.initImage | string | `"busybox:1.35.0"` |  |
+| jenkins.ingress.pathType | string | `"Prefix"` | pathType is only for k8s >= 1.1= |
+| jenkins.ingress.tls | list | `[]` | See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress ingressClassName: nginx |
+| jenkins.initImage | string | `"busybox:1.35.0"` | Init Docker image for Jenkins deployment. Default is "busybox" |
 | jenkins.nodeSelector | object | `{}` |  |
 | jenkins.resources.limits.memory | string | `"5Gi"` |  |
 | jenkins.resources.requests.cpu | string | `"1000m"` |  |
 | jenkins.resources.requests.memory | string | `"1500Mi"` |  |
-| jenkins.sharedLibraries[0].name | string | `"edp-library-stages"` |  |
-| jenkins.sharedLibraries[0].tag | string | `"master"` |  |
-| jenkins.sharedLibraries[0].url | string | `"https://github.com/epam/edp-library-stages.git"` |  |
+| jenkins.sharedLibraries[0] | object | `{"name":"edp-library-stages","tag":"master","url":"https://github.com/epam/edp-library-stages.git"}` | EDP shared-library name |
+| jenkins.sharedLibraries[0].tag | string | `"master"` | EDP shared-library repository version |
+| jenkins.sharedLibraries[0].url | string | `"https://github.com/epam/edp-library-stages.git"` | EDP shared-library repository link |
 | jenkins.sharedLibraries[1].name | string | `"edp-library-pipelines"` |  |
 | jenkins.sharedLibraries[1].tag | string | `"master"` |  |
 | jenkins.sharedLibraries[1].url | string | `"https://github.com/epam/edp-library-pipelines.git"` |  |
-| jenkins.storage.class | string | `"gp2"` |  |
-| jenkins.storage.size | string | `"10Gi"` |  |
+| jenkins.storage.class | string | `"gp2"` | Storageclass for Jenkins data volume |
+| jenkins.storage.size | string | `"10Gi"` | Jenkins data volume capacity |
 | jenkins.tolerations | list | `[]` |  |
-| jenkins.version | string | `"2.12.0-SNAPSHOT"` |  |
-| name | string | `"jenkins-operator"` |  |
+| jenkins.version | string | `"2.12.0-SNAPSHOT"` | EDP Jenkins Docker image tag |
+| name | string | `"jenkins-operator"` | component name |
 | nodeSelector | object | `{}` |  |
 | resources.limits.memory | string | `"192Mi"` |  |
 | resources.requests.cpu | string | `"50m"` |  |
