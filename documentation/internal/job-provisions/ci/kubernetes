@@ -77,7 +77,7 @@ stages['Build-library-opa'] = '[{"name": "checkout"},{"name": "get-version"}' +
 stages['Build-library-codenarc'] = '[{"name": "checkout"},{"name": "get-version"},{"name": "sonar"},{"name": "build"}' +
     "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-library-kaniko'] = '[{"name": "checkout"},{"name": "get-version"}' +
- ',{"name": "dockerfile-lint"}' + "${buildStage}" + "${createJIMStage}" + ',{"name": "git-tag"}]'
+ ',{"name": "dockerfile-lint"},{"name": "build-image-kaniko"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 
 stages['Build-autotests-maven'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
 stages['Build-autotests-gradle'] = '[{"name": "checkout"},{"name": "get-version"}' + "${createJIMStage}" + ',{"name": "git-tag"}]'
