@@ -38,7 +38,7 @@ jenkins:
   # -- EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins"
   image: "epamedp/edp-jenkins"
   # -- EDP Jenkins Docker image tag
-  version: "2.12.0-SNAPSHOT"
+  version: "2.13.0-SNAPSHOT"
   imagePullPolicy: "IfNotPresent"
   storage:
     # -- Storageclass for Jenkins data volume
