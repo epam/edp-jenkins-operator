@@ -6,7 +6,7 @@
   <alwaysPullImage>false</alwaysPullImage>
   <instanceCap>2147483647</instanceCap>
   <slaveConnectTimeout>100</slaveConnectTimeout>
-  <idleMinutes>60</idleMinutes>
+  <idleMinutes>5</idleMinutes>
   <activeDeadlineSeconds>0</activeDeadlineSeconds>
   <label>npm</label>
   <serviceAccount>jenkins</serviceAccount>
