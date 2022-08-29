@@ -23,10 +23,10 @@ annotations:
   artifacthub.io/license: Apache-2.0
   artifacthub.io/operator: "true"
   artifacthub.io/images: |
-    - name: jenkins-operator:2.11.0
-      image: epamedp/jenkins-operator:2.11.0
-    - name: edp-jenkins:2.11.0
-      image: epamedp/edp-jenkins:2.11.0
+    - name: jenkins-operator:2.12.0
+      image: epamedp/jenkins-operator:2.12.0
+    - name: edp-jenkins:2.12.0
+      image: epamedp/edp-jenkins:2.12.0
     - name: busybox:1.35.0
       image: busybox:1.35.0
     - name: alpine:3.16.2
@@ -101,10 +101,10 @@ annotations:
           realm: main
         sharedLibraries:
           - name: edp-library-stages
-            tag: v2.12.0
+            tag: v2.14.0
             url: https://github.com/epam/edp-library-stages.git
           - name: edp-library-pipelines
-            tag: v2.11.0
+            tag: v2.13.0
             url: https://github.com/epam/edp-library-pipelines.git
     - apiVersion: v2.edp.epam.com/v1
       kind: JenkinsFolder
