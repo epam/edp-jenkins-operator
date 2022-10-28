@@ -1,9 +1,26 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+### Features
+
+- Added a stub linter [EPMDEDP-10536](https://jiraeu.epam.com/browse/EPMDEDP-10536)
+
 ### Routine
 
 - Update current development version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
+- Update current development version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
+- Change the idleMinutes parameter of npm jenkins agent from 60 to 5 [EPMDEDP-10485](https://jiraeu.epam.com/browse/EPMDEDP-10485)
+- Update resource requests and limits for the python jenkins agent [EPMDEDP-10486](https://jiraeu.epam.com/browse/EPMDEDP-10486)
+- Bump go agent version [EPMDEDP-10570](https://jiraeu.epam.com/browse/EPMDEDP-10570)
+- Update jenkins-go-agent to 3.0.15 [EPMDEDP-10735](https://jiraeu.epam.com/browse/EPMDEDP-10735)
+- Align maven,gradle image version [EPMDEDP-10755](https://jiraeu.epam.com/browse/EPMDEDP-10755)
+
+
+<a name="v2.12.1"></a>
+## [v2.12.1] - 2022-10-28
+### Routine
+
+- Align maven,gradle image version [EPMDEDP-10755](https://jiraeu.epam.com/browse/EPMDEDP-10755)
 
 
 <a name="v2.12.0"></a>
@@ -254,7 +271,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...HEAD
+[v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
 [v2.12.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...v2.12.0
 [v2.11.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...v2.11.1
 [v2.11.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...v2.11.0
