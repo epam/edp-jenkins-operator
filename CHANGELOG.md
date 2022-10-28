@@ -2,6 +2,13 @@
 ## [Unreleased]
 
 
+<a name="v2.12.1"></a>
+## [v2.12.1] - 2022-10-19
+### Routine
+
+- Align maven,gradle image version [EPMDEDP-10755](https://jiraeu.epam.com/browse/EPMDEDP-10755)
+
+
 <a name="v2.12.0"></a>
 ## [v2.12.0] - 2022-08-25
 ### Features
@@ -250,7 +257,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...HEAD
+[v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
 [v2.12.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...v2.12.0
 [v2.11.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...v2.11.1
 [v2.11.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.10.1...v2.11.0
