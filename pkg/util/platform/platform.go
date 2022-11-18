@@ -6,7 +6,6 @@ import (
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,7 +68,7 @@ func GetJenkinsInstanceOwner(c client.Client, name, namespace string, ownerName 
 		return GetJenkinsInstance(c, ow.Name, namespace)
 	}
 	if ownerName != nil {
-		log.Info("trying to fetch jenkins owner from spec", "jenkins name", ownerName)
+		plog.V(2).Info("trying to fetch jenkins owner from spec", "jenkins name", ownerName)
 		return GetJenkinsInstance(c, *ownerName, namespace)
 	}
 	plog.V(2).Info("trying to fetch first jenkins instance", "namespace", namespace)
