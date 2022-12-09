@@ -19,7 +19,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/edp-jenkins-sast-agent:0.1.3</image>
+      <image>epamedp/edp-jenkins-sast-agent:0.1.5</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>

@@ -24,7 +24,7 @@
   <containers>
     <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
       <name>jnlp</name>
-      <image>epamedp/edp-jenkins-maven-java8-agent:3.0.9</image>
+      <image>epamedp/edp-jenkins-maven-java8-agent:3.0.10</image>
       <privileged>false</privileged>
       <alwaysPullImage>false</alwaysPullImage>
       <workingDir>/tmp</workingDir>
