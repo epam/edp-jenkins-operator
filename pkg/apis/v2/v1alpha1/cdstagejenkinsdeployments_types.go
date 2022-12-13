@@ -69,7 +69,7 @@ func (in *CDStageJenkinsDeployment) SetFailedStatus(err error) {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// CDStageJenkinsDeploymentList contains a list of CDStageJenkinsDeployment
+// CDStageJenkinsDeploymentList contains a list of CDStageJenkinsDeployment.
 type CDStageJenkinsDeploymentList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

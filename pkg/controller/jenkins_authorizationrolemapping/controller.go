@@ -2,11 +2,11 @@ package jenkins_authorizationrolemapping
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -29,9 +29,7 @@ type Reconcile struct {
 	jenkinsClientFactory jenkins.ClientFactory
 }
 
-func NewReconciler(k8sCl client.Client, logf logr.Logger,
-	ps platform.PlatformService) *Reconcile {
-
+func NewReconciler(k8sCl client.Client, logf logr.Logger, ps platform.PlatformService) *Reconcile {
 	return &Reconcile{
 		client:               k8sCl,
 		log:                  logf.WithName("controller_jenkins_authorizationrolemapping"),
@@ -44,37 +42,51 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 		UpdateFunc: specUpdated,
 	}
 
-	return ctrl.NewControllerManagedBy(mgr).
+	if err := ctrl.NewControllerManagedBy(mgr).
 		For(&jenkinsApi.JenkinsAuthorizationRoleMapping{}, builder.WithPredicates(p)).
-		Complete(r)
+		Complete(r); err != nil {
+		return fmt.Errorf("failed to create new managed controller: %w", err)
+	}
+
+	return nil
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
-	no := e.ObjectNew.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
+	oldObject, ok := e.ObjectOld.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
+	if !ok {
+		return false
+	}
 
-	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
-		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
+	newObject, ok := e.ObjectNew.(*jenkinsApi.JenkinsAuthorizationRoleMapping)
+	if !ok {
+		return false
+	}
+
+	return !reflect.DeepEqual(oldObject.Spec, newObject.Spec) ||
+		(oldObject.GetDeletionTimestamp().IsZero() && !newObject.GetDeletionTimestamp().IsZero())
 }
 
-func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (result reconcile.Result, resError error) {
+func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	var result reconcile.Result
+
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRoleMapping has been started")
 
 	var instance jenkinsApi.JenkinsAuthorizationRoleMapping
-	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
+	if err := r.client.Get(ctx, request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.Info("instance not found")
-			return
+
+			return result, nil
 		}
 
-		return reconcile.Result{}, errors.Wrap(err, "unable to get JenkinsAuthorizationRoleMapping instance")
+		return result, fmt.Errorf("failed to get JenkinsAuthorizationRoleMapping instance, %w", err)
 	}
 
 	jc, err := r.jenkinsClientFactory.MakeNewClient(&instance.ObjectMeta, instance.Spec.OwnerName)
 	if err != nil {
 		return reconcile.Result{},
-			errors.Wrap(err, "an error has been occurred while creating gojenkins client")
+			fmt.Errorf("failed to create gojenkins client: %w", err)
 	}
 
 	defer func() {
@@ -86,43 +98,49 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	if err := r.tryToReconcile(ctx, &instance, jc); err != nil {
 		r.log.Error(err, "error during reconciliation", "instance", instance)
 		instance.Status.Value = err.Error()
+
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
+
 	instance.Status.Value = helper.StatusSuccess
 
 	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRole has been finished")
-	return
+
+	return result, nil
 }
 
-func (r *Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
-	jc jenkins.ClientInterface) error {
-
+func (r *Reconcile) tryToReconcile(ctx context.Context,
+	instance *jenkinsApi.JenkinsAuthorizationRoleMapping, jc jenkins.ClientInterface,
+) error {
 	for _, rl := range instance.Spec.Roles {
 		if err := jc.AssignRole(instance.Spec.RoleType, rl, instance.Spec.Group); err != nil {
-			return errors.Wrap(err, "unable to assign role")
+			return fmt.Errorf("failed to assign role: %w", err)
 		}
 	}
 
 	updateNeeded, err := helper.TryToDelete(instance, finalizerName, makeDeletionFunc(instance, jc))
 	if err != nil {
-		return errors.Wrap(err, "unable to delete instance")
+		return fmt.Errorf("failed to delete instance: %w", err)
 	}
 
-	if updateNeeded {
-		if err := r.client.Update(ctx, instance); err != nil {
-			return errors.Wrap(err, "unable to update instance")
-		}
+	if !updateNeeded {
+		return nil
+	}
+
+	if err := r.client.Update(ctx, instance); err != nil {
+		return fmt.Errorf("failed to update instance: %w", err)
 	}
 
 	return nil
 }
 
 func makeDeletionFunc(instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
-	jc jenkins.ClientInterface) func() error {
+	jc jenkins.ClientInterface,
+) func() error {
 	return func() error {
 		for _, rl := range instance.Spec.Roles {
 			if err := jc.UnAssignRole(instance.Spec.RoleType, rl, instance.Spec.Group); err != nil {
-				return errors.Wrap(err, "unable to unassign role")
+				return fmt.Errorf("failed to unassign role: %w", err)
 			}
 		}
 

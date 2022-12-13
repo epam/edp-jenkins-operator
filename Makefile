@@ -53,8 +53,8 @@ fmt:  ## Run go fmt
 vet:  ## Run go vet
 	go vet ./...
 
-lint: ## Run go lint
-	exit 0
+lint: golangci-lint ## Run go lint
+	${GOLANGCILINT} run -v -c .golangci.yaml ./...
 
 .PHONY: build
 build: clean ## build operator's binary
@@ -85,6 +85,11 @@ HELMDOCS = ${CURRENT_DIR}/bin/helm-docs
 .PHONY: helmdocs
 helmdocs: ## Download helm-docs locally if necessary.
 	$(call go-get-tool,$(HELMDOCS),github.com/norwoodj/helm-docs/cmd/helm-docs,v1.11.0)
+
+GOLANGCILINT = ${CURRENT_DIR}/bin/golangci-lint
+.PHONY: golangci-lint
+golangci-lint: ## Download golangci-lint locally if necessary.
+	$(call go-get-tool,$(GOLANGCILINT),github.com/golangci/golangci-lint/cmd/golangci-lint,v1.50.1)
 
 GITCHGLOG = ${CURRENT_DIR}/bin/git-chglog
 .PHONY: git-chglog

@@ -4,7 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// JenkinsSpec defines the desired state of Jenkins
+// JenkinsSpec defines the desired state of Jenkins.
 type JenkinsSpec struct {
 	// +optional
 	BasePath string `json:"basePath,omitempty"`
@@ -32,7 +32,7 @@ type JenkinsSharedLibraries struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// JenkinsStatus defines the observed state of Jenkins
+// JenkinsStatus defines the observed state of Jenkins.
 type JenkinsStatus struct {
 	// +optional
 	Available bool `json:"available,omitempty"`
@@ -74,7 +74,7 @@ type KeycloakSpec struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// Jenkins is the Schema for the jenkins API
+// Jenkins is the Schema for the jenkins API.
 type Jenkins struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -88,7 +88,7 @@ type Jenkins struct {
 
 //+kubebuilder:object:root=true
 
-// JenkinsList contains a list of Jenkins
+// JenkinsList contains a list of Jenkins.
 type JenkinsList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

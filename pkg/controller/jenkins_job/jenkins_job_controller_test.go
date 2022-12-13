@@ -4,21 +4,19 @@ import (
 	"context"
 	"errors"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+	common "github.com/epam/edp-common/pkg/mock"
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
@@ -26,9 +24,11 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
-const name = "name"
-const namespace = "namespace"
-const URLScheme = "https"
+const (
+	name      = "name"
+	namespace = "namespace"
+	URLScheme = "https"
+)
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -37,6 +37,7 @@ var nsn = types.NamespacedName{
 
 func createJenkinsJobInstance() *jenkinsApi.JenkinsJob {
 	str := name
+
 	return &jenkinsApi.JenkinsJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -52,7 +53,7 @@ func TestReconcileJenkinsJob_Reconcile_EmptyClient(t *testing.T) {
 	ctx := context.Background()
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 	cl := fake.NewClientBuilder().WithObjects().WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -78,7 +79,7 @@ func TestReconcileJenkinsJob_Reconcile_tryToDeleteJobErr(t *testing.T) {
 	instance := createJenkinsJobInstance()
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 	cl := fake.NewClientBuilder().WithObjects(instance).WithScheme(s).Build()
 
 	errTest := errors.New("test")
@@ -94,9 +95,11 @@ func TestReconcileJenkinsJob_Reconcile_tryToDeleteJobErr(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: nsn,
 	}
-	rs, err := rg.Reconcile(ctx, req)
 
-	assert.Equal(t, errTest, err)
+	rs, err := rg.Reconcile(ctx, req)
+	assert.Error(t, err)
+
+	assert.Contains(t, err.Error(), "failed to Update jenkins job: test")
 	assert.Equal(t, reconcile.Result{}, rs)
 	mc.AssertExpectations(t)
 }
@@ -107,7 +110,7 @@ func TestReconcileJenkinsJob_Reconcile_setOwnersErr(t *testing.T) {
 	instance := createJenkinsJobInstance()
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{})
 	cl := fake.NewClientBuilder().WithObjects(instance).WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -121,7 +124,7 @@ func TestReconcileJenkinsJob_Reconcile_setOwnersErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while setting owner reference"))
+	assert.Contains(t, err.Error(), "failed to set owner reference")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -146,7 +149,7 @@ func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledErr(t *testing.T) {
 	instance.Spec.JenkinsFolder = &str
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage).WithScheme(s).Build()
 
 	errTest := errors.New("test")
@@ -168,7 +171,7 @@ func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while checking availability of creating jenkins job"))
+	assert.Contains(t, err.Error(), "failed to check whether the jenkins job can be created")
 	assert.Equal(t, reconcile.Result{}, rs)
 	mc.AssertExpectations(t)
 }
@@ -184,7 +187,7 @@ func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledFalse(t *testing.T)
 	}
 
 	folder := &jenkinsApi.JenkinsFolder{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      name + "-cd-pipeline",
 			Namespace: namespace,
 		},
@@ -198,7 +201,7 @@ func TestReconcileJenkinsJob_Reconcile_canJenkinsJobBeHandledFalse(t *testing.T)
 	instance.Spec.JenkinsFolder = &str
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsFolder{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsFolder{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, folder).WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -228,7 +231,7 @@ func TestReconcileJenkinsJob_Reconcile_GetJenkinsInstanceOwnerErr(t *testing.T) 
 	instance := createJenkinsJobInstance()
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{})
 	cl := fake.NewClientBuilder().WithObjects(instance, stage).WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -243,7 +246,7 @@ func TestReconcileJenkinsJob_Reconcile_GetJenkinsInstanceOwnerErr(t *testing.T) 
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while getting owner jenkins for jenkins job"))
+	assert.Contains(t, err.Error(), "failed to handle JenkinsJob: failed to get jenkins owner for jenkins job")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -251,10 +254,12 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	ctx := context.Background()
 	platformMock := pmock.PlatformService{}
 
-	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	}}
+	jen := &jenkinsApi.Jenkins{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
 
 	stage := &cdPipeApi.Stage{
 		ObjectMeta: metav1.ObjectMeta{
@@ -267,9 +272,16 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 
 	errTest := errors.New("test")
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
-		&jenkinsApi.Jenkins{})
+	s.AddKnownTypes(
+		metav1.SchemeGroupVersion,
+		&jenkinsApi.JenkinsJob{},
+		&cdPipeApi.Stage{},
+		&jenkinsApi.JenkinsList{},
+		&jenkinsApi.Jenkins{},
+	)
+
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
+
 	platformMock.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
 
 	log := &common.Logger{}
@@ -285,7 +297,7 @@ func TestReconcileJenkinsJob_Reconcile_InitGoJenkinsClientErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has occurred while init jenkins client"))
+	assert.Contains(t, err.Error(), "failed to init jenkins client")
 	assert.Equal(t, reconcile.Result{}, rs)
 	platformMock.AssertExpectations(t)
 }
@@ -294,10 +306,11 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	ctx := context.Background()
 	platformMock := pmock.PlatformService{}
 
-	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	},
+	jen := &jenkinsApi.Jenkins{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
 	}
 
 	secretData := map[string][]byte{
@@ -319,10 +332,18 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://12/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
-		&jenkinsApi.Jenkins{})
+	s.AddKnownTypes(
+		metav1.SchemeGroupVersion,
+		&jenkinsApi.JenkinsJob{},
+		&cdPipeApi.Stage{},
+		&jenkinsApi.JenkinsList{},
+		&jenkinsApi.Jenkins{},
+	)
+
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
+
+	platformMock.On("GetExternalEndpoint", namespace, name).
+		Return("1", URLScheme, "2", nil)
 	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
 	log := &common.Logger{}
@@ -338,7 +359,7 @@ func TestReconcileJenkinsJob_Reconcile_isJenkinsJobExistErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has occurred while retrieving jenkins job"))
+	assert.Contains(t, err.Error(), "failed to retrieve jenkins job")
 	assert.Equal(t, reconcile.Result{}, rs)
 	platformMock.AssertExpectations(t)
 }
@@ -347,10 +368,11 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	ctx := context.Background()
 	platformMock := pmock.PlatformService{}
 
-	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	},
+	jen := &jenkinsApi.Jenkins{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
 	}
 
 	secretData := map[string][]byte{
@@ -373,9 +395,16 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://12/job/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
-		&jenkinsApi.Jenkins{})
+	s.AddKnownTypes(
+		metav1.SchemeGroupVersion,
+		&jenkinsApi.JenkinsJob{},
+		&cdPipeApi.Stage{},
+		&jenkinsApi.JenkinsList{},
+		&jenkinsApi.Jenkins{},
+	)
+
 	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
+
 	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
 	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
@@ -392,7 +421,7 @@ func TestReconcileJenkinsJob_Reconcile_getChainErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has occurred while selecting chain"))
+	assert.Contains(t, err.Error(), "failed to select chain")
 	assert.Equal(t, reconcile.Result{}, rs)
 	platformMock.AssertExpectations(t)
 }
@@ -401,10 +430,11 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	ctx := context.Background()
 	platformMock := pmock.PlatformService{}
 
-	jen := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	},
+	jen := &jenkinsApi.Jenkins{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
 	}
 
 	secretData := map[string][]byte{
@@ -429,10 +459,21 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://12/job/api/json", httpmock.NewStringResponder(200, ""))
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &cdPipeApi.Stage{}, &jenkinsApi.JenkinsList{},
-		&jenkinsApi.Jenkins{})
-	cl := fake.NewClientBuilder().WithObjects(instance, stage, jen).WithScheme(s).Build()
-	platformMock.On("GetExternalEndpoint", namespace, name).Return("1", URLScheme, "2", nil)
+	s.AddKnownTypes(
+		metav1.SchemeGroupVersion,
+		&jenkinsApi.JenkinsJob{},
+		&cdPipeApi.Stage{},
+		&jenkinsApi.JenkinsList{},
+		&jenkinsApi.Jenkins{},
+	)
+
+	cl := fake.NewClientBuilder().
+		WithObjects(instance, stage, jen).
+		WithScheme(s).
+		Build()
+
+	platformMock.On("GetExternalEndpoint", namespace, name).
+		Return("1", URLScheme, "2", nil)
 	platformMock.On("GetSecretData", namespace, "").Return(secretData, nil)
 
 	log := &common.Logger{}
@@ -448,13 +489,12 @@ func TestReconcileJenkinsJob_Reconcile_ServeRequestErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
+	assert.Contains(t, err.Error(), "failed to create gojenkins client")
 	assert.Equal(t, reconcile.Result{}, rs)
 	platformMock.AssertExpectations(t)
 }
 
 func TestNewReconcileJenkinsJob(t *testing.T) {
-
 	cl := fake.NewClientBuilder().Build()
 	log := &common.Logger{}
 	scheme := runtime.NewScheme()
@@ -467,5 +507,4 @@ func TestNewReconcileJenkinsJob(t *testing.T) {
 		platform: platformMock,
 	}
 	assert.Equal(t, Expected, Reconcile)
-
 }

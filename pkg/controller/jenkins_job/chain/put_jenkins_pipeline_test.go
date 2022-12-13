@@ -3,22 +3,22 @@ package chain
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/bndr/gojenkins"
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
-	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
+	common "github.com/epam/edp-common/pkg/mock"
 	jjmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_job"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
 const (
@@ -48,9 +48,10 @@ func TestPutJenkinsPipeline_ServeRequest_setStatusErr(t *testing.T) {
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	err := pipeline.ServeRequest(jenkinsJob)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "set status err"))
+	assert.Contains(t, err.Error(), "failed to set status")
 }
 
 func TestPutJenkinsPipeline_ServeRequest_tryToCreateJobErr(t *testing.T) {
@@ -70,9 +71,10 @@ func TestPutJenkinsPipeline_ServeRequest_tryToCreateJobErr(t *testing.T) {
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	err := pipeline.ServeRequest(jenkinsJob)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while getting owner jenkins for jenkins job name"))
+	assert.Contains(t, err.Error(), "failed to get owner jenkins for jenkins job name")
 }
 
 func TestPutJenkinsPipeline_ServeRequest_setStatusErr2(t *testing.T) {
@@ -92,9 +94,10 @@ func TestPutJenkinsPipeline_ServeRequest_setStatusErr2(t *testing.T) {
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	err := pipeline.ServeRequest(jenkinsJob)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while getting owner jenkins for jenkins job name"))
+	assert.Contains(t, err.Error(), "failed to get owner jenkins for jenkins job name")
 }
 
 func TestPutJenkinsPipeline_ServeRequest(t *testing.T) {
@@ -107,12 +110,22 @@ func TestPutJenkinsPipeline_ServeRequest(t *testing.T) {
 	jenkinsJob.ObjectMeta.OwnerReferences = []v1.OwnerReference{orJenkins, orStage}
 	jenkinsJob.Spec.Job.Name = name
 	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
-	stage := &cdPipeApi.Stage{TypeMeta: v1.TypeMeta{Kind: "Stage", APIVersion: "meta.k8s.io/v1"},
-		ObjectMeta: ObjectMeta()}
+	stage := &cdPipeApi.Stage{
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Stage",
+			APIVersion: "meta.k8s.io/v1",
+		},
+		ObjectMeta: ObjectMeta(),
+	}
 
 	scheme := runtime.NewScheme()
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{},
-		&cdPipeApi.Stage{})
+	scheme.AddKnownTypes(
+		v1.SchemeGroupVersion,
+		&jenkinsApi.JenkinsJob{},
+		&jenkinsApi.JenkinsList{},
+		&jenkinsApi.Jenkins{},
+		&cdPipeApi.Stage{},
+	)
 
 	secretData := map[string][]byte{
 		"username": {'a'},
@@ -126,21 +139,38 @@ func TestPutJenkinsPipeline_ServeRequest(t *testing.T) {
 
 	platform.On("GetExternalEndpoint", namespace, name).Return("", URLScheme, "", nil)
 	platform.On("GetSecretData", namespace, "").Return(secretData, nil)
+
 	innerJob := gojenkins.InnerJob{Name: name}
 	Raw := gojenkins.ExecutorResponse{Jobs: []gojenkins.InnerJob{innerJob}}
+
 	marshal, err := json.Marshal(Raw)
 	assert.NoError(t, err)
-	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewBytesResponder(http.StatusOK, marshal))
-	platform.On("CreateStageJSON", *stage).Return(name, nil)
-	httpmock.RegisterResponder(http.MethodGet, "https://crumbIssuer/api/json/api/json", httpmock.NewStringResponder(http.StatusOK, ""))
-	httpmock.RegisterResponder(http.MethodPost, "https://createItem", httpmock.NewStringResponder(http.StatusOK, ""))
+
+	httpmock.RegisterResponder(
+		http.MethodGet,
+		"https://api/json",
+		httpmock.NewBytesResponder(http.StatusOK, marshal),
+	)
+	platform.On("CreateStageJSON", stage).Return(name, nil)
+	httpmock.RegisterResponder(
+		http.MethodGet,
+		"https://crumbIssuer/api/json/api/json",
+		httpmock.NewStringResponder(http.StatusOK, ""),
+	)
+	httpmock.RegisterResponder(
+		http.MethodPost,
+		"https://createItem",
+		httpmock.NewStringResponder(http.StatusOK, ""),
+	)
 	jh.On("ServeRequest", jenkinsJob).Return(nil)
+
 	pipeline := PutJenkinsPipeline{
 		next:   &jh,
 		client: cl,
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	err = pipeline.ServeRequest(jenkinsJob)
 	assert.NoError(t, err)
 }
@@ -151,7 +181,11 @@ func TestPutJenkinsPipeline_setPipeSrcParams_getLibraryParamsErr(t *testing.T) {
 		Spec: cdPipeApi.StageSpec{
 			Source: cdPipeApi.Source{
 				Library: cdPipeApi.Library{
-					Name: name}}}}
+					Name: name,
+				},
+			},
+		},
+	}
 	cl := fake.NewClientBuilder().Build()
 	jh := jjmock.JenkinsJobHandler{}
 	platform := pmock.PlatformService{}
@@ -163,9 +197,10 @@ func TestPutJenkinsPipeline_setPipeSrcParams_getLibraryParamsErr(t *testing.T) {
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	pipeline.setPipeSrcParams(stage, nil)
 	assert.Error(t, lg.LastError())
-	assert.True(t, strings.Contains(lg.LastError().Error(), "Codebase"))
+	assert.Contains(t, lg.LastError().Error(), "Codebase")
 }
 
 func TestPutJenkinsPipeline_setPipeSrcParams_getGitServerParamsErr(t *testing.T) {
@@ -174,12 +209,18 @@ func TestPutJenkinsPipeline_setPipeSrcParams_getGitServerParamsErr(t *testing.T)
 		Spec: cdPipeApi.StageSpec{
 			Source: cdPipeApi.Source{
 				Library: cdPipeApi.Library{
-					Name: name}}}}
+					Name: name,
+				},
+			},
+		},
+	}
 
 	cb := &codebaseApi.Codebase{
 		ObjectMeta: ObjectMeta(),
 		Spec: codebaseApi.CodebaseSpec{
-			GitServer: name}}
+			GitServer: name,
+		},
+	}
 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &codebaseApi.Codebase{})
@@ -195,9 +236,10 @@ func TestPutJenkinsPipeline_setPipeSrcParams_getGitServerParamsErr(t *testing.T)
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	pipeline.setPipeSrcParams(stage, nil)
 	assert.Error(t, lg.LastError())
-	assert.True(t, strings.Contains(lg.LastError().Error(), "GitServer"))
+	assert.Contains(t, lg.LastError().Error(), "GitServer")
 }
 
 func TestPutJenkinsPipeline_setPipeSrcParams(t *testing.T) {
@@ -206,12 +248,18 @@ func TestPutJenkinsPipeline_setPipeSrcParams(t *testing.T) {
 		Spec: cdPipeApi.StageSpec{
 			Source: cdPipeApi.Source{
 				Library: cdPipeApi.Library{
-					Name: name}}}}
+					Name: name,
+				},
+			},
+		},
+	}
 
 	cb := &codebaseApi.Codebase{
 		ObjectMeta: ObjectMeta(),
 		Spec: codebaseApi.CodebaseSpec{
-			GitServer: name}}
+			GitServer: name,
+		},
+	}
 
 	ps := map[string]interface{}{}
 
@@ -231,6 +279,48 @@ func TestPutJenkinsPipeline_setPipeSrcParams(t *testing.T) {
 		ps:     &platform,
 		log:    &lg,
 	}
+
 	pipeline.setPipeSrcParams(stage, ps)
 	assert.NoError(t, lg.LastError())
+}
+
+func Test_getResult(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		status string
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want jenkinsApi.Result
+	}{
+		{
+			name: "should return \"success\"",
+			args: args{
+				status: consts.StatusFinished,
+			},
+			want: "success",
+		},
+		{
+			name: "should return \"error\"",
+			args: args{
+				status: consts.StatusFailed,
+			},
+			want: "error",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := getResult(tt.args.status)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }

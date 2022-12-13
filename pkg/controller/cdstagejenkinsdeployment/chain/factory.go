@@ -1,6 +1,8 @@
 package chain
 
 import (
+	"fmt"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -9,22 +11,28 @@ import (
 	ps "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
-func CreateDefChain(client client.Client, service ps.PlatformService) handler.CDStageJenkinsDeploymentHandler {
+func CreateDefChain(k8sClient client.Client, service ps.PlatformService) handler.CDStageJenkinsDeploymentHandler {
 	log := ctrl.Log.WithName("cd-stage-jenkins-deployment-chain")
+
 	return TriggerJenkinsDeployJob{
-		client:   client,
+		client:   k8sClient,
 		platform: service,
 		log:      log,
 		next: DeleteCDStageDeploy{
-			client: client,
+			client: k8sClient,
 			log:    log,
 		},
 	}
 }
 
 func nextServeOrNil(next handler.CDStageJenkinsDeploymentHandler, jd *jenkinsApi.CDStageJenkinsDeployment) error {
-	if next != nil {
-		return next.ServeRequest(jd)
+	if next == nil {
+		return nil
 	}
+
+	if err := next.ServeRequest(jd); err != nil {
+		return fmt.Errorf("failed to perform next ServeRequest: %w", err)
+	}
+
 	return nil
 }

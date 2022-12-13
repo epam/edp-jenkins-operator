@@ -12,7 +12,7 @@ type JenkinsScriptSpec struct {
 	OwnerName *string `json:"ownerName,omitempty"`
 }
 
-// JenkinsScriptStatus defines the observed state of JenkinsScript
+// JenkinsScriptStatus defines the observed state of JenkinsScript.
 type JenkinsScriptStatus struct {
 	// +optional
 	Available bool `json:"available,omitempty"`
@@ -26,7 +26,7 @@ type JenkinsScriptStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// JenkinsScript is the Schema for the jenkinsscripts API
+// JenkinsScript is the Schema for the jenkinsscripts API.
 type JenkinsScript struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -40,7 +40,7 @@ type JenkinsScript struct {
 
 //+kubebuilder:object:root=true
 
-// JenkinsScriptList contains a list of JenkinsScript
+// JenkinsScriptList contains a list of JenkinsScript.
 type JenkinsScriptList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

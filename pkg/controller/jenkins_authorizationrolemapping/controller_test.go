@@ -2,11 +2,11 @@ package jenkins_authorizationrolemapping
 
 import (
 	"context"
-	"strings"
+	"errors"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -63,9 +63,7 @@ func TestReconcile_Reconcile(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestReconcile_Reconcile_Delete(t *testing.T) {
@@ -96,19 +94,22 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkInstance jenkinsApi.JenkinsAuthorizationRoleMapping
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
-		&checkInstance); err != nil {
-		t.Fatal(err)
-	}
 
-	if len(checkInstance.GetFinalizers()) > 0 {
-		t.Fatal("finalizers still set")
-	}
+	require.NoError(t,
+		k8sClient.Get(
+			context.Background(),
+			types.NamespacedName{
+				Namespace: jarm.Namespace,
+				Name:      jarm.Name,
+			},
+			&checkInstance,
+		),
+	)
+
+	require.Emptyf(t, checkInstance.GetFinalizers(), "finalizers still set")
 }
 
 func TestReconcile_Reconcile_Delete_Failure_UnsetRoles(t *testing.T) {
@@ -135,24 +136,29 @@ func TestReconcile_Reconcile_Delete_Failure_UnsetRoles(t *testing.T) {
 	}
 
 	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
+		NamespacedName: types.NamespacedName{
+			Namespace: jarm.Namespace,
+			Name:      jarm.Name,
+		},
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkInstance jenkinsApi.JenkinsAuthorizationRoleMapping
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
-		&checkInstance); err != nil {
-		t.Fatal(err)
-	}
 
-	if !strings.Contains(checkInstance.Status.Value, "unset role fatal") {
-		t.Log(checkInstance.Status.Value)
-		t.Fatal("no unset error in instance status")
-	}
+	require.NoError(t,
+		k8sClient.Get(
+			context.Background(),
+			types.NamespacedName{
+				Namespace: jarm.Namespace,
+				Name:      jarm.Name,
+			},
+			&checkInstance,
+		),
+	)
+
+	require.Containsf(t, checkInstance.Status.Value, "unset role fatal", "no unset error in instance status")
 }
 
 func TestSpecUpdated(t *testing.T) {
@@ -160,9 +166,7 @@ func TestSpecUpdated(t *testing.T) {
 	jarm2 := getTestJenkinsAuthorizationRoleMapping()
 	jarm2.Spec.RoleType = "rt123"
 
-	if !specUpdated(event.UpdateEvent{ObjectOld: jarm1, ObjectNew: jarm2}) {
-		t.Fatal("spec is updated")
-	}
+	require.True(t, specUpdated(event.UpdateEvent{ObjectOld: jarm1, ObjectNew: jarm2}))
 }
 
 func TestNewReconciler(t *testing.T) {
@@ -171,13 +175,9 @@ func TestNewReconciler(t *testing.T) {
 	ps := pmock.PlatformService{}
 
 	rec := NewReconciler(k8sClient, &lg, &ps)
-	if rec == nil {
-		t.Fatal("reconciler is not inited")
-	}
+	require.NotNilf(t, rec, "reconciler is not inited")
 
-	if rec.log != &lg || rec.client != k8sClient {
-		t.Fatal("wrong reconciler params")
-	}
+	require.Falsef(t, rec.log != &lg || rec.client != k8sClient, "wrong reconciler params")
 }
 
 func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
@@ -194,17 +194,16 @@ func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 	}
 
 	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: "baz"},
+		NamespacedName: types.NamespacedName{
+			Namespace: jarm.Namespace,
+			Name:      "baz",
+		},
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if logger.LastInfo() != "instance not found" {
-		t.Fatal("not found error is not logged")
-	}
+	require.Equalf(t, "instance not found", logger.LastInfo(), "not found error is not logged")
 }
 
 func TestReconcile_Reconcile_FailureMakeJenkinsClient(t *testing.T) {
@@ -215,8 +214,8 @@ func TestReconcile_Reconcile_FailureMakeJenkinsClient(t *testing.T) {
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jarm).Build()
 	logger := helper.LoggerMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(nil,
-		errors.New("client fatal"))
+	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).
+		Return(nil, errors.New("client fatal"))
 
 	r := Reconcile{
 		client:               k8sClient,
@@ -225,17 +224,16 @@ func TestReconcile_Reconcile_FailureMakeJenkinsClient(t *testing.T) {
 	}
 
 	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: jarm.Namespace, Name: jarm.Name},
+		NamespacedName: types.NamespacedName{
+			Namespace: jarm.Namespace,
+			Name:      jarm.Name,
+		},
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err == nil {
-		t.Fatal("error is not returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(err.Error(), "client fatal") {
-		t.Fatalf("wrong error returned: %s", err.Error())
-	}
+	require.Contains(t, err.Error(), "client fatal")
 }
 
 func TestReconcile_Reconcile_AssignRoleFailure(t *testing.T) {
@@ -248,7 +246,9 @@ func TestReconcile_Reconcile_AssignRoleFailure(t *testing.T) {
 	jClient := jenkins.ClientMock{}
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jarm.Spec.OwnerName).Return(&jClient, nil)
-	jClient.On("AssignRole", jarm.Spec.RoleType, jarm.Spec.Roles[0], jarm.Spec.Group).Return(errors.New("assign fatal"))
+	jClient.On("AssignRole", jarm.Spec.RoleType, jarm.Spec.Roles[0], jarm.Spec.Group).
+		Return(errors.New("assign fatal"))
+
 	logger := helper.LoggerMock{}
 
 	r := Reconcile{
@@ -262,16 +262,10 @@ func TestReconcile_Reconcile_AssignRoleFailure(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	lastErr := logger.LastError()
-	if lastErr == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, lastErr)
 
-	if !strings.Contains(lastErr.Error(), "assign fatal") {
-		t.Fatalf("wrong error returned: %s", lastErr.Error())
-	}
+	require.Contains(t, lastErr.Error(), "assign fatal")
 }

@@ -82,22 +82,31 @@ type JenkinsJob struct {
 	Status JenkinsJobStatus `json:"status,omitempty"`
 }
 
-func (jj JenkinsJob) IsAutoTriggerEnabled() bool {
+func (jj *JenkinsJob) IsAutoTriggerEnabled() bool {
 	period := jj.Spec.Job.AutoTriggerPeriod
+
 	if period == nil || *period == 0 {
 		return false
 	}
-	if *period < 5 || *period > 7200 {
+
+	var (
+		minPeriod int32 = 5
+		maxPeriod int32 = 7200
+	)
+
+	if *period < minPeriod || *period > maxPeriod {
 		ctrl.Log.WithName("jenkins-job-api").Info("autoTriggerPeriod value is incorrect. disable auto trigger",
 			"value", *period)
+
 		return false
 	}
+
 	return true
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// JenkinsFolderList contains a list of Jenkins
+// JenkinsFolderList contains a list of Jenkins.
 type JenkinsJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

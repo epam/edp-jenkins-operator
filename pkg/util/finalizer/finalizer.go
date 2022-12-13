@@ -6,15 +6,20 @@ func ContainsString(slice []string, s string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
-func RemoveString(slice []string, s string) (result []string) {
+func RemoveString(slice []string, s string) []string {
+	result := make([]string, 0, len(slice))
+
 	for _, item := range slice {
 		if item == s {
 			continue
 		}
+
 		result = append(result, item)
 	}
-	return
+
+	return result
 }

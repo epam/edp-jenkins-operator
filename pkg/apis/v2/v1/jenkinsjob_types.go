@@ -38,7 +38,7 @@ type Job struct {
 	AutoTriggerPeriod *int32 `json:"autoTriggerPeriod,omitempty"`
 }
 
-// JenkinsJobStatus defines the observed state of JenkinsJob
+// JenkinsJobStatus defines the observed state of JenkinsJob.
 type JenkinsJobStatus struct {
 	// +optional
 	Available bool `json:"available,omitempty"`
@@ -57,7 +57,7 @@ type JenkinsJobStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// JenkinsJob is the Schema for the jenkinsjob API
+// JenkinsJob is the Schema for the jenkinsjob API.
 type JenkinsJob struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -69,22 +69,31 @@ type JenkinsJob struct {
 	Status JenkinsJobStatus `json:"status,omitempty"`
 }
 
-func (jj JenkinsJob) IsAutoTriggerEnabled() bool {
+func (jj *JenkinsJob) IsAutoTriggerEnabled() bool {
 	period := jj.Spec.Job.AutoTriggerPeriod
+
 	if period == nil || *period == 0 {
 		return false
 	}
-	if *period < 5 || *period > 7200 {
+
+	var (
+		minPeriod int32 = 5
+		maxPeriod int32 = 7200
+	)
+
+	if *period < minPeriod || *period > maxPeriod {
 		ctrl.Log.WithName("jenkins-job-api").Info("autoTriggerPeriod value is incorrect. disable auto trigger",
 			"value", *period)
+
 		return false
 	}
+
 	return true
 }
 
 //+kubebuilder:object:root=true
 
-// JenkinsJobList contains a list of JenkinsJob
+// JenkinsJobList contains a list of JenkinsJob.
 type JenkinsJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

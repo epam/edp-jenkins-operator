@@ -1,6 +1,8 @@
 package chain
 
 import (
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,11 +18,12 @@ var log = ctrl.Log.WithName("jenkins-folder-chain")
 func CreateCDPipelineFolderChain(s *runtime.Scheme, c client.Client) (handler.JenkinsFolderHandler, error) {
 	pt, err := helper.GetPlatformTypeEnv()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to GetPlatformTypeEnv: %w", err)
 	}
+
 	ps, err := platform.NewPlatformService(pt, s, c)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create new PlatformService: %w", err)
 	}
 
 	return PutCDPipelineJenkinsFolder{
@@ -33,11 +36,12 @@ func CreateCDPipelineFolderChain(s *runtime.Scheme, c client.Client) (handler.Je
 func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c client.Client) (handler.JenkinsFolderHandler, error) {
 	pt, err := helper.GetPlatformTypeEnv()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get PlatformTypeEnv: %w", err)
 	}
+
 	ps, err := platform.NewPlatformService(pt, s, c)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create new PlatformService: %w", err)
 	}
 
 	return TriggerBuildJobProvision{
@@ -47,9 +51,15 @@ func CreateTriggerBuildProvisionChain(s *runtime.Scheme, c client.Client) (handl
 }
 
 func nextServeOrNil(next handler.JenkinsFolderHandler, jf *jenkinsApi.JenkinsFolder) error {
-	if next != nil {
-		return next.ServeRequest(jf)
+	if next == nil {
+		log.Info("handling of jenkins job has been finished", "name", jf.Name)
+
+		return nil
 	}
-	log.Info("handling of jenkins job has been finished", "name", jf.Name)
+
+	if err := next.ServeRequest(jf); err != nil {
+		return fmt.Errorf("failed to serve next request: %w", err)
+	}
+
 	return nil
 }

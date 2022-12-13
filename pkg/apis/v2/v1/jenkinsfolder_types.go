@@ -4,7 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// JenkinsFolderSpec defines the desired state of JenkinsFolder
+// JenkinsFolderSpec defines the desired state of JenkinsFolder.
 type JenkinsFolderSpec struct {
 	// +optional
 	// +nullable
@@ -17,7 +17,7 @@ type JenkinsFolderSpec struct {
 	Job *Job `json:"job"`
 }
 
-// JenkinsFolderStatus defines the observed state of JenkinsFolder
+// JenkinsFolderStatus defines the observed state of JenkinsFolder.
 type JenkinsFolderStatus struct {
 	// +optional
 	Available bool `json:"available,omitempty"`
@@ -31,7 +31,7 @@ type JenkinsFolderStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// JenkinsFolder is the Schema for the jenkinsfolder API
+// JenkinsFolder is the Schema for the jenkinsfolder API.
 type JenkinsFolder struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -45,7 +45,7 @@ type JenkinsFolder struct {
 
 //+kubebuilder:object:root=true
 
-// JenkinsFolderList contains a list of JenkinsFolder
+// JenkinsFolderList contains a list of JenkinsFolder.
 type JenkinsFolderList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

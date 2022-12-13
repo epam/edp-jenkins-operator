@@ -3,16 +3,15 @@ package chain
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"testing"
 
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	common "github.com/epam/edp-common/pkg/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 )
@@ -29,9 +28,10 @@ func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr(t *testing.T) {
 		ps:     &platform,
 		log:    &logger,
 	}
+
 	err := trigger.ServeRequest(jenkinsJob)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while updating"))
+	assert.Contains(t, err.Error(), "failed to update  JenkinsJob status")
 }
 
 func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr2(t *testing.T) {
@@ -49,14 +49,16 @@ func TestTriggerJobProvision_ServeRequest_triggerJobProvisionErr2(t *testing.T) 
 		ps:     &platform,
 		log:    &logger,
 	}
+
 	err := trigger.ServeRequest(jenkinsJob)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
+	assert.Contains(t, err.Error(), "failed to create gojenkins client")
 }
 
 func TestTriggerJobProvision_ServeRequest(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
+
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
@@ -85,6 +87,7 @@ func TestTriggerJobProvision_ServeRequest(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsJob{}, &jenkinsApi.Jenkins{})
+
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkinsJob, jenkins).Build()
 	platform := pmock.PlatformService{}
 	logger := common.Logger{}
@@ -103,6 +106,7 @@ func TestTriggerJobProvision_ServeRequest(t *testing.T) {
 		ps:     &platform,
 		log:    &logger,
 	}
+
 	err = trigger.ServeRequest(jenkinsJob)
 	assert.NoError(t, err)
 }

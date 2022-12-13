@@ -2,10 +2,10 @@ package chain
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -21,84 +21,74 @@ const (
 func TestInitDefChain_PlatformTypeErr(t *testing.T) {
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	_, err := InitDefChain(s, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
+	assert.Contains(t, err.Error(), "environment variable PLATFORM_TYPE not found")
 }
 
 func TestInitDefChain_NewPlatformServiceErr(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, wrongPlatform)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, wrongPlatform))
+
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	_, err = InitDefChain(s, client)
+
+	_, err := InitDefChain(s, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Contains(t, err.Error(), "unknown platform type")
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestInitDefChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, platform.K8SPlatformType))
+
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	_, err = InitDefChain(s, client)
+
+	_, err := InitDefChain(s, client)
 	assert.NoError(t, err)
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestInitTriggerJobProvisionChain_PlatformTypeErr(t *testing.T) {
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	_, err := InitTriggerJobProvisionChain(s, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
+	assert.Contains(t, err.Error(), "environment variable PLATFORM_TYPE not found")
 }
 
 func TestInitTriggerJobProvisionChain_NewPlatformServiceErr(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, wrongPlatform)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, wrongPlatform))
+
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	_, err = InitTriggerJobProvisionChain(s, client)
+
+	_, err := InitTriggerJobProvisionChain(s, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Contains(t, err.Error(), "unknown platform type")
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestInitTriggerJobProvisionChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, platform.K8SPlatformType))
+
 	s := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
-	_, err = InitTriggerJobProvisionChain(s, client)
+
+	_, err := InitTriggerJobProvisionChain(s, client)
 	assert.NoError(t, err)
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func Test_nextServeOrNil(t *testing.T) {
 	jj := &jenkinsApi.JenkinsJob{}
 	jj.Name = "name"
-	err := nextServeOrNil(nil, jj)
-	assert.NoError(t, err)
+
+	assert.NoError(t, nextServeOrNil(nil, jj))
 }

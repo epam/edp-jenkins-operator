@@ -3,12 +3,9 @@ package cdstagejenkinsdeployment
 import (
 	"context"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
-	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,6 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
+	common "github.com/epam/edp-common/pkg/mock"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
@@ -24,8 +23,10 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
 )
 
-const name = "name"
-const namespace = "namespace"
+const (
+	name      = "name"
+	namespace = "namespace"
+)
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -79,7 +80,7 @@ func TestReconcileCDStageJenkinsDeployment_setOwnerReferenceErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "cannot set owner ref for"))
+	assert.Contains(t, err.Error(), "failed to set owner ref for")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -117,7 +118,7 @@ func TestReconcileCDStageJenkinsDeployment_GetPlatformTypeEnvErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
+	assert.Contains(t, err.Error(), "environment variable PLATFORM_TYPE not found")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -138,8 +139,8 @@ func TestReconcileCDStageJenkinsDeployment_NewPlatformServiceErr(t *testing.T) {
 	instance.Labels = map[string]string{
 		consts.CdStageDeployKey: name,
 	}
-	err := os.Setenv(helper.PlatformType, "test")
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Setenv(helper.PlatformType, "test"))
 
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.CDStageJenkinsDeployment{}, &codebaseApi.CDStageDeploy{})
@@ -157,10 +158,10 @@ func TestReconcileCDStageJenkinsDeployment_NewPlatformServiceErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "couldn't create platform service"))
+	assert.Contains(t, err.Error(), "failed to create platform service")
 	assert.Equal(t, reconcile.Result{}, rs)
-	err = os.Unsetenv(helper.PlatformType)
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestReconcileCDStageJenkinsDeployment_CreateDefChainErr(t *testing.T) {
@@ -187,11 +188,16 @@ func TestReconcileCDStageJenkinsDeployment_CreateDefChainErr(t *testing.T) {
 		consts.CdStageDeployKey: name,
 		chain.JenkinsKey:        name,
 	}
-	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Setenv(helper.PlatformType, platform.K8SPlatformType))
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.CDStageJenkinsDeployment{}, &codebaseApi.CDStageDeploy{}, &jenkinsApi.Jenkins{})
+	s.AddKnownTypes(
+		v1.SchemeGroupVersion,
+		&jenkinsApi.CDStageJenkinsDeployment{},
+		&codebaseApi.CDStageDeploy{},
+		&jenkinsApi.Jenkins{})
+
 	cl := fake.NewClientBuilder().WithObjects(instance, CDStageDeploy, jenkins).WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -208,12 +214,11 @@ func TestReconcileCDStageJenkinsDeployment_CreateDefChainErr(t *testing.T) {
 	assert.NoError(t, err)
 
 	result := &jenkinsApi.CDStageJenkinsDeployment{}
-	err = cl.Get(ctx, nsn, result)
-	assert.NoError(t, err)
+	assert.NoError(t, cl.Get(ctx, nsn, result))
 	assert.Equal(t, "failed", result.Status.Status)
 	assert.Equal(t, reconcile.Result{RequeueAfter: 500 * time.Millisecond}, rs)
-	err = os.Unsetenv(helper.PlatformType)
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestNewReconcileCDStageJenkinsDeployment(t *testing.T) {

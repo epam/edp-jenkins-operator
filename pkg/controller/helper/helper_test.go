@@ -1,13 +1,13 @@
 package helper
 
 import (
+	"errors"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -19,6 +19,7 @@ func TestNewJenkinsUser(t *testing.T) {
 	data := map[string][]byte{}
 	secretName := "name"
 	credentialsType := []string{SSHUserType, PasswordUserType, TokenUserType}
+
 	for i := range credentialsType {
 		_, err := NewJenkinsUser(data, credentialsType[i], secretName)
 		assert.NoError(t, err)
@@ -29,8 +30,9 @@ func TestNewJenkinsUserErr(t *testing.T) {
 	data := map[string][]byte{}
 	secretName := "name"
 	credentialsType := ""
+
 	_, err := NewJenkinsUser(data, credentialsType, secretName)
-	assert.Equal(t, "Unknown credentials type!", err.Error())
+	assert.Equal(t, "unknown credentials type", err.Error())
 }
 
 func TestJenkinsCredentials_ToString(t *testing.T) {
@@ -44,13 +46,14 @@ func TestJenkinsCredentials_ToString(t *testing.T) {
 
 func TestGetPlatformTypeEnv(t *testing.T) {
 	str := "test"
-	err := os.Setenv(PlatformType, str)
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Setenv(PlatformType, str))
+
 	env, err := GetPlatformTypeEnv()
 	assert.NoError(t, err)
 	assert.Equal(t, str, env)
-	err = os.Unsetenv(PlatformType)
-	assert.NoError(t, err)
+
+	assert.NoError(t, os.Unsetenv(PlatformType))
 }
 
 func TestGetPlatformTypeEnvErr(t *testing.T) {
@@ -73,15 +76,12 @@ func TestTryToDelete_AddFinalizers(t *testing.T) {
 	s := scheme.Scheme
 	s.AddKnownTypes(v1.SchemeGroupVersion, &ja)
 
-	if _, err := TryToDelete(&ja, "fint", func() error {
+	_, err := TryToDelete(&ja, "fint", func() error {
 		return nil
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
+	require.NoError(t, err)
 
-	if len(ja.GetFinalizers()) == 0 {
-		t.Fatal("no finalizers added")
-	}
+	require.NotEmptyf(t, ja.GetFinalizers(), "no finalizers added")
 }
 
 func TestTryToDelete_RemoveFinalizers(t *testing.T) {
@@ -96,15 +96,12 @@ func TestTryToDelete_RemoveFinalizers(t *testing.T) {
 	s := scheme.Scheme
 	s.AddKnownTypes(v1.SchemeGroupVersion, &ja)
 
-	if _, err := TryToDelete(&ja, "fint", func() error {
+	_, err := TryToDelete(&ja, "fint", func() error {
 		return nil
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
+	require.NoError(t, err)
 
-	if len(ja.GetFinalizers()) > 0 {
-		t.Fatal("finalizers is not removed")
-	}
+	require.Emptyf(t, ja.GetFinalizers(), "finalizers are not removed")
 }
 
 func TestTryToDelete_DeleteFuncFailure(t *testing.T) {
@@ -121,17 +118,11 @@ func TestTryToDelete_DeleteFuncFailure(t *testing.T) {
 	_, err := TryToDelete(&ja, "fint", func() error {
 		return errors.New("del func fatal")
 	})
-	if err == nil {
-		t.Fatal("no error func returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(err.Error(), "del func fatal") {
-		t.Log(err)
-		t.Fatal("wrong func returned")
-	}
+	require.Contains(t, err.Error(), "del func fatal")
 }
 
 func TestJenkinsIsNotFoundErr(t *testing.T) {
-	err := errors.New("404")
-	assert.True(t, JenkinsIsNotFoundErr(err))
+	assert.True(t, JenkinsIsNotFoundErr(errors.New("404")))
 }

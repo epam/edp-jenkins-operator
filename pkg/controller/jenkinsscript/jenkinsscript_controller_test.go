@@ -3,11 +3,9 @@ package jenkinsscript
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,13 +13,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	common "github.com/epam/edp-common/pkg/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
-const name = "name"
-const namespace = "namespace"
+const (
+	name      = "name"
+	namespace = "namespace"
+)
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -100,7 +101,7 @@ func TestReconcileJenkinsScript_Reconcile_getOrCreateInstanceOwnerErr(t *testing
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Failed to get owner for"))
+	assert.Contains(t, err.Error(), "failed to get owner for")
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
 }
 
@@ -152,6 +153,7 @@ func TestReconcileJenkinsScript_Reconcile_InitJenkinsClientErr(t *testing.T) {
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsScript{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
+
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
 
 	log := &common.Logger{}
@@ -166,7 +168,7 @@ func TestReconcileJenkinsScript_Reconcile_InitJenkinsClientErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Failed to init jenkins client for"))
+	assert.Contains(t, err.Error(), "failed to init jenkins client for")
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
 	platform.AssertExpectations(t)
 }
@@ -191,6 +193,7 @@ func TestReconcileJenkinsScript_Reconcile_InitJenkinsClientNil(t *testing.T) {
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsScript{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
+
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", nil)
 
 	log := &common.Logger{}
@@ -234,6 +237,7 @@ func TestReconcileJenkinsScript_Reconcile_GetConfigMapDataErr(t *testing.T) {
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsScript{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
+
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", nil)
 	platform.On("GetSecretData", namespace, name).Return(secretData, nil)
 	platform.On("GetConfigMapData", namespace, "").Return(nil, errTest)
@@ -250,7 +254,7 @@ func TestReconcileJenkinsScript_Reconcile_GetConfigMapDataErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Failed to get config map for"))
+	assert.Contains(t, err.Error(), "failed to get config map for")
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
 	platform.AssertExpectations(t)
 }
@@ -268,5 +272,4 @@ func TestNewReconcileJenkinsScript(t *testing.T) {
 		platform: platform,
 	}
 	assert.Equal(t, Expected, Reconcile)
-
 }

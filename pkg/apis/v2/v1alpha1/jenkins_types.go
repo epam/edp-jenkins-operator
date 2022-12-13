@@ -116,7 +116,7 @@ type Jenkins struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// JenkinsList contains a list of Jenkins
+// JenkinsList contains a list of Jenkins.
 type JenkinsList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

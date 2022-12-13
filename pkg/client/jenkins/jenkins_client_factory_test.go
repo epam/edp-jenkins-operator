@@ -1,11 +1,12 @@
 package jenkins
 
 import (
-	"strings"
+	"errors"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -21,18 +22,9 @@ func TestMakeClientBuilder(t *testing.T) {
 	ps := pmock.PlatformService{}
 
 	cb := MakeClientBuilder(&ps, k8sClient)
-
-	if cb == nil {
-		t.Fatal("client builder is not init")
-	}
-
-	if cb.client != k8sClient {
-		t.Fatal("client builder k8s client is not set")
-	}
-
-	if cb.platform != &ps {
-		t.Fatal("client builder platform service is not set")
-	}
+	require.NotNil(t, cb)
+	require.Equal(t, k8sClient, cb.client)
+	require.Equal(t, &ps, cb.platform)
 }
 
 func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
@@ -44,13 +36,9 @@ func TestClientBuilder_MakeNewClient_Failure_NoJenkins(t *testing.T) {
 	)
 
 	_, err := cb.MakeNewClient(&jar.ObjectMeta, nil)
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(err.Error(), "couldn't get Jenkins instances in namespace") {
-		t.Fatalf("wrong error returned: %s", err.Error())
-	}
+	assert.Contains(t, err.Error(), "failed to get Jenkins instances in namespace")
 }
 
 func TestClientBuilder_MakeNewClient(t *testing.T) {
@@ -86,9 +74,8 @@ func TestClientBuilder_MakeNewClient(t *testing.T) {
 	httpmock.RegisterResponder("GET", "http://hostpath/api/json",
 		httpmock.NewStringResponder(200, ""))
 
-	if _, err := cb.MakeNewClient(&jar.ObjectMeta, nil); err != nil {
-		t.Fatal(err)
-	}
+	_, err := cb.MakeNewClient(&jar.ObjectMeta, nil)
+	assert.NoError(t, err)
 }
 
 func TestClientBuilder_MakeNewClient_FailureGetExternalEndpoint(t *testing.T) {
@@ -118,11 +105,7 @@ func TestClientBuilder_MakeNewClient_FailureGetExternalEndpoint(t *testing.T) {
 		Return("host", "http", "path", errors.New("external fatal"))
 
 	_, err := cb.MakeNewClient(&jar.ObjectMeta, nil)
-	if err == nil {
-		t.Fatal("wrong error returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(errors.Cause(err).Error(), "external fatal") {
-		t.Fatalf("wrong error returned: %s", err.Error())
-	}
+	assert.Contains(t, err.Error(), "external fatal")
 }

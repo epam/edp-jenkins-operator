@@ -2,11 +2,11 @@ package jenkinsagent
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -41,20 +41,32 @@ func (r *Reconcile) SetupWithManager(mgr ctrl.Manager) error {
 		UpdateFunc: specUpdated,
 	}
 
-	return ctrl.NewControllerManagedBy(mgr).
+	err := ctrl.NewControllerManagedBy(mgr).
 		For(&jenkinsApi.JenkinsAgent{}, builder.WithPredicates(p)).
 		Complete(r)
+	if err != nil {
+		return fmt.Errorf("failed to create new managed controller: %w", err)
+	}
+
+	return nil
 }
 
 func specUpdated(e event.UpdateEvent) bool {
-	oo := e.ObjectOld.(*jenkinsApi.JenkinsAgent)
-	no := e.ObjectNew.(*jenkinsApi.JenkinsAgent)
+	oldObject, ok := e.ObjectOld.(*jenkinsApi.JenkinsAgent)
+	if !ok {
+		return false
+	}
 
-	return !reflect.DeepEqual(oo.Spec, no.Spec) ||
-		(oo.GetDeletionTimestamp().IsZero() && !no.GetDeletionTimestamp().IsZero())
+	newObject, ok := e.ObjectNew.(*jenkinsApi.JenkinsAgent)
+	if !ok {
+		return false
+	}
+
+	return !reflect.DeepEqual(oldObject.Spec, newObject.Spec) ||
+		(oldObject.GetDeletionTimestamp().IsZero() && !newObject.GetDeletionTimestamp().IsZero())
 }
 
-func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (result reconcile.Result, resError error) {
+func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.V(2).Info("Reconciling JenkinsAgent has been started")
 
@@ -62,10 +74,11 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.V(2).Info("JenkinsAgent is not found")
-			return
+
+			return reconcile.Result{}, nil
 		}
 
-		return reconcile.Result{}, errors.Wrap(err, "unable to get JenkinsAgent instance")
+		return reconcile.Result{}, fmt.Errorf("failed to get JenkinsAgent instance: %w", err)
 	}
 
 	defer func() {
@@ -77,36 +90,48 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 	if err := r.tryToReconcile(ctx, &instance); err != nil {
 		r.log.Error(err, "error during reconcilation", "instance", instance)
 		instance.Status.Value = err.Error()
+
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
+
 	instance.Status.Value = helper.StatusSuccess
 
 	reqLogger.V(2).Info("Reconciling JenkinsAgent has been finished")
-	return
+
+	return reconcile.Result{}, nil
 }
 
 func (r *Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.JenkinsAgent) error {
 	var slavesCm v1.ConfigMap
-	if err := r.client.Get(ctx,
-		types.NamespacedName{Namespace: instance.Namespace, Name: jenkins.SlavesTemplateName}, &slavesCm); err != nil {
-		return errors.Wrap(err, "unable to get slaves config map")
+
+	if err := r.client.Get(
+		ctx,
+		types.NamespacedName{
+			Namespace: instance.Namespace,
+			Name:      jenkins.SlavesTemplateName,
+		},
+		&slavesCm,
+	); err != nil {
+		return fmt.Errorf("failed to get slaves config map: %w", err)
 	}
 
 	slavesCm.Data[instance.Spec.SalvesKey()] = instance.Spec.Template
 
 	if err := r.client.Update(ctx, &slavesCm); err != nil {
-		return errors.Wrap(err, "unable to update slaves config map")
+		return fmt.Errorf("failed to update slaves config map: %w", err)
 	}
 
 	updateNeeded, err := helper.TryToDelete(instance, finalizerName, makeDeletionFunc(ctx, r.client, instance))
 	if err != nil {
-		return errors.Wrap(err, "unable to delete jenkins agent")
+		return fmt.Errorf("failed to delete jenkins agent: %w", err)
 	}
 
-	if updateNeeded {
-		if err := r.client.Update(ctx, instance); err != nil {
-			return errors.Wrap(err, "unable to update instance")
-		}
+	if !updateNeeded {
+		return nil
+	}
+
+	if err := r.client.Update(ctx, instance); err != nil {
+		return fmt.Errorf("failed to update instance: %w", err)
 	}
 
 	return nil
@@ -115,15 +140,22 @@ func (r *Reconcile) tryToReconcile(ctx context.Context, instance *jenkinsApi.Jen
 func makeDeletionFunc(ctx context.Context, k8sClient client.Client, instance *jenkinsApi.JenkinsAgent) func() error {
 	return func() error {
 		var slavesCm v1.ConfigMap
-		if err := k8sClient.Get(ctx,
-			types.NamespacedName{Namespace: instance.Namespace, Name: jenkins.SlavesTemplateName}, &slavesCm); err != nil {
-			return errors.Wrap(err, "unable to get slaves config map")
+
+		if err := k8sClient.Get(
+			ctx,
+			types.NamespacedName{
+				Namespace: instance.Namespace,
+				Name:      jenkins.SlavesTemplateName,
+			},
+			&slavesCm,
+		); err != nil {
+			return fmt.Errorf("failed to get slaves config map: %w", err)
 		}
 
 		delete(slavesCm.Data, instance.Spec.SalvesKey())
 
 		if err := k8sClient.Update(ctx, &slavesCm); err != nil {
-			return errors.Wrap(err, "unable to update slaves config map")
+			return fmt.Errorf("failed to update slaves config map: %w", err)
 		}
 
 		return nil

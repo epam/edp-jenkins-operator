@@ -38,12 +38,27 @@ func TestSharedLibraryTestSuite(t *testing.T) {
 }
 
 func (s *SharedLibraryTestSuite) SetupTest() {
-	s.rootJenkins = &jenkinsApi.Jenkins{TypeMeta: metav1.TypeMeta{Kind: "Jenkins", APIVersion: "v2.edp.epam.com/v1"},
-		ObjectMeta: metav1.ObjectMeta{Namespace: "ns1", Name: "ger"},
-		Status:     jenkinsApi.JenkinsStatus{Status: "ready"}}
+	s.rootJenkins = &jenkinsApi.Jenkins{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Jenkins",
+			APIVersion: "v2.edp.epam.com/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "ns1",
+			Name:      "ger",
+		},
+		Status: jenkinsApi.JenkinsStatus{
+			Status: "ready",
+		},
+	}
 	s.library = &jenkinsApi.JenkinsSharedLibrary{
-		ObjectMeta: metav1.ObjectMeta{Name: "lib1", Namespace: s.rootJenkins.Namespace},
-		Spec:       jenkinsApi.JenkinsSharedLibrarySpec{OwnerName: &s.rootJenkins.Name},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "lib1",
+			Namespace: s.rootJenkins.Namespace,
+		},
+		Spec: jenkinsApi.JenkinsSharedLibrarySpec{
+			OwnerName: &s.rootJenkins.Name,
+		},
 	}
 	s.anotherLibrary = s.library.DeepCopy()
 	s.anotherLibrary.Name = "lib2"
@@ -51,21 +66,21 @@ func (s *SharedLibraryTestSuite) SetupTest() {
 	s.logger = &helper.LoggerMock{}
 	s.scheme = runtime.NewScheme()
 	assert.NoError(s.T(), jenkinsApi.AddToScheme(s.scheme))
-	s.fakeClient = fake.NewClientBuilder().WithScheme(s.scheme).WithRuntimeObjects(s.library, s.rootJenkins,
-		s.anotherLibrary).Build()
+	s.fakeClient = fake.NewClientBuilder().
+		WithScheme(s.scheme).
+		WithRuntimeObjects(s.library, s.rootJenkins, s.anotherLibrary).
+		Build()
 	s.platformService = &mock.PlatformService{}
 
 	fp, err := os.Create(jenkins.SharedLibrariesTemplateName)
 	assert.NoError(s.T(), err)
-	err = fp.Close()
-	assert.NoError(s.T(), err)
+	assert.NoError(s.T(), fp.Close())
 }
 
 func (s *SharedLibraryTestSuite) TearDownTest() {
 	s.platformService.AssertExpectations(s.T())
 
-	err := os.RemoveAll(jenkins.SharedLibrariesTemplateName)
-	assert.NoError(s.T(), err)
+	assert.NoError(s.T(), os.RemoveAll(jenkins.SharedLibrariesTemplateName))
 }
 
 func (s *SharedLibraryTestSuite) TestReconcile() {
@@ -75,8 +90,13 @@ func (s *SharedLibraryTestSuite) TestReconcile() {
 		platformService: s.platformService,
 	}
 
-	s.platformService.On("CreateConfigMapWithUpdate", s.rootJenkins, scriptConfigMapName,
-		map[string]string{"context": ""}).Return(false, nil)
+	s.platformService.On(
+		"CreateConfigMapWithUpdate",
+		s.rootJenkins,
+		scriptConfigMapName,
+		map[string]string{"context": ""},
+	).
+		Return(false, nil)
 	s.platformService.On("CreateJenkinsScript", s.rootJenkins.Namespace, scriptConfigMapName, false).
 		Return(&jenkinsApi.JenkinsScript{}, nil)
 
@@ -95,7 +115,10 @@ func (s *SharedLibraryTestSuite) TestJenkinsNotReady() {
 	rootGerrit.Status.Status = ""
 
 	r := Reconcile{
-		client:          fake.NewClientBuilder().WithScheme(s.scheme).WithRuntimeObjects(rootGerrit, s.library).Build(),
+		client: fake.NewClientBuilder().
+			WithScheme(s.scheme).
+			WithRuntimeObjects(rootGerrit, s.library).
+			Build(),
 		log:             s.logger,
 		platformService: s.platformService,
 	}
@@ -141,7 +164,9 @@ func (s *SharedLibraryTestSuite) TestRootJenkinsNotFound() {
 	assert.Equal(s.T(), res.RequeueAfter, helper.DefaultRequeueTime*time.Second)
 
 	assert.EqualError(s.T(), s.logger.LastError(),
-		"an error has been occurred while getting owner jenkins for jenkins folder lib1: failed to get jenkins instance by name ger: jenkinses.v2.edp.epam.com \"ger\" not found")
+		"failed to get owner for jenkins folder lib1: "+
+			"failed to get jenkins instance by name ger: "+
+			"jenkinses.v2.edp.epam.com \"ger\" not found")
 }
 
 func (s *SharedLibraryTestSuite) TestReconcileFailure() {
@@ -164,7 +189,7 @@ func (s *SharedLibraryTestSuite) TestReconcileFailure() {
 	assert.Equal(s.T(), res.RequeueAfter, helper.DefaultRequeueTime*time.Second)
 
 	assert.EqualError(s.T(), s.logger.LastError(),
-		"unable to create libraries script: unable to create jenkins script: fatal")
+		"failed to create libraries script: failed to create jenkins script: fatal")
 }
 
 func TestSpecIsUpdated(t *testing.T) {

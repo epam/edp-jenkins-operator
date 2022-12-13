@@ -1,45 +1,33 @@
 package helper
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoggerMock_Info(t *testing.T) {
 	l := LoggerMock{}
 	infoLogger := l.V(2)
 
-	if l.LastInfo() != "" {
-		t.Fatal("last info must be empty")
-	}
+	require.Emptyf(t, l.LastInfo(), "last info must be empty")
 
 	infoLogger.Info("test")
 
-	if len(l.Infos()) == 0 {
-		t.Fatal("infos array is not set")
-	}
+	require.NotEmptyf(t, l.Infos(), "infos array is not set")
 
-	if l.LastInfo() != "test" {
-		t.Fatal("wrong value of info")
-	}
+	require.Equalf(t, "test", l.LastInfo(), "wrong value of info")
 }
 
 func TestLoggerMock_Error(t *testing.T) {
 	l := LoggerMock{}
 	logger := l.WithValues("foo", "bar").WithName("test")
-	if err := l.LastError(); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, l.LastError())
 
 	logger.Error(errors.New("fatal"), "err msg")
 
-	err := l.LastError()
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, l.LastError())
 
-	if !l.Enabled() {
-		t.Fatal("logger must be enabled")
-	}
+	require.Truef(t, l.Enabled(), "logger must be enabled")
 }

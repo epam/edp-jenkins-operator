@@ -3,10 +3,10 @@ package jenkins_authorizationrole
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,7 +51,8 @@ func TestReconcile_Reconcile(t *testing.T) {
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jar.Spec.OwnerName).Return(&jClient, nil)
 
-	jClient.On("AddRole", jar.Spec.RoleType, jar.Spec.Name, jar.Spec.Pattern, jar.Spec.Permissions).Return(nil)
+	jClient.On("AddRole", jar.Spec.RoleType, jar.Spec.Name, jar.Spec.Pattern, jar.Spec.Permissions).
+		Return(nil)
 
 	r := Reconcile{
 		client:               k8sClient,
@@ -64,9 +65,7 @@ func TestReconcile_Reconcile(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestReconcile_Reconcile_Delete(t *testing.T) {
@@ -81,7 +80,8 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 	jBuilder := jenkins.ClientBuilderMock{}
 	jBuilder.On("MakeNewClient", jar.Spec.OwnerName).Return(&jClient, nil)
 
-	jClient.On("AddRole", jar.Spec.RoleType, jar.Spec.Name, jar.Spec.Pattern, jar.Spec.Permissions).Return(nil)
+	jClient.On("AddRole", jar.Spec.RoleType, jar.Spec.Name, jar.Spec.Pattern, jar.Spec.Permissions).
+		Return(nil)
 	jClient.On("RemoveRoles", jar.Spec.RoleType, []string{jar.Spec.Name}).Return(nil)
 
 	r := Reconcile{
@@ -95,18 +95,21 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkInstance jenkinsApi.JenkinsAuthorizationRole
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jar.Namespace, Name: jar.Name}, &checkInstance); err != nil {
-		t.Fatal(err)
-	}
 
-	if len(checkInstance.GetFinalizers()) > 0 {
-		t.Fatal("finalizers still exists")
-	}
+	require.NoError(t,
+		k8sClient.Get(
+			context.Background(),
+			types.NamespacedName{
+				Namespace: jar.Namespace,
+				Name:      jar.Name,
+			}, &checkInstance,
+		),
+	)
+
+	require.Emptyf(t, checkInstance.GetFinalizers(), "finalizers still exists")
 }
 
 func TestReconcile_Reconcile_Delete_FailureRemoveRoles(t *testing.T) {
@@ -135,27 +138,28 @@ func TestReconcile_Reconcile_Delete_FailureRemoveRoles(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkInstance jenkinsApi.JenkinsAuthorizationRole
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: jar.Namespace, Name: jar.Name}, &checkInstance); err != nil {
-		t.Fatal(err)
-	}
 
-	if !strings.Contains(checkInstance.Status.Value, "remove roles failure") {
-		t.Log(checkInstance.Status.Value)
-		t.Fatal("failure status is not set")
-	}
+	require.NoError(t,
+		k8sClient.Get(
+			context.Background(),
+			types.NamespacedName{
+				Namespace: jar.Namespace,
+				Name:      jar.Name,
+			},
+			&checkInstance,
+		),
+	)
+
+	require.Containsf(t, checkInstance.Status.Value, "remove roles failure", "failure status is not set")
 }
 
 func TestSpecUpdated(t *testing.T) {
 	jar := getTestJenkinsAuthorizationRole()
 
-	if specUpdated(event.UpdateEvent{ObjectNew: jar, ObjectOld: jar}) {
-		t.Fatal("spec is not updated")
-	}
+	require.False(t, specUpdated(event.UpdateEvent{ObjectNew: jar, ObjectOld: jar}))
 }
 
 func TestNewReconciler(t *testing.T) {
@@ -164,13 +168,9 @@ func TestNewReconciler(t *testing.T) {
 	lg := helper.LoggerMock{}
 
 	rec := NewReconciler(k8sClient, &lg, &ps)
-	if rec == nil {
-		t.Fatal("reconciler is not inited")
-	}
+	require.NotNilf(t, rec, "reconciler is not inited")
 
-	if rec.client != k8sClient || rec.log != &lg {
-		t.Fatal("wrong reconciler params")
-	}
+	require.Falsef(t, rec.client != k8sClient || rec.log != &lg, "wrong reconciler params")
 }
 
 func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
@@ -185,17 +185,16 @@ func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 	}
 
 	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: "ns1", Name: "name1"},
+		NamespacedName: types.NamespacedName{
+			Namespace: "ns1",
+			Name:      "name1",
+		},
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if logger.LastInfo() != "instance not found" {
-		t.Fatal("not found error is not logged")
-	}
+	require.Equalf(t, "instance not found", logger.LastInfo(), "not found error is not logged")
 }
 
 func TestReconcile_Reconcile_FailureInitJenkinsClient(t *testing.T) {
@@ -206,8 +205,8 @@ func TestReconcile_Reconcile_FailureInitJenkinsClient(t *testing.T) {
 
 	k8sClient := fake.NewClientBuilder().WithRuntimeObjects(jar).Build()
 	jBuilder := jenkins.ClientBuilderMock{}
-	jBuilder.On("MakeNewClient", jar.Spec.OwnerName).Return(nil,
-		errors.New("make new client fatal"))
+	jBuilder.On("MakeNewClient", jar.Spec.OwnerName).
+		Return(nil, errors.New("make new client fatal"))
 
 	logger := helper.LoggerMock{}
 	r := Reconcile{
@@ -221,13 +220,9 @@ func TestReconcile_Reconcile_FailureInitJenkinsClient(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client") {
-		t.Fatalf("wrong error returned: %s", err.Error())
-	}
+	require.Contains(t, err.Error(), "failed to create gojenkins client")
 }
 
 func TestReconcile_Reconcile_FailureAddRole(t *testing.T) {
@@ -257,16 +252,10 @@ func TestReconcile_Reconcile_FailureAddRole(t *testing.T) {
 	}
 
 	_, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	lastErr := logger.LastError()
-	if lastErr == nil {
-		t.Fatal("no error logged")
-	}
+	require.Error(t, lastErr)
 
-	if !strings.Contains(lastErr.Error(), "add role fatal") {
-		t.Fatalf("wrong error returned: %s", lastErr.Error())
-	}
+	require.Contains(t, lastErr.Error(), "add role fatal")
 }

@@ -2,6 +2,7 @@ package chain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,17 +22,23 @@ func (h DeleteCDStageDeploy) ServeRequest(jenkinsDeploy *jenkinsApi.CDStageJenki
 	log.Info("deleting CDStageDeploy")
 
 	if err := h.deleteCDStageDeploy(jenkinsDeploy); err != nil {
-		return err
+		return fmt.Errorf("failed to delete CD stage deploy: %w", err)
 	}
 
 	log.Info("CDStageDeploy has been deleted")
+
 	return nil
 }
 
 func (h DeleteCDStageDeploy) deleteCDStageDeploy(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) error {
 	s, err := helper.GetCDStageDeploy(h.client, jenkinsDeploy.Labels[consts.CdStageDeployKey], jenkinsDeploy.Namespace)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get CD stage deploy: %w", err)
 	}
-	return h.client.Delete(context.TODO(), s)
+
+	if err := h.client.Delete(context.TODO(), s); err != nil {
+		return fmt.Errorf("failed to delete CD stage deploy: %w", err)
+	}
+
+	return nil
 }

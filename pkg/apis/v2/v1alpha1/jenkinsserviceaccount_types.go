@@ -50,7 +50,7 @@ type JenkinsServiceAccount struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// JenkinsServiceAccountList contains a list of JenkinsServiceAccount
+// JenkinsServiceAccountList contains a list of JenkinsServiceAccount.
 type JenkinsServiceAccountList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

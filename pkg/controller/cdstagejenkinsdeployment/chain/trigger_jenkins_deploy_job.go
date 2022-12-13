@@ -2,9 +2,9 @@ package chain
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
@@ -29,12 +29,12 @@ func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *jenkinsApi.CDStageJ
 
 	jc, err := h.initJenkinsClient(jenkinsDeploy)
 	if err != nil {
-		return errors.Wrap(err, "couldn't create jenkins client")
+		return fmt.Errorf("failed to create jenkins client: %w", err)
 	}
 
 	codebaseTags, err := json.Marshal(jenkinsDeploy.Spec.Tags)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal codebaseTags to json: %w", err)
 	}
 
 	jobParameters := map[string]string{
@@ -43,20 +43,33 @@ func (h TriggerJenkinsDeployJob) ServeRequest(jenkinsDeploy *jenkinsApi.CDStageJ
 	}
 
 	if err := jc.TriggerJob(jenkinsDeploy.Spec.Job, jobParameters); err != nil {
-		return err
+		return fmt.Errorf("failed to trigger job: %w", err)
 	}
 
 	log.Info("deploy job has been triggered.")
+
 	return nextServeOrNil(h.next, jenkinsDeploy)
 }
+
 func (h TriggerJenkinsDeployJob) initJenkinsClient(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) (*jenkinsClient.JenkinsClient, error) {
-	j, err := h.getJenkins(jenkinsDeploy)
+	jenkinsInstance, err := h.getJenkins(jenkinsDeploy)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't get jenkins")
+		return nil, fmt.Errorf("failed to get jenkins: %w", err)
 	}
-	return jenkinsClient.InitGoJenkinsClient(j, h.platform)
+
+	jenkinsCl, err := jenkinsClient.InitGoJenkinsClient(jenkinsInstance, h.platform)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init Jenkins Client: %w", err)
+	}
+
+	return jenkinsCl, nil
 }
 
 func (h TriggerJenkinsDeployJob) getJenkins(jenkinsDeploy *jenkinsApi.CDStageJenkinsDeployment) (*jenkinsApi.Jenkins, error) {
-	return platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[JenkinsKey], jenkinsDeploy.Namespace)
+	jenkinsInstance, err := platform.GetJenkinsInstance(h.client, jenkinsDeploy.Labels[JenkinsKey], jenkinsDeploy.Namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jenkins instance: %w", err)
+	}
+
+	return jenkinsInstance, nil
 }

@@ -28,6 +28,20 @@ type JenkinsJobBuildRunSpec struct {
 	DeleteAfterCompletionInterval *string `json:"deleteAfterCompletionInterval,omitempty"`
 }
 
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
+type JenkinsJobBuildRun struct {
+	metav1.TypeMeta `json:",inline"`
+	// +optional
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	// +optional
+	Spec JenkinsJobBuildRunSpec `json:"spec,omitempty"`
+	// +optional
+	Status JenkinsJobBuildRunStatus `json:"status,omitempty"`
+}
+
 func (in *JenkinsJobBuildRun) GetDeleteAfterCompletionInterval() time.Duration {
 	if in.Spec.DeleteAfterCompletionInterval == nil {
 		return time.Hour
@@ -48,21 +62,7 @@ type JenkinsJobBuildRunStatus struct {
 	LastUpdated metav1.Time `json:"lastUpdated"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:storageversion
-type JenkinsJobBuildRun struct {
-	metav1.TypeMeta `json:",inline"`
-	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	// +optional
-	Spec JenkinsJobBuildRunSpec `json:"spec,omitempty"`
-	// +optional
-	Status JenkinsJobBuildRunStatus `json:"status,omitempty"`
-}
-
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 type JenkinsJobBuildRunList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

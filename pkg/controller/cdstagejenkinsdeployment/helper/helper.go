@@ -2,20 +2,24 @@ package helper
 
 import (
 	"context"
+	"fmt"
 
-	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 )
 
-func GetCDStageDeploy(client client.Client, name, ns string) (*codebaseApi.CDStageDeploy, error) {
-	i := &codebaseApi.CDStageDeploy{}
-	nn := types.NamespacedName{
-		Namespace: ns,
+func GetCDStageDeploy(k8sClient client.Client, name, namespace string) (*codebaseApi.CDStageDeploy, error) {
+	cdStageDeploy := &codebaseApi.CDStageDeploy{}
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
 		Name:      name,
 	}
-	if err := client.Get(context.TODO(), nn, i); err != nil {
-		return nil, err
+
+	if err := k8sClient.Get(context.TODO(), namespacedName, cdStageDeploy); err != nil {
+		return nil, fmt.Errorf("failed to get CD Stage Deploy: %w", err)
 	}
-	return i, nil
+
+	return cdStageDeploy, nil
 }

@@ -1,30 +1,45 @@
 package jenkins
 
 import (
-	"strings"
+	"errors"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/resty.v1"
 )
 
 func TestIsErrNotFound(t *testing.T) {
-	err := errors.Wrap(ErrNotFound("not found"), "error")
-	if !IsErrNotFound(err) {
-		t.Fatal("error not found is not detected")
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		err  error
+		want require.BoolAssertionFunc
+	}{
+		{
+			name: "should be IsErrNotFound",
+			err:  fmt.Errorf("error: %w", ErrNotFound),
+			want: require.True,
+		},
+		{
+			name: "should not be IsErrNotFound",
+			err:  errors.New("other err"),
+			want: require.False,
+		},
 	}
 
-	if errors.Cause(err).Error() != "not found" {
-		t.Fatal("wrong value of error")
-	}
+	for _, tt := range tests {
+		tt := tt
 
-	err = errors.New("fatal")
-	if IsErrNotFound(err) {
-		t.Fatal("IsErrNotFound is wrong")
-	}
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
+			tt.want(t, IsErrNotFound(tt.err))
+		})
+	}
 }
 
 func TestJenkinsClient_AddRole(t *testing.T) {
@@ -35,10 +50,10 @@ func TestJenkinsClient_AddRole(t *testing.T) {
 		resty: restyClient,
 	}
 
-	httpmock.RegisterResponder("POST", "/role-strategy/strategy/addRole", httpmock.NewStringResponder(200, ""))
-	if err := jc.AddRole("rt", "rn", "/*/", []string{"per"}); err != nil {
-		t.Fatal(err)
-	}
+	httpmock.RegisterResponder(http.MethodPost, "/role-strategy/strategy/addRole",
+		httpmock.NewStringResponder(200, ""))
+
+	require.NoError(t, jc.AddRole("rt", "rn", "/*/", []string{"per"}))
 }
 
 func TestJenkinsClient_AssignRole(t *testing.T) {
@@ -50,15 +65,15 @@ func TestJenkinsClient_AssignRole(t *testing.T) {
 	}
 
 	err := jc.AssignRole("rt", "rn", "s")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "role-strategy/strategy/getRole\": no responder found")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "role-strategy/strategy/getRole\": no responder found")
 
 	httpmock.RegisterResponder("POST", "/role-strategy/strategy/getRole",
 		httpmock.NewJsonResponderOrPanic(200, Role{}))
 	httpmock.RegisterResponder("POST", "/role-strategy/strategy/assignRole",
 		httpmock.NewStringResponder(200, ""))
-	err = jc.AssignRole("rt", "rn", "s")
-	assert.NoError(t, err)
+
+	require.NoError(t, jc.AssignRole("rt", "rn", "s"))
 }
 
 func TestJenkinsClient_RemoveRoles(t *testing.T) {
@@ -71,9 +86,7 @@ func TestJenkinsClient_RemoveRoles(t *testing.T) {
 		resty: restyClient,
 	}
 
-	if err := jc.RemoveRoles("rt", []string{"rn"}); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, jc.RemoveRoles("rt", []string{"rn"}))
 }
 
 func TestJenkinsClient_UnAssignRole(t *testing.T) {
@@ -86,9 +99,7 @@ func TestJenkinsClient_UnAssignRole(t *testing.T) {
 		resty: restyClient,
 	}
 
-	if err := jc.UnAssignRole("rt", "rn", "s"); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, jc.UnAssignRole("rt", "rn", "s"))
 }
 
 func TestJenkinsClient_RoleGet(t *testing.T) {
@@ -101,9 +112,8 @@ func TestJenkinsClient_RoleGet(t *testing.T) {
 		resty: restyClient,
 	}
 
-	if _, err := jc.GetRole("rt", "rn"); err != nil {
-		t.Fatal(err)
-	}
+	_, err := jc.GetRole("rt", "rn")
+	require.NoError(t, err)
 }
 
 func TestJenkinsClient_GetRoleFailure_NoRoles(t *testing.T) {
@@ -117,17 +127,14 @@ func TestJenkinsClient_GetRoleFailure_NoRoles(t *testing.T) {
 	}
 
 	_, err := jc.GetRole("rt", "rn")
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, err)
 
-	if !IsErrNotFound(err) {
-		t.Fatal("wrong err returned")
-	}
+	require.True(t, IsErrNotFound(err))
 }
 
 func TestJenkinsClient_GetRoleFailure_HTTPFailure(t *testing.T) {
 	restyClient := resty.New()
+
 	httpmock.DefaultTransport.Reset()
 	httpmock.ActivateNonDefault(restyClient.GetClient())
 
@@ -136,18 +143,14 @@ func TestJenkinsClient_GetRoleFailure_HTTPFailure(t *testing.T) {
 	}
 
 	_, err := jc.GetRole("rt", "rn")
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(errors.Cause(err).Error(), "no responder") {
-		t.Log(err)
-		t.Fatal("wrong error returned")
-	}
+	require.Contains(t, err.Error(), "no responder")
 }
 
 func TestJenkinsClient_GetRoleFailure_500(t *testing.T) {
 	restyClient := resty.New()
+
 	httpmock.DefaultTransport.Reset()
 	httpmock.ActivateNonDefault(restyClient.GetClient())
 	httpmock.RegisterResponder("POST", "/role-strategy/strategy/getRole",
@@ -158,12 +161,7 @@ func TestJenkinsClient_GetRoleFailure_500(t *testing.T) {
 	}
 
 	_, err := jc.GetRole("rt", "rn")
-	if err == nil {
-		t.Fatal("no error returned")
-	}
+	require.Error(t, err)
 
-	if !strings.Contains(errors.Cause(err).Error(), "status: 500") {
-		t.Log(err)
-		t.Fatal("wrong error returned")
-	}
+	require.Contains(t, err.Error(), "status: 500")
 }

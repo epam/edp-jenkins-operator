@@ -1,12 +1,12 @@
 package chain
 
 import (
+	"errors"
 	"os"
-	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -23,95 +23,84 @@ const (
 func TestCreateCDPipelineFolderChain_GetPlatformTypeEnvErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
+	assert.Contains(t, err.Error(), "environment variable PLATFORM_TYPE not found")
 	assert.Nil(t, jenkinsFolderHandler)
 }
 
 func TestCreateCDPipelineFolderChain_NewPlatformServiceErr(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, wrongPlatform)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, wrongPlatform))
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Contains(t, err.Error(), "received unknown platform type")
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
+
 	assert.Nil(t, jenkinsFolderHandler)
 }
 
 func TestCreateCDPipelineFolderChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, platform.K8SPlatformType))
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateCDPipelineFolderChain(scheme, client)
-	assert.NoError(t, err)
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
+
 	assert.NotNil(t, jenkinsFolderHandler)
 }
 
 func TestCreateTriggerBuildProvisionChain_GetPlatformTypeEnvErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Environment variable PLATFORM_TYPE no found"))
+	assert.Contains(t, err.Error(), "environment variable PLATFORM_TYPE not found")
 	assert.Nil(t, jenkinsFolderHandler)
 }
 
 func TestCreateTriggerBuildProvisionChain_NewPlatformServiceErr(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, wrongPlatform)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, wrongPlatform))
 
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Unknown platform type"))
+	assert.Contains(t, err.Error(), "received unknown platform type")
 	assert.Nil(t, jenkinsFolderHandler)
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func TestCreateTriggerBuildProvisionChain(t *testing.T) {
-	err := os.Setenv(helper.PlatformType, platform.K8SPlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.Setenv(helper.PlatformType, platform.K8SPlatformType))
+
 	scheme := runtime.NewScheme()
 	client := fake.NewClientBuilder().Build()
+
 	jenkinsFolderHandler, err := CreateTriggerBuildProvisionChain(scheme, client)
 	assert.NoError(t, err)
 	assert.NotNil(t, jenkinsFolderHandler)
-	err = os.Unsetenv(helper.PlatformType)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, os.Unsetenv(helper.PlatformType))
 }
 
 func Test_nextServeOrNil(t *testing.T) {
 	jenkinsFolder := &jenkinsApi.JenkinsFolder{}
 	jenkinsFolder.Name = "name"
-	err := nextServeOrNil(nil, jenkinsFolder)
-	assert.NoError(t, err)
+
+	assert.NoError(t, nextServeOrNil(nil, jenkinsFolder))
 }
 
 func Test_nextServeOrNilErr(t *testing.T) {
@@ -120,6 +109,9 @@ func Test_nextServeOrNilErr(t *testing.T) {
 	errTest := errors.New("test")
 	jenkinsFolderHandler.On("ServeRequest", jenkinsFolder).Return(errTest)
 	jenkinsFolder.Name = "name"
+
 	err := nextServeOrNil(&jenkinsFolderHandler, jenkinsFolder)
-	assert.Equal(t, err, errTest)
+	assert.Error(t, err)
+
+	assert.Contains(t, err.Error(), "failed to serve next request: test")
 }

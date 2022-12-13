@@ -7,12 +7,9 @@ import (
 	"os"
 	"strings"
 
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
-	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	appsV1client "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	projectV1Client "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	routeV1Client "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
-	"github.com/pkg/errors"
 	coreV1Api "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,6 +18,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+	"github.com/epam/edp-gerrit-operator/v2/pkg/service/helpers"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/model"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
@@ -28,7 +27,7 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 )
 
-// OpenshiftService struct for Openshift platform service
+// OpenshiftService struct for Openshift platform service.
 type OpenshiftService struct {
 	kubernetes.K8SService
 
@@ -42,26 +41,25 @@ const (
 	deploymentConfigsDeploymentType = "deploymentConfigs"
 )
 
-// Init initializes OpenshiftService
+// Init initializes OpenshiftService.
 func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Scheme, k8sClient client.Client) error {
-	err := service.K8SService.Init(config, scheme, k8sClient)
-	if err != nil {
-		return errors.Wrap(err, "Failed to init K8S platform service")
+	if err := service.K8SService.Init(config, scheme, k8sClient); err != nil {
+		return fmt.Errorf("failed to init K8S platform service: %w", err)
 	}
 
 	appClient, err := appsV1client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init apps V1 client for Openshift")
+		return fmt.Errorf("failed to init apps V1 client for Openshift: %w", err)
 	}
 
 	routeClient, err := routeV1Client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init route V1 client for Openshift")
+		return fmt.Errorf("failed to init route V1 client for Openshift: %w", err)
 	}
 
 	pc, err := projectV1Client.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "Failed to init project client for Openshift")
+		return fmt.Errorf("failed to init project client for Openshift: %w", err)
 	}
 
 	service.appClient = appClient
@@ -71,27 +69,39 @@ func (service *OpenshiftService) Init(config *rest.Config, scheme *runtime.Schem
 	return nil
 }
 
-// GetExternalEndpoint returns hostname and protocol for Route
-func (service OpenshiftService) GetExternalEndpoint(namespace string, name string) (string, string, string, error) {
-	route, err := service.routeClient.Routes(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-	if err != nil && k8sErrors.IsNotFound(err) {
-		return "", "", "", errors.New(fmt.Sprintf("Route %v in namespace %v not found", name, namespace))
-	} else if err != nil {
-		return "", "", "", err
+// GetExternalEndpoint returns hostname and protocol for Route.
+func (service *OpenshiftService) GetExternalEndpoint(namespace, name string) (host, routeScheme, path string, err error) {
+	route, err := service.routeClient.
+		Routes(namespace).
+		Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return "", "", "", fmt.Errorf("failed to find route %v in namespace %v", name, namespace)
+		}
+
+		return "", "", "", fmt.Errorf("failed to get Routes: %w", err)
 	}
 
-	var routeScheme = jenkinsDefaultSpec.RouteHTTPScheme
+	specHost := route.Spec.Host
+
+	routeHTTPSScheme := jenkinsDefaultSpec.RouteHTTPScheme
+
 	if route.Spec.TLS.Termination != "" {
-		routeScheme = jenkinsDefaultSpec.RouteHTTPSScheme
+		routeHTTPSScheme = jenkinsDefaultSpec.RouteHTTPSScheme
 	}
-	return route.Spec.Host, routeScheme, strings.TrimRight(route.Spec.Path, platformHelper.UrlCutset), nil
+
+	specPath := strings.TrimRight(route.Spec.Path, platformHelper.UrlCutset)
+
+	return specHost, routeHTTPSScheme, specPath, nil
 }
 
-func (service OpenshiftService) IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error) {
+func (service *OpenshiftService) IsDeploymentReady(instance *jenkinsApi.Jenkins) (bool, error) {
 	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {
-		deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+		deploymentConfig, err := service.appClient.
+			DeploymentConfigs(instance.Namespace).
+			Get(context.TODO(), instance.Name, metav1.GetOptions{})
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to get DeploymentConfigs: %w", err)
 		}
 
 		if deploymentConfig.Status.UpdatedReplicas == 1 && deploymentConfig.Status.AvailableReplicas == 1 {
@@ -100,122 +110,153 @@ func (service OpenshiftService) IsDeploymentReady(instance jenkinsApi.Jenkins) (
 
 		return false, nil
 	}
-	return service.K8SService.IsDeploymentReady(instance)
+
+	ready, err := service.K8SService.IsDeploymentReady(instance)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if deployment is ready: %w", err)
+	}
+
+	return ready, nil
 }
 
-func (service OpenshiftService) AddVolumeToInitContainer(instance *jenkinsApi.Jenkins,
-	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount) error {
-
+func (service *OpenshiftService) AddVolumeToInitContainer(instance *jenkinsApi.Jenkins,
+	containerName string, vol []coreV1Api.Volume, volMount []coreV1Api.VolumeMount,
+) error {
 	if os.Getenv(deploymentTypeEnvName) == deploymentConfigsDeploymentType {
 		if len(vol) == 0 || len(volMount) == 0 {
 			return nil
 		}
 
-		dc, err := service.appClient.DeploymentConfigs(instance.Namespace).Get(context.TODO(), instance.Name, metav1.GetOptions{})
+		deploymentConfig, err := service.appClient.DeploymentConfigs(instance.Namespace).
+			Get(context.TODO(), instance.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 
-		initContainer, err := selectContainer(dc.Spec.Template.Spec.InitContainers, containerName)
+		initContainer, err := selectContainer(deploymentConfig.Spec.Template.Spec.InitContainers, containerName)
 		if err != nil {
 			return err
 		}
 
 		initContainer.VolumeMounts = updateVolumeMounts(initContainer.VolumeMounts, volMount)
-		dc.Spec.Template.Spec.InitContainers = append(dc.Spec.Template.Spec.InitContainers, initContainer)
-		volumes := dc.Spec.Template.Spec.Volumes
+		deploymentConfig.Spec.Template.Spec.InitContainers = append(deploymentConfig.Spec.Template.Spec.InitContainers, initContainer)
+		volumes := deploymentConfig.Spec.Template.Spec.Volumes
 		volumes = updateVolumes(volumes, vol)
-		dc.Spec.Template.Spec.Volumes = volumes
+		deploymentConfig.Spec.Template.Spec.Volumes = volumes
 
-		jsonDc, err := json.Marshal(dc)
+		jsonDc, err := json.Marshal(deploymentConfig)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to marshal deployment config: %w", err)
 		}
 
-		_, err = service.appClient.DeploymentConfigs(dc.Namespace).Patch(context.TODO(), dc.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
+		_, err = service.appClient.
+			DeploymentConfigs(deploymentConfig.Namespace).
+			Patch(context.TODO(), deploymentConfig.Name, types.StrategicMergePatchType, jsonDc, metav1.PatchOptions{})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to patch DeploymentConfigs: %w", err)
 		}
+
 		return nil
 	}
-	return service.K8SService.AddVolumeToInitContainer(instance, containerName, vol, volMount)
+
+	if err := service.K8SService.AddVolumeToInitContainer(instance, containerName, vol, volMount); err != nil {
+		return fmt.Errorf("failed to add volume to init container: %w", err)
+	}
+
+	return nil
 }
 
 func selectContainer(containers []coreV1Api.Container, name string) (coreV1Api.Container, error) {
-	for _, c := range containers {
-		if c.Name == name {
-			return c, nil
+	for i := 0; i < len(containers); i++ {
+		if containers[i].Name == name {
+			return containers[i], nil
 		}
 	}
 
-	return coreV1Api.Container{}, errors.New("No matching container in spec found!")
+	return coreV1Api.Container{}, fmt.Errorf("failed to find matching container in spec")
 }
 
-func updateVolumes(existing []coreV1Api.Volume, vol []coreV1Api.Volume) []coreV1Api.Volume {
-	var out []coreV1Api.Volume
-	var covered []string
+func updateVolumes(existing, vol []coreV1Api.Volume) []coreV1Api.Volume {
+	var (
+		out     []coreV1Api.Volume
+		covered []string
+	)
 
-	for _, v := range existing {
-		newer, ok := findVolume(vol, v.Name)
+	for i := 0; i < len(existing); i++ {
+		newer, ok := findVolume(vol, existing[i].Name)
 		if ok {
-			covered = append(covered, v.Name)
+			covered = append(covered, existing[i].Name)
 			out = append(out, newer)
+
 			continue
 		}
-		out = append(out, v)
+
+		out = append(out, existing[i])
 	}
-	for _, v := range vol {
-		if helpers.IsStringInSlice(v.Name, covered) {
+
+	for i := 0; i < len(vol); i++ {
+		if helpers.IsStringInSlice(vol[i].Name, covered) {
 			continue
 		}
-		covered = append(covered, v.Name)
-		out = append(out, v)
+
+		covered = append(covered, vol[i].Name)
+		out = append(out, vol[i])
 	}
+
 	return out
 }
 
-func updateVolumeMounts(existing []coreV1Api.VolumeMount, volMount []coreV1Api.VolumeMount) []coreV1Api.VolumeMount {
-	var out []coreV1Api.VolumeMount
-	var covered []string
+func updateVolumeMounts(existing, volMount []coreV1Api.VolumeMount) []coreV1Api.VolumeMount {
+	var (
+		out     []coreV1Api.VolumeMount
+		covered []string
+	)
 
-	for _, v := range existing {
-		newer, ok := findVolumeMount(volMount, v.Name)
+	for i := 0; i < len(existing); i++ {
+		newer, ok := findVolumeMount(volMount, existing[i].Name)
 		if ok {
-			covered = append(covered, v.Name)
+			covered = append(covered, existing[i].Name)
 			out = append(out, newer)
+
 			continue
 		}
-		out = append(out, v)
+
+		out = append(out, existing[i])
 	}
-	for _, v := range volMount {
-		if helpers.IsStringInSlice(v.Name, covered) {
+
+	for i := 0; i < len(volMount); i++ {
+		if helpers.IsStringInSlice(volMount[i].Name, covered) {
 			continue
 		}
-		covered = append(covered, v.Name)
-		out = append(out, v)
+
+		covered = append(covered, volMount[i].Name)
+		out = append(out, volMount[i])
 	}
+
 	return out
 }
 
 func findVolumeMount(volMount []coreV1Api.VolumeMount, name string) (coreV1Api.VolumeMount, bool) {
-	for _, v := range volMount {
-		if v.Name == name {
-			return v, true
+	for i := 0; i < len(volMount); i++ {
+		if volMount[i].Name == name {
+			return volMount[i], true
 		}
 	}
+
 	return coreV1Api.VolumeMount{}, false
 }
 
 func findVolume(vol []coreV1Api.Volume, name string) (coreV1Api.Volume, bool) {
-	for _, v := range vol {
-		if v.Name == name {
-			return v, true
+	for i := 0; i < len(vol); i++ {
+		if vol[i].Name == name {
+			return vol[i], true
 		}
 	}
+
 	return coreV1Api.Volume{}, false
 }
 
-func (service OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, error) {
+func (*OpenshiftService) CreateStageJSON(stage *cdPipeApi.Stage) (string, error) {
 	j := []model.PipelineStage{
 		{
 			Name:     "deploy",
@@ -231,11 +272,13 @@ func (service OpenshiftService) CreateStageJSON(stage cdPipeApi.Stage) (string, 
 
 		j = append(j, i)
 	}
+
 	j = append(j, model.PipelineStage{Name: "promote-images", StepName: "promote-images"})
 
 	o, err := json.Marshal(j)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to marshal stages: %w", err)
 	}
+
 	return string(o), err
 }

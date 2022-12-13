@@ -3,28 +3,28 @@ package jenkins
 import (
 	"context"
 	"os"
-	"strings"
 	"testing"
 
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	common "github.com/epam/edp-common/pkg/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 )
 
-const name = "name"
-const namespace = "namespace"
-const URLScheme = "https"
+const (
+	name      = "name"
+	namespace = "namespace"
+	URLScheme = "https"
+)
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -35,7 +35,7 @@ func TestReconcileJenkinsFolder_Reconcile_EmptyClient(t *testing.T) {
 	ctx := context.Background()
 
 	s := runtime.NewScheme()
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{})
 	cl := fake.NewClientBuilder().WithObjects().WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -64,7 +64,8 @@ func TestReconcileJenkinsFolder_Reconcile_tryToDeleteJenkinsFolderErr(t *testing
 			Namespace: namespace,
 		},
 	}
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{})
+
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{})
 	cl := fake.NewClientBuilder().WithObjects(instance).WithScheme(s).Build()
 
 	log := &common.Logger{}
@@ -79,7 +80,7 @@ func TestReconcileJenkinsFolder_Reconcile_tryToDeleteJenkinsFolderErr(t *testing
 
 	assert.Error(t, err)
 
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
+	assert.Contains(t, err.Error(), "failed to create gojenkins client")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -100,10 +101,11 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 			Namespace: namespace,
 		},
 	}
-	jenkins := &jenkinsApi.Jenkins{ObjectMeta: metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	},
+	jenkins := &jenkinsApi.Jenkins{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
 		Status: jenkinsApi.JenkinsStatus{AdminSecretName: name},
 	}
 
@@ -113,7 +115,7 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	httpmock.Activate()
 	httpmock.RegisterResponder("GET", "https://firstthird/api/json", httpmock.NewStringResponder(200, ""))
 
-	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{})
+	s.AddKnownTypes(metav1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.JenkinsList{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(instance, jenkins).WithScheme(s).Build()
 
 	platformMock.On("GetExternalEndpoint", namespace, name).Return(first, URLScheme, third, nil)
@@ -131,7 +133,7 @@ func TestReconcileJenkinsFolder_Reconcile_ServeRequestErr(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while setting owner reference"))
+	assert.Contains(t, err.Error(), "failed to set owner reference")
 	assert.Equal(t, reconcile.Result{}, rs)
 	platformMock.AssertExpectations(t)
 }

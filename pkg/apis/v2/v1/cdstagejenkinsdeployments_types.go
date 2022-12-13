@@ -8,7 +8,7 @@ const (
 	failed = "failed"
 )
 
-// CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment
+// CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment.
 type CDStageJenkinsDeploymentSpec struct {
 	// +optional
 	Job string `json:"job,omitempty"`
@@ -24,7 +24,7 @@ type Tag struct {
 	Tag      string `json:"tag"`
 }
 
-// CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus
+// CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus.
 type CDStageJenkinsDeploymentStatus struct {
 	// +optional
 	Status string `json:"status,omitempty"`
@@ -38,7 +38,7 @@ type CDStageJenkinsDeploymentStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API
+// CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API.
 type CDStageJenkinsDeployment struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -57,7 +57,7 @@ func (in *CDStageJenkinsDeployment) SetFailedStatus(err error) {
 
 //+kubebuilder:object:root=true
 
-// CDStageJenkinsDeploymentList contains a list of CDStageJenkinsDeployment
+// CDStageJenkinsDeploymentList contains a list of CDStageJenkinsDeployment.
 type CDStageJenkinsDeploymentList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

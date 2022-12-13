@@ -2,10 +2,10 @@ package jenkinsagent
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,12 +33,10 @@ func TestSpecUpdate(t *testing.T) {
 		},
 	}
 
-	if !specUpdated(event.UpdateEvent{
+	require.True(t, specUpdated(event.UpdateEvent{
 		ObjectOld: &agent1,
 		ObjectNew: &agent2,
-	}) {
-		t.Fatal("spec must be updated")
-	}
+	}))
 }
 
 func TestReconcile_Reconcile(t *testing.T) {
@@ -87,33 +85,29 @@ func TestReconcile_Reconcile(t *testing.T) {
 	nn := types.NamespacedName{Namespace: agent.Namespace, Name: agent.Name}
 
 	_, err := r.Reconcile(context.Background(), reconcile.Request{NamespacedName: nn})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkAgent jenkinsApi.JenkinsAgent
-	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
-		t.Fatal(err)
-	}
 
-	if checkAgent.Status.Value != helper.StatusSuccess {
-		t.Log(checkAgent.Status.Value)
-		t.Fatal("wrong instance status")
-	}
+	require.NoError(t, k8sClient.Get(context.Background(), nn, &checkAgent))
+
+	require.Equal(t, helper.StatusSuccess, checkAgent.Status.Value)
 
 	var checkSlavesCM corev1.ConfigMap
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Name: slavesCM.Name, Namespace: slavesCM.Namespace}, &checkSlavesCM); err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, k8sClient.Get(
+		context.Background(),
+		types.NamespacedName{
+			Name:      slavesCM.Name,
+			Namespace: slavesCM.Namespace,
+		},
+		&checkSlavesCM,
+	))
 
 	tpl, ok := checkSlavesCM.Data[checkAgent.Spec.SalvesKey()]
-	if !ok {
-		t.Fatal("slaves CM is not updated")
-	}
+	require.Truef(t, ok, "slaves CM is not updated")
 
-	if tpl != agent.Spec.Template {
-		t.Fatal("wrong value of agent template in slaves cm")
-	}
+	require.Equal(t, agent.Spec.Template, tpl, "wrong value of agent template in slaves cm")
 }
 
 func TestReconcile_Reconcile_Delete(t *testing.T) {
@@ -163,29 +157,27 @@ func TestReconcile_Reconcile_Delete(t *testing.T) {
 	nn := types.NamespacedName{Namespace: agent.Namespace, Name: agent.Name}
 
 	_, err := r.Reconcile(context.Background(), reconcile.Request{NamespacedName: nn})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkAgent jenkinsApi.JenkinsAgent
-	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
-		t.Fatal(err)
-	}
 
-	if checkAgent.Status.Value != helper.StatusSuccess {
-		t.Log(checkAgent.Status.Value)
-		t.Fatal("wrong instance status")
-	}
+	require.NoError(t, k8sClient.Get(context.Background(), nn, &checkAgent))
+
+	require.Equal(t, checkAgent.Status.Value, helper.StatusSuccess)
 
 	var checkSlavesCM corev1.ConfigMap
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Name: slavesCM.Name, Namespace: slavesCM.Namespace}, &checkSlavesCM); err != nil {
-		t.Fatal(err)
-	}
+
+	require.NoError(t, k8sClient.Get(
+		context.Background(),
+		types.NamespacedName{
+			Name:      slavesCM.Name,
+			Namespace: slavesCM.Namespace,
+		},
+		&checkSlavesCM,
+	))
 
 	_, ok := checkSlavesCM.Data[checkAgent.Spec.SalvesKey()]
-	if ok {
-		t.Fatal("slaves CM must not contain agent template")
-	}
+	require.Falsef(t, ok, "slaves CM must not contain agent template")
 }
 
 func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
@@ -203,13 +195,9 @@ func TestReconcile_Reconcile_FailureNotFound(t *testing.T) {
 	nn := types.NamespacedName{Namespace: "foo", Name: "bar"}
 
 	_, err := r.Reconcile(context.Background(), reconcile.Request{NamespacedName: nn})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if mockLogger.LastInfo() != "JenkinsAgent is not found" {
-		t.Fatal("not found error is not logged")
-	}
+	require.Equal(t, "JenkinsAgent is not found", mockLogger.LastInfo())
 }
 
 func TestReconcile_Reconcile_FailureSlavesNoConfigMap(t *testing.T) {
@@ -236,17 +224,10 @@ func TestReconcile_Reconcile_FailureSlavesNoConfigMap(t *testing.T) {
 	nn := types.NamespacedName{Namespace: agent.Namespace, Name: agent.Name}
 
 	_, err := r.Reconcile(context.Background(), reconcile.Request{NamespacedName: nn})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var checkAgent jenkinsApi.JenkinsAgent
-	if err := k8sClient.Get(context.Background(), nn, &checkAgent); err != nil {
-		t.Fatal(err)
-	}
 
-	if !strings.Contains(checkAgent.Status.Value, "configmaps \"jenkins-slaves\" not found") {
-		t.Log(checkAgent.Status.Value)
-		t.Fatal("no error in instance status")
-	}
+	require.NoError(t, k8sClient.Get(context.Background(), nn, &checkAgent))
+	require.Contains(t, checkAgent.Status.Value, "configmaps \"jenkins-slaves\" not found")
 }

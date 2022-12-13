@@ -3,9 +3,10 @@ package chain
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -27,15 +28,17 @@ func (h TriggerBuildJobProvision) ServeRequest(jf *jenkinsApi.JenkinsFolder) err
 	log.V(2).Info("start triggering job provision")
 
 	if err := h.triggerBuildJobProvision(jf); err != nil {
-		if err := h.setStatus(jf, consts.StatusFailed); err != nil {
-			return errors.Wrapf(err, "an error has been occurred while updating %v JobFolder status", jf.Name)
+		if setStatusErr := h.setStatus(jf, consts.StatusFailed); setStatusErr != nil {
+			return fmt.Errorf("failed to update %v JobFolder status: %w", jf.Name, setStatusErr)
 		}
-		return err
+
+		return fmt.Errorf("failed to trigger job provision build: %w", err)
 	}
 
 	if err := h.setStatus(jf, consts.StatusFinished); err != nil {
-		return errors.Wrapf(err, "an error has been occurred while updating %v JobFolder status", jf.Name)
+		return fmt.Errorf("failed to update %v JobFolder status: %w", jf.Name, err)
 	}
+
 	return nextServeOrNil(h.next, jf)
 }
 
@@ -45,25 +48,34 @@ func (h TriggerBuildJobProvision) setStatus(jf *jenkinsApi.JenkinsFolder, status
 		LastTimeUpdated: metav1.NewTime(time.Now()),
 		Status:          status,
 	}
+
 	return h.updateStatus(jf)
 }
 
 func (h TriggerBuildJobProvision) updateStatus(jf *jenkinsApi.JenkinsFolder) error {
 	if err := h.client.Status().Update(context.TODO(), jf); err != nil {
 		if err := h.client.Update(context.TODO(), jf); err != nil {
-			return err
+			return fmt.Errorf("failed to update client: %w", err)
 		}
 	}
+
 	return nil
 }
 
-func (h TriggerBuildJobProvision) initGoJenkinsClient(jf jenkinsApi.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
+func (h TriggerBuildJobProvision) initGoJenkinsClient(jf *jenkinsApi.JenkinsFolder) (*jenkinsClient.JenkinsClient, error) {
 	j, err := plutil.GetJenkinsInstanceOwner(h.client, jf.Name, jf.Namespace, jf.Spec.OwnerName, jf.GetOwnerReferences())
 	if err != nil {
-		return nil, errors.Wrapf(err, "an error has been occurred while getting owner jenkins for jenkins folder %v", jf.Name)
+		return nil, fmt.Errorf("failed to get owner jenkins for jenkins folder %v: %w", jf.Name, err)
 	}
+
 	log.Info("Jenkins instance has been received", "name", j.Name)
-	return jenkinsClient.InitGoJenkinsClient(j, h.ps)
+
+	jClient, err := jenkinsClient.InitGoJenkinsClient(j, h.ps)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init GoJenkinsClient: %w", err)
+	}
+
+	return jClient, nil
 }
 
 func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *jenkinsApi.JenkinsFolder) error {
@@ -72,22 +84,24 @@ func (h TriggerBuildJobProvision) triggerBuildJobProvision(jf *jenkinsApi.Jenkin
 	}
 
 	log.V(2).Info("start triggering build job", "name", jf.Spec.Job.Name)
-	jc, err := h.initGoJenkinsClient(*jf)
+
+	jc, err := h.initGoJenkinsClient(jf)
 	if err != nil {
-		return errors.Wrap(err, "an error has been occurred while creating gojenkins client")
+		return fmt.Errorf("failed to create gojenkins client: %w", err)
 	}
 
 	var jpc map[string]string
-	err = json.Unmarshal([]byte(jf.Spec.Job.Config), &jpc)
-	if err != nil {
-		return errors.Wrapf(err, "Cant unmarshal %v", []byte(jf.Spec.Job.Config))
+
+	if err = json.Unmarshal([]byte(jf.Spec.Job.Config), &jpc); err != nil {
+		return fmt.Errorf("failed to Unmarshal %v: %w", []byte(jf.Spec.Job.Config), err)
 	}
 
 	bn, err := jc.BuildJob(jf.Spec.Job.Name, jpc)
 	if err != nil {
-		return errors.Wrap(err, "an error has been occurred while triggering job provisioning")
+		return fmt.Errorf("failed to build job provisioning: %w", err)
 	}
 
 	log.Info("end triggering build job", "name", jf.Spec.Job.Name, "with BUILD_ID", *bn)
+
 	return nil
 }

@@ -3,36 +3,28 @@ package spec
 import "fmt"
 
 const (
-	//JenkinsDefaultAdminUser - default Jenkins admin user
+	// JenkinsDefaultAdminUser - default Jenkins admin user.
 	JenkinsDefaultAdminUser string = "admin"
 
-	// JenkinsDefaultUiPort default port for Jenkins UI in service
+	// JenkinsDefaultUiPort default port for Jenkins UI in service.
 	JenkinsDefaultUiPort = 8080
 
-	//EdpAnnotationsPrefix
 	EdpAnnotationsPrefix string = "edp.epam.com"
 
-	//JenkinsAdminPasswordSuffix
 	JenkinsAdminPasswordSuffix string = "admin-password"
 
-	//JenkinsTokenAnnotationSuffix
 	JenkinsTokenAnnotationSuffix string = "admin-token"
 
-	//RouteHTTPSScheme
 	RouteHTTPSScheme = "https"
 
-	//RouteHTTPScheme
 	RouteHTTPScheme = "http"
 )
 
 var (
-	//Replicas
 	Replicas int32 = 1
 
-	//TerminationGracePeriod
 	TerminationGracePeriod = int64(30)
 
-	//Command
 	Command = []string{"sh", "-c", fmt.Sprintf(
 		"JENKINS_HOME=\"/var/lib/jenkins\"; mkdir -p $JENKINS_HOME/.ssh; if [ -d /tmp/ssh ];" +
 			"then chmod 777 -R $JENKINS_HOME/.ssh; cat /tmp/ssh/id_rsa > $JENKINS_HOME/.ssh/id_rsa;" +

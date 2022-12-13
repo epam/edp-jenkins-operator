@@ -6,20 +6,27 @@ import (
 	"path"
 	"strconv"
 
-	sharedLibrary "github.com/epam/edp-jenkins-operator/v2/pkg/controller/shared_library"
-	jenkinsService "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
-	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	"k8s.io/apimachinery/pkg/api/meta"
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	//+kubebuilder:scaffold:imports
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 	buildInfo "github.com/epam/edp-common/pkg/config"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1"
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1"
-	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	jenkinsApiV1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsApiV1alpha1 "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1alpha1"
 	jenkinsdeployment "github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment"
@@ -33,21 +40,12 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsagent"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsscript"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/jenkinsserviceaccount"
+	sharedLibrary "github.com/epam/edp-jenkins-operator/v2/pkg/controller/shared_library"
+	jenkinsService "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
+	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	clusterUtil "github.com/epam/edp-jenkins-operator/v2/pkg/util"
-
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	//+kubebuilder:scaffold:imports
-	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 )
 
 var (
@@ -59,24 +57,6 @@ const (
 	jenkinsOperatorLock                  = "edp-jenkins-operator-lock"
 	jenkinsJobMaxConcurrentReconcilesEnv = "JENKINS_JOB_MAX_CONCURRENT_RECONCILES"
 )
-
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(jenkinsApiV1alpha1.AddToScheme(scheme))
-
-	utilruntime.Must(jenkinsApiV1.AddToScheme(scheme))
-
-	utilruntime.Must(cdPipeApi.AddToScheme(scheme))
-
-	utilruntime.Must(codebaseApi.AddToScheme(scheme))
-
-	utilruntime.Must(edpCompApi.AddToScheme(scheme))
-
-	utilruntime.Must(gerritApi.AddToScheme(scheme))
-
-	utilruntime.Must(keycloakApi.AddToScheme(scheme))
-}
 
 func main() {
 	var (
@@ -103,6 +83,15 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(jenkinsApiV1alpha1.AddToScheme(scheme))
+	utilruntime.Must(jenkinsApiV1.AddToScheme(scheme))
+	utilruntime.Must(cdPipeApi.AddToScheme(scheme))
+	utilruntime.Must(codebaseApi.AddToScheme(scheme))
+	utilruntime.Must(edpCompApi.AddToScheme(scheme))
+	utilruntime.Must(gerritApi.AddToScheme(scheme))
+	utilruntime.Must(keycloakApi.AddToScheme(scheme))
+
 	v := buildInfo.Get()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -124,6 +113,7 @@ func main() {
 	}
 
 	cfg := ctrl.GetConfigOrDie()
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -153,7 +143,8 @@ func main() {
 	ctrlLog := ctrl.Log.WithName("controllers")
 
 	cdStageJd := jenkinsdeployment.NewReconcileCDStageJenkinsDeployment(cl, mgr.GetScheme(), ctrlLog)
-	if err := cdStageJd.SetupWithManager(mgr); err != nil {
+
+	if err = cdStageJd.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "cd-stage-jenkins-deployment")
 		os.Exit(1)
 	}
@@ -163,26 +154,32 @@ func main() {
 		setupLog.Error(err, "unable to get platform type env")
 		os.Exit(1)
 	}
+
 	ps, err := platform.NewPlatformService(env, mgr.GetScheme(), cl)
 	if err != nil {
 		setupLog.Error(err, "unable to create platform service")
 	}
 
 	jenkinsCtrl := jenkins.NewReconcileJenkins(cl, mgr.GetScheme(), ctrlLog, ps)
+
 	if err := jenkinsCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins")
 		os.Exit(1)
 	}
 
 	jfCtrl := jenkinsFolder.NewReconcileJenkinsFolder(cl, mgr.GetScheme(), ctrlLog, ps)
+
 	if err := jfCtrl.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-folder")
 		os.Exit(1)
 	}
 
 	jjCtrl := jenkinsJob.NewReconcileJenkinsJob(cl, mgr.GetScheme(), ctrlLog, ps)
-	if err := jjCtrl.SetupWithManager(mgr,
-		getMaxConcurrentReconciles(jenkinsJobMaxConcurrentReconcilesEnv)); err != nil {
+
+	if err := jjCtrl.SetupWithManager(
+		mgr,
+		getMaxConcurrentReconciles(jenkinsJobMaxConcurrentReconcilesEnv),
+	); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-job")
 		os.Exit(1)
 	}
@@ -220,7 +217,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	templatePath := defaultEnv("TEMPLATES_PATH", path.Join(platformHelper.DefaultConfigsAbsolutePath, jenkinsService.DefaultTemplatesDirectory))
+	templatePath := defaultEnv(
+		"TEMPLATES_PATH", path.Join(platformHelper.DefaultConfigsAbsolutePath, jenkinsService.DefaultTemplatesDirectory))
+
 	if err := sharedLibrary.NewReconcile(cl, ctrlLog, ps, templatePath).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "jenkins-shared-libraries")
 		os.Exit(1)
@@ -237,6 +236,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
+
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)

@@ -2,11 +2,9 @@ package jenkinsserviceaccount
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
-	common "github.com/epam/edp-common/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,13 +12,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	common "github.com/epam/edp-common/pkg/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
 )
 
-const name = "name"
-const namespace = "namespace"
+const (
+	name      = "name"
+	namespace = "namespace"
+)
 
 var nsn = types.NamespacedName{
 	Namespace: namespace,
@@ -68,7 +69,7 @@ func TestReconcileJenkinsServiceAccount_Reconcile_Unreg(t *testing.T) {
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "no kind is registered"))
+	assert.Contains(t, err.Error(), "no kind is registered")
 	assert.Equal(t, reconcile.Result{}, rs)
 }
 
@@ -113,7 +114,7 @@ func TestReconcileJenkinsServiceAccount_Reconcile_getOrCreateInstanceOwnerErr(t 
 	rs, err := rg.Reconcile(ctx, req)
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Failed to get owner for"))
+	assert.Contains(t, err.Error(), "failed to get owner for")
 	assert.Equal(t, reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, rs)
 }
 
@@ -148,6 +149,7 @@ func TestReconcileJenkinsServiceAccount_Reconcile_InitJenkinsClientNil(t *testin
 	s := runtime.NewScheme()
 	s.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsServiceAccount{}, &jenkinsApi.Jenkins{})
 	cl := fake.NewClientBuilder().WithObjects(jenkins, instance).WithScheme(s).Build()
+
 	platform.On("GetExternalEndpoint", namespace, name).Return("", "", "", nil)
 
 	log := &common.Logger{}

@@ -42,7 +42,7 @@ Resource Types:
 
 
 
-CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API
+CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API.
 
 <table>
     <thead>
@@ -74,14 +74,14 @@ CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API
         <td><b><a href="#cdstagejenkinsdeploymentspec">spec</a></b></td>
         <td>object</td>
         <td>
-          CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment<br/>
+          CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#cdstagejenkinsdeploymentstatus">status</a></b></td>
         <td>object</td>
         <td>
-          CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus<br/>
+          CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -93,7 +93,7 @@ CDStageJenkinsDeployment is the Schema for the cdstagejenkinsdeployments API
 
 
 
-CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment
+CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployment.
 
 <table>
     <thead>
@@ -202,7 +202,7 @@ CDStageJenkinsDeploymentSpec defines the desired state of CDStageJenkinsDeployme
 
 
 
-CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus
+CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeploymentStatus.
 
 <table>
     <thead>
@@ -247,7 +247,7 @@ CDStageJenkinsDeploymentStatus defines the observed state of CDStageJenkinsDeplo
 
 
 
-Jenkins is the Schema for the jenkins API
+Jenkins is the Schema for the jenkins API.
 
 <table>
     <thead>
@@ -279,14 +279,14 @@ Jenkins is the Schema for the jenkins API
         <td><b><a href="#jenkinsspec">spec</a></b></td>
         <td>object</td>
         <td>
-          JenkinsSpec defines the desired state of Jenkins<br/>
+          JenkinsSpec defines the desired state of Jenkins.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#jenkinsstatus">status</a></b></td>
         <td>object</td>
         <td>
-          JenkinsStatus defines the observed state of Jenkins<br/>
+          JenkinsStatus defines the observed state of Jenkins.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -298,7 +298,7 @@ Jenkins is the Schema for the jenkins API
 
 
 
-JenkinsSpec defines the desired state of Jenkins
+JenkinsSpec defines the desired state of Jenkins.
 
 <table>
     <thead>
@@ -476,7 +476,7 @@ JenkinsSpec defines the desired state of Jenkins
 
 
 
-JenkinsStatus defines the observed state of Jenkins
+JenkinsStatus defines the observed state of Jenkins.
 
 <table>
     <thead>
@@ -980,7 +980,7 @@ JenkinsStatus defines the observed state of Jenkins
 
 
 
-JenkinsFolder is the Schema for the jenkinsfolder API
+JenkinsFolder is the Schema for the jenkinsfolder API.
 
 <table>
     <thead>
@@ -1012,14 +1012,14 @@ JenkinsFolder is the Schema for the jenkinsfolder API
         <td><b><a href="#jenkinsfolderspec">spec</a></b></td>
         <td>object</td>
         <td>
-          JenkinsFolderSpec defines the desired state of JenkinsFolder<br/>
+          JenkinsFolderSpec defines the desired state of JenkinsFolder.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#jenkinsfolderstatus">status</a></b></td>
         <td>object</td>
         <td>
-          JenkinsFolderStatus defines the observed state of JenkinsFolder<br/>
+          JenkinsFolderStatus defines the observed state of JenkinsFolder.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1031,7 +1031,7 @@ JenkinsFolder is the Schema for the jenkinsfolder API
 
 
 
-JenkinsFolderSpec defines the desired state of JenkinsFolder
+JenkinsFolderSpec defines the desired state of JenkinsFolder.
 
 <table>
     <thead>
@@ -1115,7 +1115,7 @@ JenkinsFolderSpec defines the desired state of JenkinsFolder
 
 
 
-JenkinsFolderStatus defines the observed state of JenkinsFolder
+JenkinsFolderStatus defines the observed state of JenkinsFolder.
 
 <table>
     <thead>
@@ -1320,7 +1320,7 @@ JenkinsFolderStatus defines the observed state of JenkinsFolder
 
 
 
-JenkinsJob is the Schema for the jenkinsjob API
+JenkinsJob is the Schema for the jenkinsjob API.
 
 <table>
     <thead>
@@ -1359,7 +1359,7 @@ JenkinsJob is the Schema for the jenkinsjob API
         <td><b><a href="#jenkinsjobstatus">status</a></b></td>
         <td>object</td>
         <td>
-          JenkinsJobStatus defines the observed state of JenkinsJob<br/>
+          JenkinsJobStatus defines the observed state of JenkinsJob.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1462,7 +1462,7 @@ JenkinsJob is the Schema for the jenkinsjob API
 
 
 
-JenkinsJobStatus defines the observed state of JenkinsJob
+JenkinsJobStatus defines the observed state of JenkinsJob.
 
 <table>
     <thead>
@@ -1542,7 +1542,7 @@ JenkinsJobStatus defines the observed state of JenkinsJob
 
 
 
-JenkinsScript is the Schema for the jenkinsscripts API
+JenkinsScript is the Schema for the jenkinsscripts API.
 
 <table>
     <thead>
@@ -1581,7 +1581,7 @@ JenkinsScript is the Schema for the jenkinsscripts API
         <td><b><a href="#jenkinsscriptstatus">status</a></b></td>
         <td>object</td>
         <td>
-          JenkinsScriptStatus defines the observed state of JenkinsScript<br/>
+          JenkinsScriptStatus defines the observed state of JenkinsScript.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1627,7 +1627,7 @@ JenkinsScript is the Schema for the jenkinsscripts API
 
 
 
-JenkinsScriptStatus defines the observed state of JenkinsScript
+JenkinsScriptStatus defines the observed state of JenkinsScript.
 
 <table>
     <thead>
@@ -1672,7 +1672,7 @@ JenkinsScriptStatus defines the observed state of JenkinsScript
 
 
 
-JenkinsServiceAccount is the Schema for the jenkinsserviceaccounts API
+JenkinsServiceAccount is the Schema for the jenkinsserviceaccounts API.
 
 <table>
     <thead>
@@ -1704,14 +1704,14 @@ JenkinsServiceAccount is the Schema for the jenkinsserviceaccounts API
         <td><b><a href="#jenkinsserviceaccountspec">spec</a></b></td>
         <td>object</td>
         <td>
-          JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount<br/>
+          JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#jenkinsserviceaccountstatus">status</a></b></td>
         <td>object</td>
         <td>
-          JenkinsServiceAccountStatus defines the observed state of JenkinsServiceAccount<br/>
+          JenkinsServiceAccountStatus defines the observed state of JenkinsServiceAccount.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1723,7 +1723,7 @@ JenkinsServiceAccount is the Schema for the jenkinsserviceaccounts API
 
 
 
-JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount
+JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount.
 
 <table>
     <thead>
@@ -1764,7 +1764,7 @@ JenkinsServiceAccountSpec defines the desired state of JenkinsServiceAccount
 
 
 
-JenkinsServiceAccountStatus defines the observed state of JenkinsServiceAccount
+JenkinsServiceAccountStatus defines the observed state of JenkinsServiceAccount.
 
 <table>
     <thead>

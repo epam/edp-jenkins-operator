@@ -11,8 +11,9 @@ import (
 func GetExecutableFilePath() (string, error) {
 	executableFilePath, err := os.Executable()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get the path of the executable: %w", err)
 	}
+
 	return filepath.Dir(executableFilePath), nil
 }
 
@@ -21,10 +22,12 @@ func FileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return !info.IsDir()
 }
 
 func GenerateAnnotationKey(entitySuffix string) string {
 	key := fmt.Sprintf("%v/%v", spec.EdpAnnotationsPrefix, entitySuffix)
+
 	return key
 }

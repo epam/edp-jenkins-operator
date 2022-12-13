@@ -53,7 +53,7 @@ type JenkinsScript struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// JenkinsScriptList contains a list of JenkinsScript
+// JenkinsScriptList contains a list of JenkinsScript.
 type JenkinsScriptList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

@@ -2,13 +2,15 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
 
-	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
-	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/epam/edp-jenkins-operator/v2/pkg/util/finalizer"
 )
 
 const (
@@ -19,6 +21,8 @@ const (
 	TokenUserType      = "token"
 	PlatformType       = "PLATFORM_TYPE"
 	StatusSuccess      = "success"
+
+	idKey = "id"
 )
 
 func NewTrue() *bool {
@@ -28,18 +32,22 @@ func NewTrue() *bool {
 
 func generateCredentialsMap(rawData map[string][]byte, secretName string) (map[string]string, error) {
 	data := trimNewline(rawData)
-	if _, ok := data["id"]; ok {
+	if _, ok := data[idKey]; ok {
 		return data, nil
-	} else if !ok {
-		data["id"] = secretName
-	} else {
-		return data, errors.New("Can't retrieve id from the secret, id or username should be specified mandatory")
 	}
+
+	data[idKey] = secretName
+
 	return data, nil
+}
+
+type JenkinsCredentials struct {
+	Credentials JenkinsCredentialsParams `json:"credentials"`
 }
 
 func NewJenkinsUser(data map[string][]byte, credentialsType, secretName string) (JenkinsCredentials, error) {
 	out := JenkinsCredentials{}
+
 	crMap, err := generateCredentialsMap(data, secretName)
 	if err != nil {
 		return out, err
@@ -48,29 +56,28 @@ func NewJenkinsUser(data map[string][]byte, credentialsType, secretName string) 
 	switch credentialsType {
 	case SSHUserType:
 		params := createSshUserParams(crMap, secretName)
+
 		return JenkinsCredentials{Credentials: params}, nil
 	case PasswordUserType:
 		params := createUserWithPassword(crMap, secretName)
+
 		return JenkinsCredentials{Credentials: params}, nil
 	case TokenUserType:
 		params := createStringCredentials(crMap, secretName)
+
 		return JenkinsCredentials{Credentials: params}, nil
 	default:
-		return out, errors.New("Unknown credentials type!")
+		return out, errors.New("unknown credentials type")
 	}
-
 }
 
-func (user JenkinsCredentials) ToString() (string, error) {
-	bytes, err := json.Marshal(user)
+func (user *JenkinsCredentials) ToString() (string, error) {
+	bytes, err := json.Marshal(*user)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to convert jenkins credentials to json: %w", err)
 	}
-	return string(bytes), nil
-}
 
-type JenkinsCredentials struct {
-	Credentials JenkinsCredentialsParams `json:"credentials"`
+	return string(bytes), nil
 }
 
 type JenkinsCredentialsParams struct {
@@ -94,12 +101,15 @@ type StaplerClass string
 func createUserWithPassword(data map[string]string, secretName string) JenkinsCredentialsParams {
 	username := data["username"]
 	password := data["password"]
-	if data["id"] == "" {
-		data["id"] = secretName
+
+	if data[idKey] == "" {
+		data[idKey] = secretName
 	}
-	description := data["id"]
+
+	description := data[idKey]
+
 	return JenkinsCredentialsParams{
-		Id:           data["id"],
+		Id:           data[idKey],
 		Scope:        GlobalScope,
 		Username:     &username,
 		Password:     &password,
@@ -111,12 +121,15 @@ func createUserWithPassword(data map[string]string, secretName string) JenkinsCr
 func createSshUserParams(data map[string]string, secretName string) JenkinsCredentialsParams {
 	username := data["username"]
 	password := data["password"]
-	if data["id"] == "" {
-		data["id"] = secretName
+
+	if data[idKey] == "" {
+		data[idKey] = secretName
 	}
-	description := data["id"]
+
+	description := data[idKey]
+
 	return JenkinsCredentialsParams{
-		Id:          data["id"],
+		Id:          data[idKey],
 		Scope:       GlobalScope,
 		Username:    &username,
 		Password:    &password,
@@ -131,12 +144,15 @@ func createSshUserParams(data map[string]string, secretName string) JenkinsCrede
 
 func createStringCredentials(data map[string]string, secretName string) JenkinsCredentialsParams {
 	secret := data["secret"]
-	if data["id"] == "" {
-		data["id"] = secretName
+
+	if data[idKey] == "" {
+		data[idKey] = secretName
 	}
-	description := data["id"]
+
+	description := data[idKey]
+
 	return JenkinsCredentialsParams{
-		Id:           data["id"],
+		Id:           data[idKey],
 		Scope:        GlobalScope,
 		Secret:       &secret,
 		Description:  &description,
@@ -149,19 +165,22 @@ func trimNewline(data map[string][]byte) map[string]string {
 	for k, v := range data {
 		out[k] = strings.TrimSuffix(string(v), "\n")
 	}
+
 	return out
 }
 
 func GetPlatformTypeEnv() (string, error) {
 	platformType, found := os.LookupEnv(PlatformType)
 	if !found {
-		return "", errors.New("Environment variable PLATFORM_TYPE no found")
+		return "", errors.New("environment variable PLATFORM_TYPE not found")
 	}
+
 	return platformType, nil
 }
 
 func GetSlavesList(slaves string) []string {
 	re := regexp.MustCompile(`\[(.*)\]`)
+
 	if len(re.FindStringSubmatch(slaves)) > 0 {
 		return strings.Split(re.FindStringSubmatch(slaves)[1], ", ")
 	}
@@ -172,21 +191,24 @@ func GetSlavesList(slaves string) []string {
 func TryToDelete(instance client.Object, finalizerName string, deleteFunc func() error) (needUpdate bool, err error) {
 	if instance.GetDeletionTimestamp().IsZero() {
 		finalizers := instance.GetFinalizers()
+
 		if !finalizer.ContainsString(finalizers, finalizerName) {
 			finalizers = append(finalizers, finalizerName)
-			instance.SetFinalizers(finalizers)
 			needUpdate = true
+
+			instance.SetFinalizers(finalizers)
 		}
 
 		return
 	}
 
 	if err := deleteFunc(); err != nil {
-		return false, errors.Wrap(err, "unable to perform delete function")
+		return false, fmt.Errorf("failed to perform delete function: %w", err)
 	}
 
 	finalizers := instance.GetFinalizers()
 	finalizers = finalizer.RemoveString(finalizers, finalizerName)
+
 	instance.SetFinalizers(finalizers)
 
 	return true, nil

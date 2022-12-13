@@ -2,9 +2,7 @@ package chain
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/bndr/gojenkins"
@@ -24,9 +22,12 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr(t *testing.T) {
 	client := fake.NewClientBuilder().Build()
 	platform := pmock.PlatformService{}
 
-	jf := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+	jf := &jenkinsApi.JenkinsFolder{
+		ObjectMeta: ObjectMeta(),
 		Spec: jenkinsApi.JenkinsFolderSpec{
-			Job: &jenkinsApi.Job{}}}
+			Job: &jenkinsApi.Job{},
+		},
+	}
 	jf.Spec.Job.Name = name
 
 	tr := TriggerBuildJobProvision{
@@ -34,18 +35,22 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr(t *testing.T) {
 		client: client,
 		ps:     &platform,
 	}
+
 	err := tr.ServeRequest(jf)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while updating"))
+	assert.Contains(t, err.Error(), "failed to update")
 }
 
 func TestTriggerBuildJobProvision_ServeRequest_triggerBuildJobProvisionErr(t *testing.T) {
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.JenkinsFolder{})
 
-	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{
+		ObjectMeta: ObjectMeta(),
 		Spec: jenkinsApi.JenkinsFolderSpec{
-			Job: &jenkinsApi.Job{}}}
+			Job: &jenkinsApi.Job{},
+		},
+	}
 	jenkinsFolder.Spec.Job.Name = name
 
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
@@ -57,23 +62,26 @@ func TestTriggerBuildJobProvision_ServeRequest_triggerBuildJobProvisionErr(t *te
 		client: client,
 		ps:     &platform,
 	}
+
 	err := trigger.ServeRequest(jenkinsFolder)
-	fmt.Println(err.Error())
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
+	assert.Contains(t, err.Error(), "failed to create gojenkins client")
 }
 
 func TestTriggerBuildJobProvision_ServeRequest_setStatusErr2(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
+
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{})
+
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
 	}
 
 	resp := gojenkins.BuildResponse{Result: "SUCCESS"}
+
 	raw, err := json.Marshal(resp)
 	assert.NoError(t, err)
 
@@ -83,9 +91,12 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr2(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(jenkins).Build()
 	platform := pmock.PlatformService{}
 
-	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{
+		ObjectMeta: ObjectMeta(),
 		Spec: jenkinsApi.JenkinsFolderSpec{
-			Job: &jenkinsApi.Job{}}}
+			Job: &jenkinsApi.Job{},
+		},
+	}
 	jenkinsFolder.Spec.Job.Name = name
 	ownerReference := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	jenkinsFolder.ObjectMeta.OwnerReferences = []v1.OwnerReference{ownerReference}
@@ -101,17 +112,20 @@ func TestTriggerBuildJobProvision_ServeRequest_setStatusErr2(t *testing.T) {
 		client: client,
 		ps:     &platform,
 	}
+
 	err = trigger.ServeRequest(jenkinsFolder)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while updating"))
+	assert.Contains(t, err.Error(), "failed to update")
 	platform.AssertExpectations(t)
 }
 
 func TestTriggerBuildJobProvision_ServeRequest_UnmarshallErr(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
+
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsFolder{})
+
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
@@ -119,9 +133,12 @@ func TestTriggerBuildJobProvision_ServeRequest_UnmarshallErr(t *testing.T) {
 
 	jenkins := &jenkinsApi.Jenkins{ObjectMeta: ObjectMeta()}
 
-	jenkinsFolder := &jenkinsApi.JenkinsFolder{ObjectMeta: ObjectMeta(),
+	jenkinsFolder := &jenkinsApi.JenkinsFolder{
+		ObjectMeta: ObjectMeta(),
 		Spec: jenkinsApi.JenkinsFolderSpec{
-			Job: &jenkinsApi.Job{}}}
+			Job: &jenkinsApi.Job{},
+		},
+	}
 	jenkinsFolder.Spec.Job.Name = name
 	ownerReference := v1.OwnerReference{Kind: "Jenkins", Name: name}
 	jenkinsFolder.ObjectMeta.OwnerReferences = []v1.OwnerReference{ownerReference}
@@ -141,23 +158,25 @@ func TestTriggerBuildJobProvision_ServeRequest_UnmarshallErr(t *testing.T) {
 		client: client,
 		ps:     &platform,
 	}
-	err := tr.ServeRequest(jenkinsFolder)
-	errJSON := &json.SyntaxError{}
-	assert.ErrorAs(t, err, &errJSON)
+
+	assert.Contains(t, tr.ServeRequest(jenkinsFolder).Error(), "unexpected end of JSON input")
 	platform.AssertExpectations(t)
 }
 
 func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 	httpmock.DeactivateAndReset()
 	httpmock.Activate()
+
 	scheme := runtime.NewScheme()
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsFolder{})
+
 	secretData := map[string][]byte{
 		"username": {'a'},
 		"password": {'k'},
 	}
 
 	data := map[string]string{"str1": "str2"}
+
 	raw, err := json.Marshal(data)
 	assert.NoError(t, err)
 
@@ -194,8 +213,8 @@ func TestTriggerBuildJobProvision_ServeRequest(t *testing.T) {
 		client: client,
 		ps:     &platform,
 	}
-	err = tr.ServeRequest(jenkinsFolder)
-	assert.NoError(t, err)
+
+	assert.NoError(t, tr.ServeRequest(jenkinsFolder))
 	platform.AssertExpectations(t)
 	jenkinsFolderHandler.AssertExpectations(t)
 }
@@ -211,7 +230,5 @@ func TestTriggerBuildJobProvision_ServeRequest_SkipBuild(t *testing.T) {
 		ps:     &platform,
 	}
 
-	err := tr.ServeRequest(&jenkinsApi.JenkinsFolder{})
-
-	assert.Error(t, err)
+	assert.Error(t, tr.ServeRequest(&jenkinsApi.JenkinsFolder{}))
 }

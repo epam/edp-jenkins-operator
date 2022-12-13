@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/bndr/gojenkins"
-	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
@@ -31,7 +30,8 @@ const (
 func nsn() types.NamespacedName {
 	return types.NamespacedName{
 		Namespace: namespace,
-		Name:      name}
+		Name:      name,
+	}
 }
 
 func ObjectMeta() v1.ObjectMeta {
@@ -58,7 +58,7 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_tryToSetCDPipelineOwnerRefErr(t
 
 	err := p.ServeRequest(jenkinsFolder)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while setting owner reference"))
+	assert.Contains(t, err.Error(), "failed to set owner reference")
 }
 
 func TestPutCDPipelineJenkinsFolder_ServeRequest_initGoJenkinsClientErr(t *testing.T) {
@@ -66,8 +66,9 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_initGoJenkinsClientErr(t *testi
 	cd := &cdPipeApi.CDPipeline{ObjectMeta: ObjectMeta()}
 
 	scheme := runtime.NewScheme()
-	mockClient := mocks.Client{}
 	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{})
+
+	mockClient := mocks.Client{}
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd).Build()
 	platform := pmock.PlatformService{}
@@ -85,7 +86,7 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_initGoJenkinsClientErr(t *testi
 
 	err := p.ServeRequest(jenkinsFolder)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while creating gojenkins client"))
+	assert.Contains(t, err.Error(), "failed to create gojenkins client")
 	mockClient.AssertExpectations(t)
 }
 
@@ -105,9 +106,17 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_setStatusErr(t *testing.T) {
 	errTest := errors.New("test")
 
 	scheme := runtime.NewScheme()
+
+	scheme.AddKnownTypes(
+		v1.SchemeGroupVersion,
+		&cdPipeApi.CDPipeline{},
+		&jenkinsApi.JenkinsFolder{},
+		&jenkinsApi.Jenkins{},
+		&jenkinsApi.JenkinsList{},
+	)
+
 	mockClient := mocks.Client{}
 	statusWriter := &mocks.StatusWriter{}
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsList{})
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd, jenkins).Build()
 	platform := pmock.PlatformService{}
@@ -124,6 +133,7 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_setStatusErr(t *testing.T) {
 
 	innerJob := gojenkins.InnerJob{Name: name}
 	Raw := gojenkins.ExecutorResponse{Jobs: []gojenkins.InnerJob{innerJob}}
+
 	marshal, err := json.Marshal(Raw)
 	assert.NoError(t, err)
 	httpmock.RegisterResponder(http.MethodGet, "https://api/json", httpmock.NewBytesResponder(http.StatusOK, marshal))
@@ -134,9 +144,10 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest_setStatusErr(t *testing.T) {
 		ps:     &platform,
 		next:   &jenkinsFolderHandler,
 	}
+
 	err = p.ServeRequest(jenkinsFolder)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "an error has been occurred while updating"))
+	assert.Contains(t, err.Error(), "failed to update JenkinsFolder")
 	mockClient.AssertExpectations(t)
 	statusWriter.AssertExpectations(t)
 	platform.AssertExpectations(t)
@@ -159,9 +170,10 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest(t *testing.T) {
 	errTest := errors.New("test")
 
 	scheme := runtime.NewScheme()
+	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsList{})
+
 	mockClient := mocks.Client{}
 	statusWriter := &mocks.StatusWriter{}
-	scheme.AddKnownTypes(v1.SchemeGroupVersion, &cdPipeApi.CDPipeline{}, &jenkinsApi.JenkinsFolder{}, &jenkinsApi.Jenkins{}, &jenkinsApi.JenkinsList{})
 	jenkinsFolderHandler := jfmock.JenkinsFolderHandler{}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cd, jenkins).Build()
 	platform := pmock.PlatformService{}
@@ -178,6 +190,7 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest(t *testing.T) {
 
 	innerJob := gojenkins.InnerJob{Name: name}
 	Raw := gojenkins.ExecutorResponse{Jobs: []gojenkins.InnerJob{innerJob}}
+
 	marshal, err := json.Marshal(Raw)
 	assert.NoError(t, err)
 	httpmock.RegisterResponder(http.MethodGet, "https://ab/api/json", httpmock.NewBytesResponder(http.StatusOK, marshal))
@@ -188,8 +201,8 @@ func TestPutCDPipelineJenkinsFolder_ServeRequest(t *testing.T) {
 		ps:     &platform,
 		next:   &jenkinsFolderHandler,
 	}
-	err = p.ServeRequest(jenkinsFolder)
-	assert.NoError(t, err)
+
+	assert.NoError(t, p.ServeRequest(jenkinsFolder))
 	mockClient.AssertExpectations(t)
 	statusWriter.AssertExpectations(t)
 	platform.AssertExpectations(t)

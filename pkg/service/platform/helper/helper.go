@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/pkg/errors"
 	authV1Api "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -30,14 +29,14 @@ type JenkinsScriptData struct {
 	JenkinsSharedLibraries []jenkinsApi.JenkinsSharedLibraries
 }
 
-// GenerateLabels returns map with labels for k8s objects
+// GenerateLabels returns map with labels for k8s objects.
 func GenerateLabels(name string) map[string]string {
 	return map[string]string{
 		"app": name,
 	}
 }
 
-func GetNewRoleBindingObject(instance jenkinsApi.Jenkins, roleBindingName string, roleName string, kind string) (*authV1Api.RoleBinding, error) {
+func GetNewRoleBindingObject(instance *jenkinsApi.Jenkins, roleBindingName, roleName, kind string) (*authV1Api.RoleBinding, error) {
 	return &authV1Api.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      roleBindingName,
@@ -56,7 +55,7 @@ func GetNewRoleBindingObject(instance jenkinsApi.Jenkins, roleBindingName string
 	}, nil
 }
 
-func GetNewClusterRoleBindingObject(instance jenkinsApi.Jenkins, clusterRoleBindingName string, clusterRoleName string) (*authV1Api.ClusterRoleBinding, error) {
+func GetNewClusterRoleBindingObject(instance *jenkinsApi.Jenkins, clusterRoleBindingName, clusterRoleName string) (*authV1Api.ClusterRoleBinding, error) {
 	return &authV1Api.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      clusterRoleBindingName,
@@ -80,15 +79,17 @@ func createPath(directory string, localRun bool) (string, error) {
 	if localRun {
 		executableFilePath, err := helper.GetExecutableFilePath()
 		if err != nil {
-			return "", errors.Wrapf(err, "Unable to get executable file path")
+			return "", fmt.Errorf("failed to get executable file path: %w", err)
 		}
+
 		templatePath := fmt.Sprintf("%v/../%v/%v", executableFilePath, localConfigsRelativePath, directory)
+
 		return templatePath, nil
 	}
 
 	templatePath := fmt.Sprintf("%s/%s", DefaultConfigsAbsolutePath, directory)
-	return templatePath, nil
 
+	return templatePath, nil
 }
 
 func checkIfRunningLocally() bool {
@@ -97,20 +98,21 @@ func checkIfRunningLocally() bool {
 
 func CreatePathToTemplateDirectory(directory string) (string, error) {
 	localRun := checkIfRunningLocally()
+
 	return createPath(directory, localRun)
 }
 
-func ParseTemplate(data JenkinsScriptData, pathToTemplate string, templateName string) (bytes.Buffer, error) {
+func ParseTemplate(data *JenkinsScriptData, pathToTemplate, templateName string) (bytes.Buffer, error) {
 	var ScriptContext bytes.Buffer
 
 	if !helper.FileExists(pathToTemplate) {
-		errMsg := fmt.Sprintf("Template file not found in pathToTemplate specificed! Path: %s", pathToTemplate)
-		return bytes.Buffer{}, errors.New(errMsg)
+		return bytes.Buffer{}, fmt.Errorf("failed to find template file in specified pathToTemplate: path: %s", pathToTemplate)
 	}
+
 	t := template.Must(template.New(templateName).ParseFiles(pathToTemplate))
-	err := t.Execute(&ScriptContext, data)
-	if err != nil {
-		return bytes.Buffer{}, errors.Wrapf(err, "Couldn't parse template %v", templateName)
+
+	if err := t.Execute(&ScriptContext, data); err != nil {
+		return bytes.Buffer{}, fmt.Errorf("failed to parse template %v: %w", templateName, err)
 	}
 
 	return ScriptContext, nil
