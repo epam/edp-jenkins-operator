@@ -44,16 +44,16 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.resources.limits.memory | string | `"5Gi"` |  |
 | jenkins.resources.requests.cpu | string | `"1000m"` |  |
 | jenkins.resources.requests.memory | string | `"1500Mi"` |  |
-| jenkins.sharedLibraries[0] | object | `{"name":"edp-library-stages","tag":"master","url":"https://github.com/epam/edp-library-stages.git"}` | EDP shared-library name |
-| jenkins.sharedLibraries[0].tag | string | `"master"` | EDP shared-library repository version |
+| jenkins.sharedLibraries[0] | object | `{"name":"edp-library-stages","tag":"v2.15.0","url":"https://github.com/epam/edp-library-stages.git"}` | EDP shared-library name |
+| jenkins.sharedLibraries[0].tag | string | `"v2.15.0"` | EDP shared-library repository version |
 | jenkins.sharedLibraries[0].url | string | `"https://github.com/epam/edp-library-stages.git"` | EDP shared-library repository link |
 | jenkins.sharedLibraries[1].name | string | `"edp-library-pipelines"` |  |
-| jenkins.sharedLibraries[1].tag | string | `"master"` |  |
+| jenkins.sharedLibraries[1].tag | string | `"v2.14.0"` |  |
 | jenkins.sharedLibraries[1].url | string | `"https://github.com/epam/edp-library-pipelines.git"` |  |
 | jenkins.storage.class | string | `"gp2"` | Storageclass for Jenkins data volume |
 | jenkins.storage.size | string | `"10Gi"` | Jenkins data volume capacity |
 | jenkins.tolerations | list | `[]` |  |
-| jenkins.version | string | `"2.13.0-SNAPSHOT"` | EDP Jenkins Docker image tag |
+| jenkins.version | string | `"2.13.0"` | EDP Jenkins Docker image tag |
 | name | string | `"jenkins-operator"` | component name |
 | nodeSelector | object | `{}` |  |
 | resources.limits.memory | string | `"192Mi"` |  |
