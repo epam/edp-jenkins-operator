@@ -1,9 +1,17 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+
+<a name="v2.13.0"></a>
+## [v2.13.0] - 2022-12-13
 ### Features
 
 - Added a stub linter [EPMDEDP-10536](https://jiraeu.epam.com/browse/EPMDEDP-10536)
+
+### Bug Fixes
+
+- Remove prometheus dependency [EPMDEDP-11049](https://jiraeu.epam.com/browse/EPMDEDP-11049)
+- Remove kubernetes-incubator dependency [EPMDEDP-11173](https://jiraeu.epam.com/browse/EPMDEDP-11173)
 
 ### Routine
 
@@ -12,8 +20,13 @@
 - Change the idleMinutes parameter of npm jenkins agent from 60 to 5 [EPMDEDP-10485](https://jiraeu.epam.com/browse/EPMDEDP-10485)
 - Update resource requests and limits for the python jenkins agent [EPMDEDP-10486](https://jiraeu.epam.com/browse/EPMDEDP-10486)
 - Bump go agent version [EPMDEDP-10570](https://jiraeu.epam.com/browse/EPMDEDP-10570)
+- Bump version to 2.13.0 [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
 - Update jenkins-go-agent to 3.0.15 [EPMDEDP-10735](https://jiraeu.epam.com/browse/EPMDEDP-10735)
 - Align maven,gradle image version [EPMDEDP-10755](https://jiraeu.epam.com/browse/EPMDEDP-10755)
+- Update current development version [EPMDEDP-10805](https://jiraeu.epam.com/browse/EPMDEDP-10805)
+- Bump Jenkins Java8 agents versions [EPMDEDP-11005](https://jiraeu.epam.com/browse/EPMDEDP-11005)
+- Remove deprecated Dotnet 2.1 support [EPMDEDP-11024](https://jiraeu.epam.com/browse/EPMDEDP-11024)
+- Update jenkins agents version [EPMDEDP-11089](https://jiraeu.epam.com/browse/EPMDEDP-11089)
 
 
 <a name="v2.12.1"></a>
@@ -271,7 +284,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...HEAD
+[v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...v2.13.0
 [v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
 [v2.12.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...v2.12.0
 [v2.11.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...v2.11.1
