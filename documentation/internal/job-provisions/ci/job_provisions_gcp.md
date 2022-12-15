@@ -1,16 +1,16 @@
 # Job Provisions for GCP Issues
 
-Since GCP Load balancers have strict limitation of the header size in 16Kb, EDP Jenkins script should be as small as possible.
-In EDP, Job provisions are the largest scripts and they cannot be reduced in a programming way, but there is a solution.
+Since GCP Load balancers have strict limitation of the header size in 16Kb, EDP Jenkins script should be as small as possible. 
+In EDP, Job provisions are the largest scripts and they cannot be reduced in a programming way, but there is a solution. 
 Simply compress the Job provisions with the Groovy zip library before run and then decompress them in Jenkins in runtime.
 
->**INFO**: The decompressed provisions are stored in the 'build/configs/job-provisions/ci/' folder.
+>**INFO**: The decompressed provisions are stored in the 'documentation/internal/job-provisions/ci' folder.   
 
 ## How to Create New Archived Provisions
 
 To create new archived provisions, follow the steps below:
 
-1. Modify the provision code in the 'build/configs/job-provisions/ci/' folder.
+1. Modify the provision code in the 'documentation/internal/job-provisions/ci/' folder.
 2. Create a job in any Jenkins with the following code:
     ```groovy
     import java.util.zip.GZIPInputStream
