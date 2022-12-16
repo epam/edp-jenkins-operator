@@ -2,6 +2,13 @@
 ## [Unreleased]
 
 
+<a name="v2.13.1"></a>
+## [v2.13.1] - 2022-12-16
+### Routine
+
+- Bump edp-library-stages version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
+
+
 <a name="v2.13.0"></a>
 ## [v2.13.0] - 2022-12-13
 ### Features
@@ -284,7 +291,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...HEAD
+[v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
 [v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...v2.13.0
 [v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
 [v2.12.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...v2.12.0
