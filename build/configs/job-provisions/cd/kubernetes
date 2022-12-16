@@ -18,118 +18,12 @@ import javaposse.jobdsl.plugin.*
 import com.cloudbees.hudson.plugins.folder.*
 import hudson.model.labels.LabelAtom
 
-def scriptText = '''
-/* Copyright 2022 EPAM Systems.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-
-See the License for the specific language governing permissions and
-limitations under the License. */
-
-import groovy.json.*
-import jenkins.model.Jenkins
-
-Jenkins jenkins = Jenkins.instance
-
-def pipelineName = "${PIPELINE_NAME}-cd-pipeline"
-def stageName = "${STAGE_NAME}"
-def qgStages = "${QG_STAGES}"
-def gitServerCrVersion = "${GIT_SERVER_CR_VERSION}"
-def gitCredentialsId = "${GIT_CREDENTIALS_ID}"
-def sourceType = "${SOURCE_TYPE}"
-def libraryURL = "${LIBRARY_URL}"
-def libraryBranch = "${LIBRARY_BRANCH}"
-def isAutoDeploy = "${AUTODEPLOY}"
-def scriptPath = "Jenkinsfile"
-def containerDeploymentType = "container"
-def deploymentType = "${DEPLOYMENT_TYPE}"
-def codebaseFolder = jenkins.getItem(pipelineName)
-
-def autoDeploy = '{"name":"auto-deploy-input","step_name":"auto-deploy-input"}'
-def manualDeploy = '{"name":"manual-deploy-input","step_name":"manual-deploy-input"}'
-def runType = isAutoDeploy.toBoolean() ? autoDeploy : manualDeploy
-
-def stages = buildStages(deploymentType, containerDeploymentType, qgStages, runType)
-
-if (codebaseFolder == null) {
-    folder(pipelineName)
+def getProvisioner = new URL('https://raw.githubusercontent.com/epam/edp-jenkins-operator/master/build/configs/job-provisions/cd/default-cd-provisioner').openConnection()
+String scriptText = ""
+if (getProvisioner.getResponseCode().equals(200)) {
+    scriptText = getProvisioner.getInputStream().getText()
 }
 
-if (deploymentType == containerDeploymentType) {
-    createContainerizedCdPipeline(pipelineName, stageName, stages, scriptPath, sourceType,
-            libraryURL, libraryBranch, gitCredentialsId, gitServerCrVersion,
-            isAutoDeploy)
-} else {
-    createCustomCdPipeline(pipelineName, stageName)
-}
-
-def buildStages(deploymentType, containerDeploymentType, qgStages, runType) {
-    return deploymentType == containerDeploymentType
-    ? '[{"name":"init","step_name":"init"},' + runType + ',{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
-    : ''
-}
-
-def createContainerizedCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion, isAutoDeploy) {
-    pipelineJob("${pipelineName}/${stageName}") {
-        if (sourceType == "library") {
-            definition {
-                cpsScm {
-                    scm {
-                        git {
-                            remote {
-                                url(libraryURL)
-                                credentials(libraryCredId)
-                            }
-                            branches("${libraryBranch}")
-                            scriptPath("${pipelineScript}")
-                        }
-                    }
-                }
-            }
-        } else {
-            definition {
-                cps {
-                    script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\nDeploy()")
-                    sandbox(true)
-                }
-            }
-        }
-        properties {
-          disableConcurrentBuilds()
-          logRotator {
-            numToKeep(10)
-            daysToKeep(7)
-          }
-        }
-        parameters {
-            stringParam("GIT_SERVER_CR_VERSION", "${gitServerCrVersion}", "Version of GitServer CR Resource")
-            stringParam("STAGES", "${stages}", "Consequence of stages in JSON format to be run during execution")
-
-            if (isAutoDeploy?.trim() && isAutoDeploy.toBoolean()) {
-                stringParam("CODEBASE_VERSION", null, "Codebase versions to deploy.")
-            }
-        }
-    }
-}
-
-def createCustomCdPipeline(pipelineName, stageName) {
-    pipelineJob("${pipelineName}/${stageName}") {
-        properties {
-          disableConcurrentBuilds()
-          logRotator {
-            numToKeep(10)
-            daysToKeep(7)
-          }
-        }
-    }
-}'''
 def jobName = "default"
 def folderName = "job-provisions"
 def cdFolderName = "cd"
