@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -355,7 +354,7 @@ func (s K8SService) fillConfigMapData(path string, configMapKey *string) (map[st
 
 func (s K8SService) fillConfigMapFromFile(path string, configMapKey *string) (map[string]string, error) {
 
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't read file %v.", path))
 	}
@@ -371,12 +370,12 @@ func (s K8SService) fillConfigMapFromFile(path string, configMapKey *string) (ma
 
 func (s K8SService) fillConfigMapFromDir(path string) (map[string]string, error) {
 	configMapData := make(map[string]string)
-	directory, err := ioutil.ReadDir(path)
+	directory, err := os.ReadDir(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
 	}
 	for _, file := range directory {
-		content, err := ioutil.ReadFile(fmt.Sprintf("%v/%v", path, file.Name()))
+		content, err := os.ReadFile(fmt.Sprintf("%v/%v", path, file.Name()))
 		if err != nil {
 			return nil, errors.Wrapf(err, fmt.Sprintf("Couldn't open path %v.", path))
 		}

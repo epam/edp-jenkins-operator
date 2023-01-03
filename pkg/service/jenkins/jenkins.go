@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -64,7 +64,7 @@ type JenkinsService interface {
 	ExposeConfiguration(instance jenkinsApi.Jenkins) (*jenkinsApi.Jenkins, bool, error)
 	Integration(instance *jenkinsApi.Jenkins) (*jenkinsApi.Jenkins, bool, error)
 	IsDeploymentReady(instance jenkinsApi.Jenkins) (bool, error)
-	CreateAdminPassword(instance *jenkinsApi.Jenkins) error
+	CreateAdminPassword(instance *jenkinsApi.Jenkins) (*jenkinsApi.Jenkins, error)
 }
 
 // NewJenkinsService function that returns JenkinsService implementation
@@ -407,7 +407,7 @@ func (j JenkinsServiceImpl) getIcon() (*string, error) {
 		return nil, err
 	}
 	reader := bufio.NewReader(f)
-	content, err := ioutil.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +462,7 @@ func (j JenkinsServiceImpl) Configure(instance *jenkinsApi.Jenkins) (*jenkinsApi
 		return instance, false, err
 	}
 
-	directory, err := ioutil.ReadDir(scriptsDirectoryPath)
+	directory, err := os.ReadDir(scriptsDirectoryPath)
 	if err != nil {
 		return instance, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", scriptsDirectoryPath))
 	}
@@ -491,7 +491,7 @@ func (j JenkinsServiceImpl) Configure(instance *jenkinsApi.Jenkins) (*jenkinsApi
 		return instance, false, err
 	}
 
-	_, err = ioutil.ReadDir(slavesDirectoryPath)
+	_, err = os.ReadDir(slavesDirectoryPath)
 	if err != nil {
 		return nil, false, errors.Wrapf(err, fmt.Sprintf("Couldn't read directory %v", slavesDirectoryPath))
 	}
@@ -603,18 +603,19 @@ func (j JenkinsServiceImpl) createScript(instance *jenkinsApi.Jenkins, configMap
 	return nil
 }
 
-func (j JenkinsServiceImpl) CreateAdminPassword(instance *jenkinsApi.Jenkins) error {
+func (j JenkinsServiceImpl) CreateAdminPassword(instance *jenkinsApi.Jenkins) (*jenkinsApi.Jenkins, error) {
 	secretName := fmt.Sprintf("%v-%v", instance.Name, jenkinsDefaultSpec.JenkinsAdminPasswordSuffix)
 	err := j.createSecret(instance, secretName, jenkinsDefaultSpec.JenkinsDefaultAdminUser, nil)
 	if err != nil {
-		return errors.Wrap(err, "Failed to create Admin password secret")
+		return instance, errors.Wrap(err, "Failed to create Admin password secret")
 	}
 	if instance.Status.AdminSecretName == "" {
 		updatedInstance, err := j.setAdminSecretInStatus(instance, secretName)
 		if err != nil {
-			return err
+			return instance, err
 		}
-		instance = updatedInstance
+		return updatedInstance, nil
 	}
-	return nil
+
+	return instance, nil
 }

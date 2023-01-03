@@ -98,7 +98,7 @@ func (r *ReconcileJenkins) Reconcile(ctx context.Context, request reconcile.Requ
 	}
 
 	// Create Admin password secret
-	err = r.service.CreateAdminPassword(instance)
+	instance, err = r.service.CreateAdminPassword(instance)
 	if err != nil {
 		log.Error(err, "Admin password secret creation has failed")
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, errors.Wrapf(err, "Admin password secret creation has failed")

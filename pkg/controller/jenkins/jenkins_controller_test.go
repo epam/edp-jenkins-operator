@@ -149,7 +149,7 @@ func TestReconcileJenkins_Reconcile_CreateAdminPasswordErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(nil)
-	serv.On("CreateAdminPassword").Return(errTest)
+	serv.On("CreateAdminPassword").Return(nil, errTest)
 
 	log := &common.Logger{}
 	rg := ReconcileJenkins{
@@ -186,7 +186,7 @@ func TestReconcileJenkins_Reconcile_IsDeploymentReadyErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(nil)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(&jenkinsApi.Jenkins{}, nil)
 	serv.On("IsDeploymentReady").Return(false, errTest)
 
 	log := &common.Logger{}
@@ -222,7 +222,7 @@ func TestReconcileJenkins_Reconcile_IsDeploymentReadyFalse(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(&jenkinsApi.Jenkins{}, nil)
 	serv.On("IsDeploymentReady").Return(false, nil)
 
 	log := &common.Logger{}
@@ -261,7 +261,7 @@ func TestReconcileJenkins_Reconcile_UpdateStatusCreatedErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(&jenkinsApi.Jenkins{}, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 
 	log := &common.Logger{}
@@ -298,7 +298,7 @@ func TestReconcileJenkins_Reconcile_ConfigureErr(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(&jenkinsApi.Jenkins{}, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, errTest)
 
@@ -335,7 +335,7 @@ func TestReconcileJenkins_Reconcile_ConfigureFalse(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(&jenkinsApi.Jenkins{}, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, false, nil)
 
@@ -376,7 +376,7 @@ func TestReconcileJenkins_Reconcile_UpdateStatusConfiguringErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 
@@ -416,7 +416,7 @@ func TestReconcileJenkins_Reconcile_UpdateStatusConfiguredErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 
@@ -455,7 +455,7 @@ func TestReconcileJenkins_Reconcile_ExposeConfigurationErr(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, false, errTest)
@@ -496,7 +496,7 @@ func TestReconcileJenkins_Reconcile_updateInstanceStatusErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, true, nil)
@@ -536,7 +536,7 @@ func TestReconcileJenkins_Reconcile_IntegrationErr(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, true, nil)
@@ -576,7 +576,7 @@ func TestReconcileJenkins_Reconcile_IntegrationFalse(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, true, nil)
@@ -619,7 +619,7 @@ func TestReconcileJenkins_Reconcile_UpdateStatusIntegrationStartErr(t *testing.T
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, false, nil)
@@ -663,7 +663,7 @@ func TestReconcileJenkins_Reconcile_updateAvailableStatusErr(t *testing.T) {
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
 	mc.On("Update").Return(errTest)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, false, nil)
@@ -703,7 +703,7 @@ func TestReconcileJenkins_Reconcile_AllValid(t *testing.T) {
 	sw.On("Update").Return(nil)
 	mc.On("Get", nsn, &jenkinsApi.Jenkins{}).Return(cl)
 	mc.On("Status").Return(sw)
-	serv.On("CreateAdminPassword").Return(nil)
+	serv.On("CreateAdminPassword").Return(instance, nil)
 	serv.On("IsDeploymentReady").Return(true, nil)
 	serv.On("Configure").Return(instance, true, nil)
 	serv.On("ExposeConfiguration").Return(instance, false, nil)

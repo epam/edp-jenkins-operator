@@ -48,7 +48,7 @@ func TestInitJenkinsClient_GetExternalEndpointErr(t *testing.T) {
 	platformService.On("GetExternalEndpoint", namespace, name).Return("", "", "", errTest)
 	_, err := InitJenkinsClient(instance, &platformService)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Unable to get route for"))
+	assert.True(t, strings.Contains(err.Error(), "unable to get route for"))
 	platformService.AssertExpectations(t)
 }
 

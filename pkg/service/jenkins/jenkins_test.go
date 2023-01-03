@@ -639,7 +639,7 @@ func TestJenkinsServiceImpl_CreateAdminPassword_CreateSecretErr(t *testing.T) {
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
 	}
-	err := impl.CreateAdminPassword(&instance)
+	_, err := impl.CreateAdminPassword(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Failed to create Admin password secret"))
 	platform.AssertExpectations(t)
@@ -662,7 +662,7 @@ func TestJenkinsServiceImpl_setAdminSecretInStatusErr(t *testing.T) {
 		platformService: &platform,
 		k8sClient:       &client,
 	}
-	err := impl.CreateAdminPassword(&instance)
+	_, err := impl.CreateAdminPassword(&instance)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Couldn't set admin secret name in status"))
 	platform.AssertExpectations(t)
@@ -680,7 +680,7 @@ func TestJenkinsServiceImpl_CreateAdminPassword(t *testing.T) {
 	impl := JenkinsServiceImpl{
 		platformService: &platform,
 	}
-	err := impl.CreateAdminPassword(&instance)
+	_, err := impl.CreateAdminPassword(&instance)
 	assert.NoError(t, err)
 	platform.AssertExpectations(t)
 }
