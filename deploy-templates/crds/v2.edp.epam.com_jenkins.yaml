@@ -37,6 +37,9 @@ spec:
             properties:
               basePath:
                 type: string
+              restAPIUrl:
+                type: string
+                description: jenkins full rest api url
               edpSpec:
                 properties:
                   dnsWildcard:
@@ -143,6 +146,9 @@ spec:
             properties:
               basePath:
                 type: string
+              restAPIUrl:
+                type: string
+                description: jenkins full rest api url
               edpSpec:
                 properties:
                   dnsWildcard:

@@ -6,6 +6,8 @@ import (
 
 // JenkinsSpec defines the desired state of Jenkins.
 type JenkinsSpec struct {
+	// RestAPIUrl jenkins full rest api url
+	RestAPIUrl string `json:"restAPIUrl,omitempty"`
 	// +optional
 	BasePath string `json:"basePath,omitempty"`
 	// +nullable

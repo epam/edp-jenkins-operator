@@ -81,6 +81,11 @@ api-docs: crdoc	## generate CRD docs
 helm-docs: helmdocs	## generate helm docs
 	$(HELMDOCS)
 
+GOLANGCILINT = ${CURRENT_DIR}/bin/golangci-lint
+.PHONY: golangci-lint
+golangci-lint: ## Download golangci-lint locally if necessary.
+	$(call go-get-tool,$(GOLANGCILINT),github.com/golangci/golangci-lint/cmd/golangci-lint,v1.49.0)
+
 HELMDOCS = ${CURRENT_DIR}/bin/helm-docs
 .PHONY: helmdocs
 helmdocs: ## Download helm-docs locally if necessary.
