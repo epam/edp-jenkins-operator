@@ -3,8 +3,8 @@ package jenkins
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/bndr/gojenkins"
@@ -36,11 +36,15 @@ type JenkinsClient struct {
 
 // InitNewRestClient performs initialization of Jenkins connection
 func InitJenkinsClient(instance *jenkinsApi.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
-	h, s, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
+	apiUrl := instance.Spec.RestAPIUrl
+	if apiUrl == "" {
+		h, s, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get route for %s, err: %w", instance.Name, err)
+		}
+		apiUrl = fmt.Sprintf("%v://%v%v", s, h, p)
 	}
-	apiUrl := fmt.Sprintf("%v://%v%v", s, h, p)
+
 	if instance.Status.AdminSecretName == "" {
 		log.V(1).Info("Admin secret is not created yet")
 		return nil, nil
@@ -59,16 +63,20 @@ func InitJenkinsClient(instance *jenkinsApi.Jenkins, platformService platform.Pl
 }
 
 func InitGoJenkinsClient(instance *jenkinsApi.Jenkins, platformService platform.PlatformService) (*JenkinsClient, error) {
-	h, shm, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to get route for %v", instance.Name)
+	url := instance.Spec.RestAPIUrl
+	if url == "" {
+		h, shm, p, err := platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get route for %s, err: %w", instance.Name, err)
+		}
+		url = fmt.Sprintf("%v://%v%v", shm, h, p)
 	}
 
 	s, err := platformService.GetSecretData(instance.Namespace, instance.Status.AdminSecretName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to get admin secret for %v", instance.Name)
 	}
-	url := fmt.Sprintf("%v://%v%v", shm, h, p)
+
 	log.V(2).Info("initializing new Jenkins client", "url", url, "username", string(s["username"]))
 	jenkins, err := gojenkins.CreateJenkins(http.DefaultClient, url, string(s["username"]), string(s["password"])).Init()
 	if err != nil {
@@ -149,7 +157,7 @@ func (jc JenkinsClient) GetSlaves() ([]string, error) {
 		return nil, err
 	}
 	p := fmt.Sprintf("%v/%v", d, defaultGetSlavesScript)
-	cn, err := ioutil.ReadFile(p)
+	cn, err := os.ReadFile(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "Reading File err")
 	}

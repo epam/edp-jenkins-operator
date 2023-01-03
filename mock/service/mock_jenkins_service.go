@@ -44,17 +44,13 @@ func (_m *JenkinsService) Configure(instance *jenkinsApi.Jenkins) (*jenkinsApi.J
 }
 
 // CreateAdminPassword provides a mock function with given fields: instance
-func (_m *JenkinsService) CreateAdminPassword(instance *jenkinsApi.Jenkins) error {
+func (_m *JenkinsService) CreateAdminPassword(instance *jenkinsApi.Jenkins) (*jenkinsApi.Jenkins, error) {
 	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(jenkinsApi.Jenkins) error); ok {
-		r0 = rf(*instance)
-	} else {
-		r0 = ret.Error(0)
+	if err := ret.Error(1); err != nil {
+		return nil, err
 	}
 
-	return r0
+	return ret.Get(0).(*jenkinsApi.Jenkins), nil
 }
 
 // ExposeConfiguration provides a mock function with given fields: instance

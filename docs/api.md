@@ -331,6 +331,13 @@ JenkinsSpec defines the desired state of Jenkins
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>restAPIUrl</b></td>
+        <td>string</td>
+        <td>
+          jenkins full rest api url<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#jenkinsspecsharedlibrariesindex">sharedLibraries</a></b></td>
         <td>[]object</td>
         <td>
@@ -2287,6 +2294,13 @@ Jenkins is the Schema for the jenkins API
         <td>[]object</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restAPIUrl</b></td>
+        <td>string</td>
+        <td>
+          jenkins full rest api url<br/>
         </td>
         <td>false</td>
       </tr><tr>
