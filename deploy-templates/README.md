@@ -50,7 +50,6 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.sharedLibraries[1].name | string | `"edp-library-pipelines"` |  |
 | jenkins.sharedLibraries[1].tag | string | `"master"` |  |
 | jenkins.sharedLibraries[1].url | string | `"https://github.com/epam/edp-library-pipelines.git"` |  |
-| jenkins.storage.class | string | `"gp2"` | Storageclass for Jenkins data volume |
 | jenkins.storage.size | string | `"10Gi"` | Jenkins data volume capacity |
 | jenkins.tolerations | list | `[]` |  |
 | jenkins.version | string | `"2.14.0-SNAPSHOT"` | EDP Jenkins Docker image tag |

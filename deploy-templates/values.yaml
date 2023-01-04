@@ -42,7 +42,7 @@ jenkins:
   imagePullPolicy: "IfNotPresent"
   storage:
     # -- Storageclass for Jenkins data volume
-    class: gp2
+    # class: gp2
     # -- Jenkins data volume capacity
     size: 10Gi
   annotations: {}
