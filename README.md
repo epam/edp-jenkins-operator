@@ -36,10 +36,10 @@ In order to install the EDP Jenkins Operator, follow the steps below:
    Example response:
    ```
      NAME                      CHART VERSION   APP VERSION     DESCRIPTION
-     epamedp/jenkins-operator  2.11.1          2.11.1          A Helm chart for EDP Jenkins Operator
-     epamedp/jenkins-operator  2.11.0          2.11.0          A Helm chart for EDP Jenkins Operator
-     epamedp/jenkins-operator  2.10.1          2.10.1          A Helm chart for EDP Jenkins Operator
-     epamedp/jenkins-operator  2.10.0          2.10.0          A Helm chart for EDP Jenkins Operator
+     epamedp/jenkins-operator  2.13.1          2.13.1          A Helm chart for EDP Jenkins Operator
+     epamedp/jenkins-operator  2.13.0          2.13.0          A Helm chart for EDP Jenkins Operator
+     epamedp/jenkins-operator  2.12.1          2.12.1          A Helm chart for EDP Jenkins Operator
+     epamedp/jenkins-operator  2.12.0          2.12.0          A Helm chart for EDP Jenkins Operator
      ```
 
     _**NOTE:** It is highly recommended to use the latest released version._
