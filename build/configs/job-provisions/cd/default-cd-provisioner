@@ -51,8 +51,8 @@ if (deploymentType == containerDeploymentType) {
 
 def buildStages(deploymentType, containerDeploymentType, qgStages, runType) {
     return deploymentType == containerDeploymentType
-    ? '[{"name":"init","step_name":"init"},' + runType + ',{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
-    : ''
+            ? '[{"name":"init","step_name":"init"},' + runType + ',{"name":"deploy","step_name":"deploy"},' + qgStages + ',{"name":"promote-images","step_name":"promote-images"}]'
+            : ''
 }
 
 def createContainerizedCdPipeline(pipelineName, stageName, stages, pipelineScript, sourceType, libraryURL, libraryBranch, libraryCredId, gitServerCrVersion, isAutoDeploy) {
@@ -75,7 +75,7 @@ def createContainerizedCdPipeline(pipelineName, stageName, stages, pipelineScrip
         } else {
             definition {
                 cps {
-                    script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \\n\\nDeploy()")
+                    script("@Library(['edp-library-stages', 'edp-library-pipelines']) _ \n\nDeploy()")
                     sandbox(true)
                 }
             }
