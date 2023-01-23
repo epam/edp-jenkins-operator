@@ -2,6 +2,13 @@
 ## [Unreleased]
 
 
+<a name="v2.13.2"></a>
+## [v2.13.2] - 2023-01-03
+### Features
+
+- Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
+
+
 <a name="v2.13.1"></a>
 ## [v2.13.1] - 2022-12-16
 ### Routine
@@ -291,7 +298,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...HEAD
+[v2.13.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...v2.13.2
 [v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
 [v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...v2.13.0
 [v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
