@@ -3,6 +3,48 @@
 
 ### Features
 
+- Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
+- Provide opportunity to use default cluster storageClassName [EPMDEDP-11230](https://jiraeu.epam.com/browse/EPMDEDP-11230)
+
+### Bug Fixes
+
+- Modify escaping in CD provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Add parenthesis in cd provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Revert Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+
+### Code Refactoring
+
+- Fixed golangci-lint warnings [EPMDEDP-10627](https://jiraeu.epam.com/browse/EPMDEDP-10627)
+
+### Routine
+
+- Update current development version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
+- Align Jenkins job provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+
+### Documentation
+
+- Update chart and application version in Readme file [EPMDEDP-11221](https://jiraeu.epam.com/browse/EPMDEDP-11221)
+
+
+<a name="v2.13.2"></a>
+## [v2.13.2] - 2023-01-23
+### Features
+
+- Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
+
+
+<a name="v2.13.1"></a>
+## [v2.13.1] - 2022-12-16
+### Routine
+
+- Bump edp-library-stages version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
+
+
+<a name="v2.13.0"></a>
+## [v2.13.0] - 2022-12-13
+### Features
+
 - Added a stub linter [EPMDEDP-10536](https://jiraeu.epam.com/browse/EPMDEDP-10536)
 
 ### Bug Fixes
@@ -17,13 +59,20 @@
 - Change the idleMinutes parameter of npm jenkins agent from 60 to 5 [EPMDEDP-10485](https://jiraeu.epam.com/browse/EPMDEDP-10485)
 - Update resource requests and limits for the python jenkins agent [EPMDEDP-10486](https://jiraeu.epam.com/browse/EPMDEDP-10486)
 - Bump go agent version [EPMDEDP-10570](https://jiraeu.epam.com/browse/EPMDEDP-10570)
-- Update current development version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
+- Bump version to 2.13.0 [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
 - Update jenkins-go-agent to 3.0.15 [EPMDEDP-10735](https://jiraeu.epam.com/browse/EPMDEDP-10735)
 - Align maven,gradle image version [EPMDEDP-10755](https://jiraeu.epam.com/browse/EPMDEDP-10755)
 - Update current development version [EPMDEDP-10805](https://jiraeu.epam.com/browse/EPMDEDP-10805)
 - Bump Jenkins Java8 agents versions [EPMDEDP-11005](https://jiraeu.epam.com/browse/EPMDEDP-11005)
 - Remove deprecated Dotnet 2.1 support [EPMDEDP-11024](https://jiraeu.epam.com/browse/EPMDEDP-11024)
 - Update jenkins agents version [EPMDEDP-11089](https://jiraeu.epam.com/browse/EPMDEDP-11089)
+
+
+<a name="v2.12.2"></a>
+## [v2.12.2] - 2023-02-03
+### Features
+
+- Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
 
 
 <a name="v2.12.1"></a>
@@ -64,17 +113,17 @@
 - Upgrade go version to 1.18 [EPMDEDP-10110](https://jiraeu.epam.com/browse/EPMDEDP-10110)
 - Update agent images to latest [EPMDEDP-10122](https://jiraeu.epam.com/browse/EPMDEDP-10122)
 - Fix Jira Ticket pattern for changelog generator [EPMDEDP-10159](https://jiraeu.epam.com/browse/EPMDEDP-10159)
+- Bump version to 2.12.0 [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Bump helm agent version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update alpine base image to 3.16.2 version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
-- Bump version to 2.12.0 [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update Jenkins agents versions [EPMDEDP-10276](https://jiraeu.epam.com/browse/EPMDEDP-10276)
 - Update edp-jenkins-go-agent to 3.0.10 [EPMDEDP-10279](https://jiraeu.epam.com/browse/EPMDEDP-10279)
 - Update alpine base image version [EPMDEDP-10280](https://jiraeu.epam.com/browse/EPMDEDP-10280)
 - Change 'go get' to 'go install' for git-chglog [EPMDEDP-10337](https://jiraeu.epam.com/browse/EPMDEDP-10337)
 - Use deployments as default deploymentType for OpenShift [EPMDEDP-10344](https://jiraeu.epam.com/browse/EPMDEDP-10344)
 - Remove VERSION file [EPMDEDP-10387](https://jiraeu.epam.com/browse/EPMDEDP-10387)
-- Add platformType into the openshift and kubernetes job-provisioners [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
 - Align the CI job-provisioner for Kubernetes platform [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
+- Add platformType into the openshift and kubernetes job-provisioners [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
 - Remove extra comma from list of stages [EPMDEDP-10394](https://jiraeu.epam.com/browse/EPMDEDP-10394)
 - Remove Kubernetes and GitOps libraries stages from job provisioners [EPMDEDP-10397](https://jiraeu.epam.com/browse/EPMDEDP-10397)
 - Add gcflags for go build artifact [EPMDEDP-10411](https://jiraeu.epam.com/browse/EPMDEDP-10411)
@@ -109,8 +158,8 @@
 - Update Makefile changelog target [EPMDEDP-8218](https://jiraeu.epam.com/browse/EPMDEDP-8218)
 - Use tags list for the CODEBASE_VERSION for auto deploy. [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
 - Enable stages to provide manual and auto deploy input generation [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
-- Add Kaniko library stages to job provisioners [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
 - Add kaniko-docker agent for Container library [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
+- Add Kaniko library stages to job provisioners [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
 - Add ingress tls certificate option when using ingress controller [EPMDEDP-8377](https://jiraeu.epam.com/browse/EPMDEDP-8377)
 - Generate CRDs and helm docs automatically [EPMDEDP-8385](https://jiraeu.epam.com/browse/EPMDEDP-8385)
 - External shared libraries with custom resource [EPMDEDP-8396](https://jiraeu.epam.com/browse/EPMDEDP-8396)
@@ -281,7 +330,11 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...HEAD
+[v2.13.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...v2.13.2
+[v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
+[v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.2...v2.13.0
+[v2.12.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.1...v2.12.2
 [v2.12.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.0...v2.12.1
 [v2.12.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.1...v2.12.0
 [v2.11.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.11.0...v2.11.1

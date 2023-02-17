@@ -99,7 +99,7 @@ golangci-lint: ## Download golangci-lint locally if necessary.
 GITCHGLOG = ${CURRENT_DIR}/bin/git-chglog
 .PHONY: git-chglog
 git-chglog: ## Download git-chglog locally if necessary.
-	$(call go-get-tool,$(GITCHGLOG),github.com/git-chglog/git-chglog/cmd/git-chglog,v0.15.1)
+	$(call go-get-tool,$(GITCHGLOG),github.com/git-chglog/git-chglog/cmd/git-chglog,v0.15.4)
 
 CRDOC = ${CURRENT_DIR}/bin/crdoc
 .PHONY: crdoc
