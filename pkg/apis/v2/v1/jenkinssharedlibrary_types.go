@@ -17,9 +17,9 @@ type JenkinsSharedLibraryStatus struct {
 	Value string `json:"value"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:storageversion
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 type JenkinsSharedLibrary struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -30,7 +30,7 @@ type JenkinsSharedLibrary struct {
 	Status JenkinsSharedLibraryStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 type JenkinsSharedLibraryList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

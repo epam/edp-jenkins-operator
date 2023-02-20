@@ -19,9 +19,9 @@ type JenkinsAgentStatus struct {
 	Value string `json:"value"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:storageversion
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 type JenkinsAgent struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -32,7 +32,7 @@ type JenkinsAgent struct {
 	Status JenkinsAgentStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 type JenkinsAgentList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

@@ -147,7 +147,7 @@ func (jc JenkinsClient) RunScript(context string) error {
 	params := map[string]string{"script": context}
 
 	resp, err := jc.resty.R().
-		SetQueryParams(params).
+		SetFormData(params).
 		SetHeaders(headers).
 		Post("/scriptText")
 	if err != nil {

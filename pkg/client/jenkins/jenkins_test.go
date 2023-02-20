@@ -198,7 +198,6 @@ func TestJenkinsClient_RunScript_PostErr(t *testing.T) {
 
 func TestJenkinsClient_RunScript_NotFoundCode(t *testing.T) {
 	restyClient := CreateMockResty()
-	script := "test"
 
 	httpmock.RegisterResponder(
 		http.MethodGet,
@@ -206,21 +205,20 @@ func TestJenkinsClient_RunScript_NotFoundCode(t *testing.T) {
 		httpmock.NewStringResponder(http.StatusOK, str))
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"//%2FscriptText%3Fscript="+script+"/scriptText?script="+script,
+		"/scriptText",
 		httpmock.NewStringResponder(http.StatusNotFound, ""))
 
 	jc := JenkinsClient{
 		resty: restyClient,
 	}
 
-	err := jc.RunScript(script)
+	err := jc.RunScript("test")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to run script in Jenkin")
 }
 
 func TestJenkinsClient_RunScript(t *testing.T) {
 	restyClient := CreateMockResty()
-	script := "test"
 
 	httpmock.RegisterResponder(
 		http.MethodGet,
@@ -228,14 +226,14 @@ func TestJenkinsClient_RunScript(t *testing.T) {
 		httpmock.NewStringResponder(http.StatusOK, str))
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"//%2FscriptText%3Fscript="+script+"/scriptText?script="+script,
+		"/scriptText",
 		httpmock.NewStringResponder(http.StatusOK, ""))
 
 	jc := JenkinsClient{
 		resty: restyClient,
 	}
 
-	assert.NoError(t, jc.RunScript(script))
+	assert.NoError(t, jc.RunScript("test"))
 }
 
 func TestJenkinsClient_GetSlaves_GetCrumbErr(t *testing.T) {

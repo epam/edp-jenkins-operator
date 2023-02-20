@@ -15,9 +15,9 @@ type JenkinsAuthorizationRoleMappingStatus struct {
 	Value string `json:"value"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:storageversion
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 type JenkinsAuthorizationRoleMapping struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -28,7 +28,7 @@ type JenkinsAuthorizationRoleMapping struct {
 	Status JenkinsAuthorizationRoleMappingStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 type JenkinsAuthorizationRoleMappingList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
