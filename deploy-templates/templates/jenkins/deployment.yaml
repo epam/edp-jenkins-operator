@@ -25,6 +25,11 @@ spec:
         - name: jenkins-jenkins-data
           persistentVolumeClaim:
             claimName: jenkins-data
+        {{- if .Values.jenkins.caCerts.enabled }}
+        - name: ca-certs
+          secret:
+            secretName: {{ .Values.jenkins.caCerts.secret }}
+        {{- end }}
       {{- with .Values.jenkins.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -59,6 +64,22 @@ spec:
           securityContext:
             runAsUser: 999
             runAsGroup: 998
+        {{- if .Values.jenkins.caCerts.enabled }}
+        - name: ca-certs
+          image: {{ default "adoptopenjdk/openjdk11:alpine" .Values.jenkins.caCerts.image }}
+          imagePullPolicy: {{ .Values.jenkins.imagePullPolicy  }}
+          command: ["sh"]
+          args: ["-c", "cp -f \"${JAVA_HOME}/lib/security/cacerts\" /tmp/certs/cacerts; if [ \"$(ls /tmp/secrets/ca-certs)\" ]; then for f in /tmp/secrets/ca-certs/*; do keytool -importcert -file \"${f}\" -alias \"$(basename \"${f}\")\" -keystore /tmp/certs/cacerts -storepass changeit -trustcacerts -noprompt; done; fi;"]
+          volumeMounts:
+            - mountPath: /tmp/certs
+              name: jenkins-jenkins-data
+              subPath: certs
+            - mountPath: /tmp/secrets/ca-certs
+              name: ca-certs
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 998
+        {{- end }}
       containers:
         - name: edp-jenkins
           image: {{.Values.jenkins.image}}:{{.Values.jenkins.version}}
@@ -91,11 +112,18 @@ spec:
               value: '--requestHeaderSize=32768'
             - name: PLATFORM_TYPE
               value: kubernetes
+            - name: JENKINS_JAVA_OPTIONS
+              value: {{ template "jenkins.jenkinsJavaOptions" . }}
           resources:
 {{ toYaml .Values.jenkins.resources | indent 12 }}
           volumeMounts:
             - name: jenkins-jenkins-data
               mountPath: /var/lib/jenkins
+            {{- if .Values.jenkins.caCerts.enabled }}
+            - name: jenkins-jenkins-data
+              mountPath: /var/lib/jenkins/certs
+              subPath: certs
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /login

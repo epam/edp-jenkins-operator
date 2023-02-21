@@ -115,3 +115,14 @@ Return if ingress supports pathType.
 {{- define "jenkins.ingress.supportsPathType" -}}
   {{- or (eq (include "jenkins.ingress.isStable" .) "true") (and (eq (include "jenkins.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18-0" .Capabilities.KubeVersion.Version)) -}}
 {{- end -}}
+
+{{/*
+Set jenkins.jenkinsJavaOptions
+*/}}
+{{- define "jenkins.jenkinsJavaOptions" -}}
+{{- if .Values.jenkins.caCerts.enabled -}}
+{{ printf "-Djavax.net.ssl.trustStore=%s/certs/cacerts %s" "/var/lib/jenkins" .Values.jenkins.jenkinsJavaOptions | trim | quote }}
+{{- else -}}
+{{ printf "%s" .Values.jenkins.jenkinsJavaOptions }}
+{{- end -}}
+{{- end -}}

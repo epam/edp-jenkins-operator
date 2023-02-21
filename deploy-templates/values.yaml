@@ -100,3 +100,16 @@ jenkins:
     requests:
       cpu: 1000m
       memory: 1500Mi
+
+  # Provide a secret containing one or more certificate files in the keys that will be added to cacerts
+  # The cacerts file will be set via JENKINS_JAVA_OPTIONS
+  caCerts:
+    # -- Flag for enabling additional CA certificates
+    enabled: false
+    # -- Change init CA certificates container image
+    image: adoptopenjdk/openjdk11:alpine
+    # -- Name of the secret containing additional CA certificates
+    secret: your-secret
+
+  # -- Values to add to JENKINS_JAVA_OPTIONS
+  jenkinsJavaOptions: ""

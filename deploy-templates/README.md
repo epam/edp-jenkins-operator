@@ -34,6 +34,9 @@ A Helm chart for EDP Jenkins Operator
 | imagePullPolicy | string | `"IfNotPresent"` |  |
 | jenkins.affinity | object | `{}` |  |
 | jenkins.annotations | object | `{}` |  |
+| jenkins.caCerts.enabled | bool | `false` | Flag for enabling additional CA certificates |
+| jenkins.caCerts.image | string | `"adoptopenjdk/openjdk11:alpine"` | Change init CA certificates container image |
+| jenkins.caCerts.secret | string | `"your-secret"` | Name of the secret containing additional CA certificates |
 | jenkins.deploy | bool | `true` | Flag to enable/disable Jenkins deploy |
 | jenkins.image | string | `"epamedp/edp-jenkins"` | EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins" |
 | jenkins.imagePullPolicy | string | `"IfNotPresent"` |  |
@@ -42,6 +45,7 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.ingress.pathType | string | `"Prefix"` | pathType is only for k8s >= 1.1= |
 | jenkins.ingress.tls | list | `[]` | See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress ingressClassName: nginx |
 | jenkins.initImage | string | `"busybox:1.35.0"` | Init Docker image for Jenkins deployment. Default is "busybox" |
+| jenkins.jenkinsJavaOptions | string | `""` | Values to add to JENKINS_JAVA_OPTIONS |
 | jenkins.nodeSelector | object | `{}` |  |
 | jenkins.resources.limits.memory | string | `"5Gi"` |  |
 | jenkins.resources.requests.cpu | string | `"1000m"` |  |
