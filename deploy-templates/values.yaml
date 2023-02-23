@@ -109,7 +109,7 @@ jenkins:
     # -- Change init CA certificates container image
     image: adoptopenjdk/openjdk11:alpine
     # -- Name of the secret containing additional CA certificates
-    secret: your-secret
+    secret: secret-name
 
   # -- Values to add to JENKINS_JAVA_OPTIONS
   jenkinsJavaOptions: ""

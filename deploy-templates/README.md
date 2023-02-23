@@ -36,7 +36,7 @@ A Helm chart for EDP Jenkins Operator
 | jenkins.annotations | object | `{}` |  |
 | jenkins.caCerts.enabled | bool | `false` | Flag for enabling additional CA certificates |
 | jenkins.caCerts.image | string | `"adoptopenjdk/openjdk11:alpine"` | Change init CA certificates container image |
-| jenkins.caCerts.secret | string | `"your-secret"` | Name of the secret containing additional CA certificates |
+| jenkins.caCerts.secret | string | `"secret-name"` | Name of the secret containing additional CA certificates |
 | jenkins.deploy | bool | `true` | Flag to enable/disable Jenkins deploy |
 | jenkins.image | string | `"epamedp/edp-jenkins"` | EDP Jenkins Docker image name. Default supported is "epamedp/edp-jenkins" |
 | jenkins.imagePullPolicy | string | `"IfNotPresent"` |  |
