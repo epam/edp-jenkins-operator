@@ -1,16 +1,22 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+
+<a name="v2.14.0"></a>
+## [v2.14.0] - 2023-03-25
 ### Features
 
 - Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
 - Provide opportunity to use default cluster storageClassName [EPMDEDP-11230](https://jiraeu.epam.com/browse/EPMDEDP-11230)
+- Enable extra truststore for Jenkins [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
+- Add the ability to use additional volumes in helm chart [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
 
 ### Bug Fixes
 
 - Modify escaping in CD provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Add parenthesis in cd provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Revert Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Running a large Jenkins script causes an error [EPMDEDP-11569](https://jiraeu.epam.com/browse/EPMDEDP-11569)
 
 ### Code Refactoring
 
@@ -21,6 +27,11 @@
 - Update current development version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
 - Align Jenkins job provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Bump version to 2.14.0 [EPMDEDP-11472](https://jiraeu.epam.com/browse/EPMDEDP-11472)
+- Update git-chglog for jenkins-operator [EPMDEDP-11518](https://jiraeu.epam.com/browse/EPMDEDP-11518)
+- Change the value of the parameter that contains the name of the secret [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
+- Bump golang.org/x/net from 0.5.0 to 0.8.0 [EPMDEDP-11578](https://jiraeu.epam.com/browse/EPMDEDP-11578)
+- Upgrade alpine image version to 3.16.4 [EPMDEDP-11764](https://jiraeu.epam.com/browse/EPMDEDP-11764)
 
 ### Documentation
 
@@ -330,7 +341,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.14.0...HEAD
+[v2.14.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...v2.14.0
 [v2.13.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...v2.13.2
 [v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
 [v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.2...v2.13.0
