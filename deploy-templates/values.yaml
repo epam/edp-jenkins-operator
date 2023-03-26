@@ -2,7 +2,7 @@ global:
   # -- namespace or a project name (in case of OpenShift)
   edpName: ""
   # -- platform type that can be "kubernetes" or "openshift"
-  platform: "openshift"
+  platform: "kubernetes"
   # -- a cluster DNS wildcard name
   dnsWildCard:
   openshift:

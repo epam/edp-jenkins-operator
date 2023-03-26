@@ -1,16 +1,22 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+
+<a name="v2.14.0"></a>
+## [v2.14.0] - 2023-03-25
 ### Features
 
 - Custom rest api url for jenkins type [EPMDEDP-11198](https://jiraeu.epam.com/browse/EPMDEDP-11198)
 - Provide opportunity to use default cluster storageClassName [EPMDEDP-11230](https://jiraeu.epam.com/browse/EPMDEDP-11230)
+- Enable extra truststore for Jenkins [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
+- Add the ability to use additional volumes in helm chart [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
 
 ### Bug Fixes
 
 - Modify escaping in CD provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Add parenthesis in cd provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Revert Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Running a large Jenkins script causes an error [EPMDEDP-11569](https://jiraeu.epam.com/browse/EPMDEDP-11569)
 
 ### Code Refactoring
 
@@ -19,8 +25,13 @@
 ### Routine
 
 - Update current development version [EPMDEDP-10610](https://jiraeu.epam.com/browse/EPMDEDP-10610)
-- Align Jenkins job provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Align Jenkins job provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Bump version to 2.14.0 [EPMDEDP-11472](https://jiraeu.epam.com/browse/EPMDEDP-11472)
+- Update git-chglog for jenkins-operator [EPMDEDP-11518](https://jiraeu.epam.com/browse/EPMDEDP-11518)
+- Change the value of the parameter that contains the name of the secret [EPMDEDP-11529](https://jiraeu.epam.com/browse/EPMDEDP-11529)
+- Bump golang.org/x/net from 0.5.0 to 0.8.0 [EPMDEDP-11578](https://jiraeu.epam.com/browse/EPMDEDP-11578)
+- Upgrade alpine image version to 3.16.4 [EPMDEDP-11764](https://jiraeu.epam.com/browse/EPMDEDP-11764)
 
 ### Documentation
 
@@ -113,17 +124,17 @@
 - Upgrade go version to 1.18 [EPMDEDP-10110](https://jiraeu.epam.com/browse/EPMDEDP-10110)
 - Update agent images to latest [EPMDEDP-10122](https://jiraeu.epam.com/browse/EPMDEDP-10122)
 - Fix Jira Ticket pattern for changelog generator [EPMDEDP-10159](https://jiraeu.epam.com/browse/EPMDEDP-10159)
-- Bump version to 2.12.0 [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Bump helm agent version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update alpine base image to 3.16.2 version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
+- Bump version to 2.12.0 [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update Jenkins agents versions [EPMDEDP-10276](https://jiraeu.epam.com/browse/EPMDEDP-10276)
 - Update edp-jenkins-go-agent to 3.0.10 [EPMDEDP-10279](https://jiraeu.epam.com/browse/EPMDEDP-10279)
 - Update alpine base image version [EPMDEDP-10280](https://jiraeu.epam.com/browse/EPMDEDP-10280)
 - Change 'go get' to 'go install' for git-chglog [EPMDEDP-10337](https://jiraeu.epam.com/browse/EPMDEDP-10337)
 - Use deployments as default deploymentType for OpenShift [EPMDEDP-10344](https://jiraeu.epam.com/browse/EPMDEDP-10344)
 - Remove VERSION file [EPMDEDP-10387](https://jiraeu.epam.com/browse/EPMDEDP-10387)
-- Align the CI job-provisioner for Kubernetes platform [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
 - Add platformType into the openshift and kubernetes job-provisioners [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
+- Align the CI job-provisioner for Kubernetes platform [EPMDEDP-10393](https://jiraeu.epam.com/browse/EPMDEDP-10393)
 - Remove extra comma from list of stages [EPMDEDP-10394](https://jiraeu.epam.com/browse/EPMDEDP-10394)
 - Remove Kubernetes and GitOps libraries stages from job provisioners [EPMDEDP-10397](https://jiraeu.epam.com/browse/EPMDEDP-10397)
 - Add gcflags for go build artifact [EPMDEDP-10411](https://jiraeu.epam.com/browse/EPMDEDP-10411)
@@ -158,8 +169,8 @@
 - Update Makefile changelog target [EPMDEDP-8218](https://jiraeu.epam.com/browse/EPMDEDP-8218)
 - Use tags list for the CODEBASE_VERSION for auto deploy. [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
 - Enable stages to provide manual and auto deploy input generation [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
-- Add kaniko-docker agent for Container library [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
 - Add Kaniko library stages to job provisioners [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
+- Add kaniko-docker agent for Container library [EPMDEDP-8341](https://jiraeu.epam.com/browse/EPMDEDP-8341)
 - Add ingress tls certificate option when using ingress controller [EPMDEDP-8377](https://jiraeu.epam.com/browse/EPMDEDP-8377)
 - Generate CRDs and helm docs automatically [EPMDEDP-8385](https://jiraeu.epam.com/browse/EPMDEDP-8385)
 - External shared libraries with custom resource [EPMDEDP-8396](https://jiraeu.epam.com/browse/EPMDEDP-8396)
@@ -330,7 +341,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.14.0...HEAD
+[v2.14.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...v2.14.0
 [v2.13.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...v2.13.2
 [v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
 [v2.13.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.12.2...v2.13.0
