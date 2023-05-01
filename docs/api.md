@@ -331,10 +331,17 @@ JenkinsSpec defines the desired state of Jenkins.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>externalURL</b></td>
+        <td>string</td>
+        <td>
+          ExternalURL jenkins full external url for keycloak or other integrations<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>restAPIUrl</b></td>
         <td>string</td>
         <td>
-          jenkins full rest api url<br/>
+          RestAPIUrl jenkins full rest api url<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2294,13 +2301,6 @@ Jenkins is the Schema for the jenkins API
         <td>[]object</td>
         <td>
           <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>restAPIUrl</b></td>
-        <td>string</td>
-        <td>
-          jenkins full rest api url<br/>
         </td>
         <td>false</td>
       </tr><tr>

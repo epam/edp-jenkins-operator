@@ -16,13 +16,14 @@ import (
 
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
+	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
+
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
-	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
 )
 
 const (
@@ -166,6 +167,15 @@ func TestJenkinsServiceImpl_Integration_GetExternalEndpointErr(t *testing.T) {
 	_, _, err := impl.Integration(instance)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get route from cluster")
+}
+
+func TestJenkinsServiceImpl_CreateEDPComponent(t *testing.T) {
+	impl := JenkinsServiceImpl{}
+	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
+		Spec: jenkinsApi.JenkinsSpec{ExternalURL: "https://google.com"}}
+	err := impl.createEDPComponent(&instance)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "jenkins.svg")
 }
 
 func TestJenkinsServiceImpl_Integration_mountGerritCredentialsErr(t *testing.T) {

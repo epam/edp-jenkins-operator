@@ -8,6 +8,8 @@ import (
 type JenkinsSpec struct {
 	// RestAPIUrl jenkins full rest api url
 	RestAPIUrl string `json:"restAPIUrl,omitempty"`
+	// ExternalURL jenkins full external url for keycloak or other integrations
+	ExternalURL string `json:"externalURL,omitempty"`
 	// +optional
 	BasePath string `json:"basePath,omitempty"`
 	// +nullable

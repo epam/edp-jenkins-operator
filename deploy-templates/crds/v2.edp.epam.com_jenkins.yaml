@@ -37,9 +37,6 @@ spec:
             properties:
               basePath:
                 type: string
-              restAPIUrl:
-                type: string
-                description: jenkins full rest api url
               edpSpec:
                 properties:
                   dnsWildcard:
@@ -47,6 +44,10 @@ spec:
                 required:
                 - dnsWildcard
                 type: object
+              externalURL:
+                description: ExternalURL jenkins full external url for keycloak or
+                  other integrations
+                type: string
               keycloakSpec:
                 properties:
                   enabled:
@@ -60,6 +61,9 @@ spec:
                 required:
                 - enabled
                 type: object
+              restAPIUrl:
+                description: RestAPIUrl jenkins full rest api url
+                type: string
               sharedLibraries:
                 items:
                   properties:
@@ -146,9 +150,6 @@ spec:
             properties:
               basePath:
                 type: string
-              restAPIUrl:
-                type: string
-                description: jenkins full rest api url
               edpSpec:
                 properties:
                   dnsWildcard:

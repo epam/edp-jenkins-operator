@@ -14,6 +14,7 @@ import (
 
 	"github.com/dchest/uniuri"
 	coreV1Api "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -99,41 +100,47 @@ func (j JenkinsServiceImpl) setAdminSecretInStatus(instance *jenkinsApi.Jenkins,
 
 // newIntegrationKeycloakClient creates a v1.KeycloakClient to be used in Integration.
 func (j JenkinsServiceImpl) newIntegrationKeycloakClient(instance *jenkinsApi.Jenkins) (*keycloakApi.KeycloakClient, error) {
-	keycloakClient := keycloakApi.KeycloakClient{}
-
-	host, scheme, path, err := j.platformService.GetExternalEndpoint(instance.Namespace, instance.Name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get route from cluster: %w", err)
+	keycloakClient := keycloakApi.KeycloakClient{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+		Spec: keycloakApi.KeycloakClientSpec{
+			ClientId: instance.Name,
+			Public:   !instance.Spec.KeycloakSpec.IsPrivate,
+			Secret:   instance.Spec.KeycloakSpec.SecretName,
+			WebUrl:   instance.Spec.ExternalURL,
+			RealmRoles: &[]keycloakApi.RealmRole{
+				{
+					Name:      "jenkins-administrators",
+					Composite: "administrator",
+				},
+				{
+					Name:      "jenkins-users",
+					Composite: "developer",
+				},
+			},
+		},
 	}
 
-	webUrl := fmt.Sprintf("%v://%v%v", scheme, host, path)
+	if keycloakClient.Spec.WebUrl == "" {
+		externalURL, err := j.getExternalUrl(instance)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get route from cluster: %w", err)
+		}
 
-	keycloakClient.Name = instance.Name
-	keycloakClient.Namespace = instance.Namespace
-	keycloakClient.Spec.ClientId = instance.Name
-	keycloakClient.Spec.Public = !instance.Spec.KeycloakSpec.IsPrivate
-	keycloakClient.Spec.Secret = instance.Spec.KeycloakSpec.SecretName
-	keycloakClient.Spec.WebUrl = webUrl
-	keycloakClient.Spec.RealmRoles = &[]keycloakApi.RealmRole{
-		{
-			Name:      "jenkins-administrators",
-			Composite: "administrator",
-		},
-		{
-			Name:      "jenkins-users",
-			Composite: "developer",
-		},
+		keycloakClient.Spec.WebUrl = externalURL
 	}
 
 	if instance.Spec.KeycloakSpec.Realm != "" {
 		keycloakClient.Spec.TargetRealm = instance.Spec.KeycloakSpec.Realm
 	}
 
-	if err = j.platformService.CreateKeycloakClient(&keycloakClient); err != nil {
+	if err := j.platformService.CreateKeycloakClient(&keycloakClient); err != nil {
 		return nil, fmt.Errorf("failed to create Keycloak Client data: %w", err)
 	}
 
-	keycloakClient, err = j.platformService.GetKeycloakClient(instance.Name, instance.Namespace)
+	keycloakClient, err := j.platformService.GetKeycloakClient(instance.Name, instance.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Keycloak Client CR: %w", err)
 	}
@@ -432,7 +439,7 @@ func newSlaveArray(slaveNames []string) []jenkinsApi.Slave {
 }
 
 func (j JenkinsServiceImpl) createEDPComponent(jen *jenkinsApi.Jenkins) error {
-	url, err := j.getUrl(jen)
+	url, err := j.getExternalUrl(jen)
 	if err != nil {
 		return err
 	}
@@ -442,22 +449,24 @@ func (j JenkinsServiceImpl) createEDPComponent(jen *jenkinsApi.Jenkins) error {
 		return err
 	}
 
-	if err := j.platformService.CreateEDPComponentIfNotExist(jen, *url, *icon); err != nil {
+	if err := j.platformService.CreateEDPComponentIfNotExist(jen, url, *icon); err != nil {
 		return fmt.Errorf("failed to check or create EDP component: %w", err)
 	}
 
 	return nil
 }
 
-func (j JenkinsServiceImpl) getUrl(jen *jenkinsApi.Jenkins) (*string, error) {
-	h, s, p, err := j.platformService.GetExternalEndpoint(jen.Namespace, jen.Name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get external endpoint: %w", err)
+func (j JenkinsServiceImpl) getExternalUrl(jen *jenkinsApi.Jenkins) (string, error) {
+	if jen.Spec.ExternalURL != "" {
+		return jen.Spec.ExternalURL, nil
 	}
 
-	url := fmt.Sprintf("%v://%v%v", s, h, p)
+	h, s, p, err := j.platformService.GetExternalEndpoint(jen.Namespace, jen.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to get external endpoint: %w", err)
+	}
 
-	return &url, nil
+	return fmt.Sprintf("%v://%v%v", s, h, p), nil
 }
 
 func (JenkinsServiceImpl) getIcon() (*string, error) {
