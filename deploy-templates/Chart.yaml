@@ -29,8 +29,8 @@ annotations:
       image: epamedp/edp-jenkins:2.13.0
     - name: busybox:1.35.0
       image: busybox:1.35.0
-    - name: alpine:3.16.4
-      image: alpine:3.16.4
+    - name: alpine:3.18.0
+      image: alpine:3.18.0
   artifacthub.io/operatorCapabilities: Full Lifecycle
   artifacthub.io/crds: |
     - kind: CDStageJenkinsDeployment
