@@ -3,8 +3,8 @@ description: A Helm chart for EDP Jenkins Operator
 home: https://epam.github.io/edp-install/
 name: jenkins-operator
 type: application
-version: 2.15.0-SNAPSHOT
-appVersion: 2.15.0-SNAPSHOT
+version: 2.16.0-SNAPSHOT
+appVersion: 2.16.0-SNAPSHOT
 icon: https://epam.github.io/edp-install/assets/logo.png
 keywords:
   - edp
@@ -23,14 +23,14 @@ annotations:
   artifacthub.io/license: Apache-2.0
   artifacthub.io/operator: "true"
   artifacthub.io/images: |
-    - name: jenkins-operator:2.14.0
-      image: epamedp/jenkins-operator:2.14.0
+    - name: jenkins-operator:2.15.0
+      image: epamedp/jenkins-operator:2.15.0
     - name: edp-jenkins:2.13.0
       image: epamedp/edp-jenkins:2.13.0
     - name: busybox:1.35.0
       image: busybox:1.35.0
-    - name: alpine:3.16.4
-      image: alpine:3.16.4
+    - name: alpine:3.18.0
+      image: alpine:3.18.0
   artifacthub.io/operatorCapabilities: Full Lifecycle
   artifacthub.io/crds: |
     - kind: CDStageJenkinsDeployment

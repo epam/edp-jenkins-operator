@@ -2,6 +2,22 @@
 ## [Unreleased]
 
 
+<a name="v2.15.0"></a>
+## [v2.15.0] - 2023-05-25
+### Features
+
+- Add external url param to jenkins spec [EPMDEDP-11854](https://jiraeu.epam.com/browse/EPMDEDP-11854)
+
+### Routine
+
+- Update current development version [EPMDEDP-11472](https://jiraeu.epam.com/browse/EPMDEDP-11472)
+- Bump version to 2.15.0 [EPMDEDP-11826](https://jiraeu.epam.com/browse/EPMDEDP-11826)
+- Add templates for github issues [EPMDEDP-11928](https://jiraeu.epam.com/browse/EPMDEDP-11928)
+- Bump dockerfile packages version [EPMDEDP-11928](https://jiraeu.epam.com/browse/EPMDEDP-11928)
+- Bump sast agent version [EPMDEDP-11949](https://jiraeu.epam.com/browse/EPMDEDP-11949)
+- Upgrade alpine image version to 3.18.0 [EPMDEDP-12085](https://jiraeu.epam.com/browse/EPMDEDP-12085)
+
+
 <a name="v2.14.0"></a>
 ## [v2.14.0] - 2023-03-25
 ### Features
@@ -341,7 +357,8 @@ Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline
 - [EPMDEDP-4822] Implement kubernetes Helm install
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.14.0...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.15.0...HEAD
+[v2.15.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.14.0...v2.15.0
 [v2.14.0]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.2...v2.14.0
 [v2.13.2]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.1...v2.13.2
 [v2.13.1]: https://github.com/epam/edp-jenkins-operator/compare/v2.13.0...v2.13.1
