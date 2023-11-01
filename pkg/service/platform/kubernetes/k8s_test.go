@@ -20,10 +20,11 @@ import (
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	edpCompApi "github.com/epam/edp-component-operator/pkg/apis/v1/v1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
+
 	kmock "github.com/epam/edp-jenkins-operator/v2/mock/kubernetes"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsDefaultSpec "github.com/epam/edp-jenkins-operator/v2/pkg/service/jenkins/spec"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 )
 
 const (

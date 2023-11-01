@@ -15,6 +15,7 @@ import (
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 	common "github.com/epam/edp-common/pkg/mock"
+
 	jjmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_job"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"

@@ -283,7 +283,7 @@ linters-settings:
       - dot # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
       - default # Default section: contains all imports that could not be matched to another section type.
       - prefix(github.com/epam) # Custom section: groups all imports with the specified Prefix.
-      - prefix(github.com/epam/jenkins-operator) # Custom section: groups all imports with the specified Prefix.
+      - prefix(github.com/epam/edp-jenkins-operator) # Custom section: groups all imports with the specified Prefix.
 
     # Skip generated files.
     skip-generated: true

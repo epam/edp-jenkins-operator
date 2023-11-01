@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	jfmock "github.com/epam/edp-jenkins-operator/v2/mock/jenkins_folder"
 	pmock "github.com/epam/edp-jenkins-operator/v2/mock/platform"

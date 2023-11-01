@@ -67,58 +67,55 @@ func specUpdated(e event.UpdateEvent) bool {
 }
 
 func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
-	var result reconcile.Result
-
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRoleMapping has been started")
+	reqLogger.Info("Reconciling JenkinsAuthorizationRoleMapping has been started")
 
-	var instance jenkinsApi.JenkinsAuthorizationRoleMapping
-	if err := r.client.Get(ctx, request.NamespacedName, &instance); err != nil {
+	instance := new(jenkinsApi.JenkinsAuthorizationRoleMapping)
+
+	if err := r.client.Get(ctx, request.NamespacedName, instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.Info("instance not found")
 
-			return result, nil
+			return reconcile.Result{}, nil
 		}
 
-		return result, fmt.Errorf("failed to get JenkinsAuthorizationRoleMapping instance, %w", err)
+		return reconcile.Result{}, fmt.Errorf("failed to get JenkinsAuthorizationRoleMapping instance %q: %w", request.NamespacedName, err)
 	}
+
+	defaultRequeueResult := reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}
 
 	jc, err := r.jenkinsClientFactory.MakeNewClient(&instance.ObjectMeta, instance.Spec.OwnerName)
 	if err != nil {
-		return reconcile.Result{},
-			fmt.Errorf("failed to create gojenkins client: %w", err)
+		r.log.Error(err, "error during client creation", "instance", instance)
+
+		return defaultRequeueResult, fmt.Errorf("failed to create gojenkins client: %w", err)
 	}
 
-	defer func() {
-		if err := r.client.Status().Update(context.Background(), &instance); err != nil {
-			r.log.Error(err, "unable to update status", "instance", instance)
-		}
-	}()
-
-	if err := r.tryToReconcile(ctx, &instance, jc); err != nil {
+	if err := r.tryToReconcile(ctx, instance, jc); err != nil {
 		r.log.Error(err, "error during reconciliation", "instance", instance)
-		instance.Status.Value = err.Error()
+		r.updateInstanceStatus(ctx, instance, err.Error())
 
-		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
+		return defaultRequeueResult, nil
 	}
 
-	instance.Status.Value = helper.StatusSuccess
+	r.updateInstanceStatus(ctx, instance, helper.StatusSuccess)
+	reqLogger.Info("Reconciling JenkinsAuthorizationRoleMapping has been finished")
 
-	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRole has been finished")
-
-	return result, nil
+	return reconcile.Result{}, nil
 }
 
-func (r *Reconcile) tryToReconcile(ctx context.Context,
-	instance *jenkinsApi.JenkinsAuthorizationRoleMapping, jc jenkins.ClientInterface,
+func (r *Reconcile) tryToReconcile(
+	ctx context.Context,
+	instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
+	jenkinsClient jenkins.ClientInterface,
 ) error {
 	for _, rl := range instance.Spec.Roles {
-		if err := jc.AssignRole(instance.Spec.RoleType, rl, instance.Spec.Group); err != nil {
+		if err := jenkinsClient.AssignRole(instance.Spec.RoleType, rl, instance.Spec.Group); err != nil {
 			return fmt.Errorf("failed to assign role: %w", err)
 		}
 	}
 
-	updateNeeded, err := helper.TryToDelete(instance, finalizerName, makeDeletionFunc(instance, jc))
+	updateNeeded, err := helper.TryToDelete(instance, finalizerName, makeDeletionFunc(instance, jenkinsClient))
 	if err != nil {
 		return fmt.Errorf("failed to delete instance: %w", err)
 	}
@@ -145,5 +142,17 @@ func makeDeletionFunc(instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
 		}
 
 		return nil
+	}
+}
+
+func (r *Reconcile) updateInstanceStatus(
+	ctx context.Context,
+	instance *jenkinsApi.JenkinsAuthorizationRoleMapping,
+	statusValue string,
+) {
+	instance.Status.Value = statusValue
+
+	if err := r.client.Status().Update(ctx, instance); err != nil {
+		r.log.Error(err, "unable to update status", "instance", instance)
 	}
 }

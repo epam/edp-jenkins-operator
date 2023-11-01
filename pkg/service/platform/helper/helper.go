@@ -102,18 +102,18 @@ func CreatePathToTemplateDirectory(directory string) (string, error) {
 	return createPath(directory, localRun)
 }
 
-func ParseTemplate(data *JenkinsScriptData, pathToTemplate, templateName string) (bytes.Buffer, error) {
-	var ScriptContext bytes.Buffer
+func ParseTemplate(data *JenkinsScriptData, pathToTemplate, templateName string) (*bytes.Buffer, error) {
+	script := new(bytes.Buffer)
 
 	if !helper.FileExists(pathToTemplate) {
-		return bytes.Buffer{}, fmt.Errorf("failed to find template file in specified pathToTemplate: path: %s", pathToTemplate)
+		return nil, fmt.Errorf("failed to find template file in specified pathToTemplate: path: %s", pathToTemplate)
 	}
 
 	t := template.Must(template.New(templateName).ParseFiles(pathToTemplate))
 
-	if err := t.Execute(&ScriptContext, data); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("failed to parse template %v: %w", templateName, err)
+	if err := t.Execute(script, data); err != nil {
+		return nil, fmt.Errorf("failed to parse template %v: %w", templateName, err)
 	}
 
-	return ScriptContext, nil
+	return script, nil
 }
