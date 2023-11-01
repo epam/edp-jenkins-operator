@@ -67,18 +67,16 @@ func specUpdated(e event.UpdateEvent) bool {
 }
 
 func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
-	var result reconcile.Result
-
 	reqLogger := r.log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRole has been started")
+	reqLogger.Info("Reconciling JenkinsAuthorizationRole has been started")
 
-	var instance jenkinsApi.JenkinsAuthorizationRole
+	instance := new(jenkinsApi.JenkinsAuthorizationRole)
 
-	if err := r.client.Get(context.TODO(), request.NamespacedName, &instance); err != nil {
+	if err := r.client.Get(context.TODO(), request.NamespacedName, instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			reqLogger.Info("instance not found")
 
-			return result, nil
+			return reconcile.Result{}, nil
 		}
 
 		return reconcile.Result{}, fmt.Errorf("failed to get JenkinsAuthorizationRole instance: %w", err)
@@ -90,28 +88,24 @@ func (r *Reconcile) Reconcile(ctx context.Context, request reconcile.Request) (r
 			fmt.Errorf("failed to create gojenkins client: %w", err)
 	}
 
-	defer func() {
-		if err := r.client.Status().Update(context.Background(), &instance); err != nil {
-			r.log.Error(err, "unable to update status", "instance", instance)
-		}
-	}()
-
-	if err := r.tryToReconcile(ctx, &instance, jc); err != nil {
+	if err := r.tryToReconcile(ctx, instance, jc); err != nil {
 		r.log.Error(err, "error during reconciliation", "instance", instance)
-		instance.Status.Value = err.Error()
+		r.updateInstanceStatus(ctx, instance, err.Error())
 
 		return reconcile.Result{RequeueAfter: helper.DefaultRequeueTime * time.Second}, nil
 	}
 
-	instance.Status.Value = helper.StatusSuccess
+	r.updateInstanceStatus(ctx, instance, helper.StatusSuccess)
 
-	reqLogger.V(2).Info("Reconciling JenkinsAuthorizationRole has been finished")
+	reqLogger.Info("Reconciling JenkinsAuthorizationRole has been finished")
 
-	return result, nil
+	return reconcile.Result{}, nil
 }
 
-func (r *Reconcile) tryToReconcile(ctx context.Context,
-	instance *jenkinsApi.JenkinsAuthorizationRole, jc jenkins.ClientInterface,
+func (r *Reconcile) tryToReconcile(
+	ctx context.Context,
+	instance *jenkinsApi.JenkinsAuthorizationRole,
+	jc jenkins.ClientInterface,
 ) error {
 	if err := jc.AddRole(instance.Spec.RoleType, instance.Spec.Name, instance.Spec.Pattern, instance.Spec.Permissions); err != nil {
 		return fmt.Errorf("failed to add role: %w", err)
@@ -140,5 +134,17 @@ func makeDeletionFunc(instance *jenkinsApi.JenkinsAuthorizationRole,
 		}
 
 		return nil
+	}
+}
+
+func (r *Reconcile) updateInstanceStatus(
+	ctx context.Context,
+	instance *jenkinsApi.JenkinsAuthorizationRole,
+	statusValue string,
+) {
+	instance.Status.Value = statusValue
+
+	if err := r.client.Status().Update(ctx, instance); err != nil {
+		r.log.Error(err, "unable to update status", "instance", instance)
 	}
 }

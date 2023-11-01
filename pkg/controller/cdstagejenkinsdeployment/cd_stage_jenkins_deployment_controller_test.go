@@ -16,6 +16,7 @@ import (
 
 	codebaseApi "github.com/epam/edp-codebase-operator/v2/pkg/apis/edp/v1"
 	common "github.com/epam/edp-common/pkg/mock"
+
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/cdstagejenkinsdeployment/chain"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"

@@ -104,8 +104,12 @@ func (r *ReconcileJenkinsScript) Reconcile(ctx context.Context, request reconcil
 	}
 
 	if instance.Status.Executed {
+		log.Info("Script already finished")
+
 		return reconcile.Result{}, nil
 	}
+
+	log.Info("Applying the script")
 
 	jc, err := jenkinsClient.InitJenkinsClient(jenkinsInstance, r.platform)
 	if err != nil {

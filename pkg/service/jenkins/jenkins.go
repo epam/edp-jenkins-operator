@@ -21,6 +21,9 @@ import (
 
 	gerritApi "github.com/epam/edp-gerrit-operator/v2/pkg/apis/v2/v1"
 	gerritSpec "github.com/epam/edp-gerrit-operator/v2/pkg/service/gerrit/spec"
+	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
+	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
+
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	jenkinsClient "github.com/epam/edp-jenkins-operator/v2/pkg/client/jenkins"
 	helperController "github.com/epam/edp-jenkins-operator/v2/pkg/controller/helper"
@@ -29,8 +32,6 @@ import (
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform"
 	platformHelper "github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/helper"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/util/consts"
-	keycloakApi "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
-	keycloakControllerHelper "github.com/epam/edp-keycloak-operator/pkg/controller/helper"
 )
 
 const (
@@ -544,12 +545,12 @@ func (j JenkinsServiceImpl) createScriptsFromDefaultDir(instance *jenkinsApi.Jen
 		return fmt.Errorf("failed to create path to template dir: %w", err)
 	}
 
-	directory, err := os.ReadDir(scriptsDirectoryPath)
+	scriptFiles, err := os.ReadDir(scriptsDirectoryPath)
 	if err != nil {
-		return fmt.Errorf("failed to read directory %v: %w", scriptsDirectoryPath, err)
+		return fmt.Errorf("failed to read scriptFiles from dir %v: %w", scriptsDirectoryPath, err)
 	}
 
-	for _, file := range directory {
+	for _, file := range scriptFiles {
 		configMapName := fmt.Sprintf(configMapStringFormat, instance.Name, file.Name())
 		configMapKey := consts.JenkinsDefaultScriptConfigMapKey
 		path := filepath.FromSlash(fmt.Sprintf(pathStringFormat, scriptsDirectoryPath, file.Name()))
@@ -689,7 +690,7 @@ func createTemplateScript(
 ) error {
 	templateFilePath := fmt.Sprintf(pathStringFormat, templatesDirectoryPath, template)
 
-	ctx, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
+	script, err := platformHelper.ParseTemplate(jenkinsScriptData, templateFilePath, template)
 	if err != nil {
 		return fmt.Errorf("failed to parse template %s: %w", template, err)
 	}
@@ -697,7 +698,7 @@ func createTemplateScript(
 	jenkinsScriptName := strings.Split(template, ".")[0]
 	configMapName := fmt.Sprintf(configMapStringFormat, instance.Name, jenkinsScriptName)
 
-	configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: ctx.String()}
+	configMapData := map[string]string{consts.JenkinsDefaultScriptConfigMapKey: script.String()}
 
 	isUpdated, err := platformService.CreateConfigMapWithUpdate(instance, configMapName, configMapData)
 	if err != nil {

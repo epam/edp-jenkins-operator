@@ -171,8 +171,10 @@ func TestJenkinsServiceImpl_Integration_GetExternalEndpointErr(t *testing.T) {
 
 func TestJenkinsServiceImpl_CreateEDPComponent(t *testing.T) {
 	impl := JenkinsServiceImpl{}
-	instance := jenkinsApi.Jenkins{ObjectMeta: ObjectMeta(),
-		Spec: jenkinsApi.JenkinsSpec{ExternalURL: "https://google.com"}}
+	instance := jenkinsApi.Jenkins{
+		ObjectMeta: ObjectMeta(),
+		Spec:       jenkinsApi.JenkinsSpec{ExternalURL: "https://google.com"},
+	}
 	err := impl.createEDPComponent(&instance)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "jenkins.svg")
@@ -693,7 +695,7 @@ func TestJenkinsServiceImpl_Configure_ReadDirErr(t *testing.T) {
 
 	configuration, b, err := impl.Configure(instance)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to read directory")
+	assert.Contains(t, err.Error(), "failed to read scriptFiles from dir")
 	assert.False(t, b)
 	assert.Equal(t, instance, configuration)
 	platform.AssertExpectations(t)

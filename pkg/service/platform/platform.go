@@ -12,10 +12,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	cdPipeApi "github.com/epam/edp-cd-pipeline-operator/v2/pkg/apis/edp/v1"
+	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
+
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/kubernetes"
 	"github.com/epam/edp-jenkins-operator/v2/pkg/service/platform/openshift"
-	keycloakV1Api "github.com/epam/edp-keycloak-operator/pkg/apis/v1/v1"
 )
 
 const (

@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	common "github.com/epam/edp-common/pkg/mock"
+
 	mocks "github.com/epam/edp-jenkins-operator/v2/mock"
 	smock "github.com/epam/edp-jenkins-operator/v2/mock/service"
 	jenkinsApi "github.com/epam/edp-jenkins-operator/v2/pkg/apis/v2/v1"

@@ -241,7 +241,7 @@ func (jc JenkinsClient) CreateUser(instance *jenkinsApi.JenkinsServiceAccount) e
 		SetFormData(requestParams).
 		Post("/credentials/store/system/domain/_/createCredentials")
 	if err != nil {
-		return fmt.Errorf("failed to sent Jenkins user creation request: %w", err)
+		return fmt.Errorf("failed to send Jenkins user creation request: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
