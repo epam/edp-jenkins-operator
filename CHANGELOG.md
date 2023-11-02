@@ -3,7 +3,7 @@
 
 
 <a name="v2.15.1"></a>
-## v2.15.1 - 2023-11-01
+## v2.15.1 - 2023-11-02
 ### Features
 
 - Switch to use V1 apis of EDP components [EPMDEDP-10085](https://jiraeu.epam.com/browse/EPMDEDP-10085)
