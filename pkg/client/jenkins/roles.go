@@ -33,6 +33,7 @@ func (jc JenkinsClient) AddRole(roleType, name, pattern string, permissions []st
 		crRoleNameKey:   name,
 		"pattern":       pattern,
 		"permissionIds": strings.Join(permissions, ","),
+		"overwrite":     "false",
 	}).Post("/role-strategy/strategy/addRole")
 
 	return parseRestyResponse(rsp, err)
