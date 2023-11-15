@@ -38,7 +38,7 @@ jobs:
           # install rekor-cli
           go install github.com/sigstore/rekor/cmd/rekor-cli@v1.3.3
 
-          ./bin/git-chglog --template .chglog/release.tpl.md -o release.md ${RELEASE_TAG}
+          git-chglog --template .chglog/release.tpl.md -o release.md ${RELEASE_TAG}
 
           # Extract image name and tag from RELEASE_TAG
           IMAGE_NAME="epamedp/codebase-operator"
