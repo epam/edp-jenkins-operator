@@ -7,6 +7,7 @@ ENV OPERATOR=/usr/local/bin/jenkins-operator \
 
 RUN apk add --no-cache ca-certificates==20230506-r0 \
                        openssh-client==9.3_p2-r0 \
+                       openssl==3.1.4-r1 \
                        git==2.40.1-r0
 
 # install operator binary

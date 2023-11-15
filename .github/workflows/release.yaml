@@ -5,7 +5,7 @@ on:
       - 'v*'
 
 env:
-    GOLANG_VERSION: '1.18'
+    GOLANG_VERSION: '1.20'
 
 jobs:
   prepare-release:
@@ -34,9 +34,9 @@ jobs:
           # install git-chglog
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
           # install crane
-          go install github.com/google/go-containerregistry/cmd/crane@latest
+          go install github.com/google/go-containerregistry/cmd/crane@v0.16.1
           # install rekor-cli
-          go install github.com/sigstore/rekor/cmd/rekor-cli@latest
+          go install github.com/sigstore/rekor/cmd/rekor-cli@v1.3.3
 
           ./bin/git-chglog --template .chglog/release.tpl.md -o release.md ${RELEASE_TAG}
 
