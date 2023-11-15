@@ -3,8 +3,8 @@ description: A Helm chart for EDP Jenkins Operator
 home: https://epam.github.io/edp-install/
 name: jenkins-operator
 type: application
-version: 2.15.2
-appVersion: 2.15.2
+version: 2.15.3
+appVersion: 2.15.3
 icon: https://epam.github.io/edp-install/assets/logo.png
 keywords:
   - edp

@@ -2,8 +2,8 @@
 ## [Unreleased]
 
 
-<a name="v2.15.2"></a>
-## v2.15.2 - 2023-11-02
+<a name="v2.15.3"></a>
+## v2.15.3 - 2023-11-15
 ### Features
 
 - Switch to use V1 apis of EDP components [EPMDEDP-10085](https://jiraeu.epam.com/browse/EPMDEDP-10085)
@@ -36,20 +36,21 @@
 - Make sure jenkins agents can update codebase status [EPMDEDP-10122](https://jiraeu.epam.com/browse/EPMDEDP-10122)
 - Fix typo in ci job-provisioner for OpenShift [EPMDEDP-10131](https://jiraeu.epam.com/browse/EPMDEDP-10131)
 - Remove prometheus dependency [EPMDEDP-11049](https://jiraeu.epam.com/browse/EPMDEDP-11049)
-- Modify escaping in CD provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Add parenthesis in cd provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Revert Align Jenkins job  provisioners flow [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
+- Modify escaping in CD provisioner [EPMDEDP-11134](https://jiraeu.epam.com/browse/EPMDEDP-11134)
 - Remove kubernetes-incubator dependency [EPMDEDP-11173](https://jiraeu.epam.com/browse/EPMDEDP-11173)
 - Running a large Jenkins script causes an error [EPMDEDP-11569](https://jiraeu.epam.com/browse/EPMDEDP-11569)
+- Add required overwrite field to the request [EPMDEDP-12608](https://jiraeu.epam.com/browse/EPMDEDP-12608)
 - Do not remove assigned role mappings on operator restart [EPMDEDP-12608](https://jiraeu.epam.com/browse/EPMDEDP-12608)
-- Enable groovy sandbox flag on Openshift [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
 - Fix job-provisioner typo [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
+- Enable groovy sandbox flag on Openshift [EPMDEDP-7136](https://jiraeu.epam.com/browse/EPMDEDP-7136)
 - Provide Jenkins deploy through deployments on OKD cluster [EPMDEDP-7178](https://jiraeu.epam.com/browse/EPMDEDP-7178)
 - Update dotnet jenkins agents version. [EPMDEDP-7281](https://jiraeu.epam.com/browse/EPMDEDP-7281)
 - Update DotNet-21 jenkins agent version [EPMDEDP-7281](https://jiraeu.epam.com/browse/EPMDEDP-7281)
 - Use Default branch for new branch provisioning [EPMDEDP-7552](https://jiraeu.epam.com/browse/EPMDEDP-7552)
-- Fix changelog breaking change section [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
 - Changelog links [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
+- Fix changelog breaking change section [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
 - Skip certificate check for Openshift cluster [EPMDEDP-7919](https://jiraeu.epam.com/browse/EPMDEDP-7919)
 - Skip certificate check for Openshift cluster [EPMDEDP-7919](https://jiraeu.epam.com/browse/EPMDEDP-7919)
 - Fix GH Actions for release pipeline [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
@@ -99,10 +100,10 @@
 - Upgrade go version to 1.18 [EPMDEDP-10110](https://jiraeu.epam.com/browse/EPMDEDP-10110)
 - Update agent images to latest [EPMDEDP-10122](https://jiraeu.epam.com/browse/EPMDEDP-10122)
 - Fix Jira Ticket pattern for changelog generator [EPMDEDP-10159](https://jiraeu.epam.com/browse/EPMDEDP-10159)
-- Update current development version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
+- Bump helm agent version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update current development version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update alpine base image to 3.16.2 version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
-- Bump helm agent version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
+- Update current development version [EPMDEDP-10274](https://jiraeu.epam.com/browse/EPMDEDP-10274)
 - Update Jenkins agents versions [EPMDEDP-10276](https://jiraeu.epam.com/browse/EPMDEDP-10276)
 - Update edp-jenkins-go-agent to 3.0.10 [EPMDEDP-10279](https://jiraeu.epam.com/browse/EPMDEDP-10279)
 - Update alpine base image version [EPMDEDP-10280](https://jiraeu.epam.com/browse/EPMDEDP-10280)
@@ -134,12 +135,13 @@
 - Bump golang.org/x/net from 0.5.0 to 0.8.0 [EPMDEDP-11578](https://jiraeu.epam.com/browse/EPMDEDP-11578)
 - Upgrade alpine image version to 3.16.4 [EPMDEDP-11764](https://jiraeu.epam.com/browse/EPMDEDP-11764)
 - Bump version to 2.15.0 [EPMDEDP-11826](https://jiraeu.epam.com/browse/EPMDEDP-11826)
-- Add templates for github issues [EPMDEDP-11928](https://jiraeu.epam.com/browse/EPMDEDP-11928)
 - Bump dockerfile packages version [EPMDEDP-11928](https://jiraeu.epam.com/browse/EPMDEDP-11928)
+- Add templates for github issues [EPMDEDP-11928](https://jiraeu.epam.com/browse/EPMDEDP-11928)
 - Bump sast agent version [EPMDEDP-11949](https://jiraeu.epam.com/browse/EPMDEDP-11949)
 - Upgrade alpine image version to 3.18.0 [EPMDEDP-12085](https://jiraeu.epam.com/browse/EPMDEDP-12085)
 - Address CVE-2022-28948 issue [EPMDEDP-12608](https://jiraeu.epam.com/browse/EPMDEDP-12608)
 - Address security issues [EPMDEDP-12608](https://jiraeu.epam.com/browse/EPMDEDP-12608)
+- Update GH release flow [EPMDEDP-12608](https://jiraeu.epam.com/browse/EPMDEDP-12608)
 - Update openssh-client version [EPMDEDP-7439](https://jiraeu.epam.com/browse/EPMDEDP-7439)
 - Update Ingress resources to the newest API version [EPMDEDP-7476](https://jiraeu.epam.com/browse/EPMDEDP-7476)
 - Update release CI pipelines [EPMDEDP-7847](https://jiraeu.epam.com/browse/EPMDEDP-7847)
@@ -157,9 +159,9 @@
 - Populate chart with Artifacthub annotations [EPMDEDP-8049](https://jiraeu.epam.com/browse/EPMDEDP-8049)
 - Update jenkins URL baseline link [EPMDEDP-8204](https://jiraeu.epam.com/browse/EPMDEDP-8204)
 - Update changelog [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
-- Update changelog [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
 - Update release flow [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
 - Bump Jenkins helm agent version [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
+- Update changelog [EPMDEDP-8227](https://jiraeu.epam.com/browse/EPMDEDP-8227)
 - Update helm agent image version [EPMDEDP-8257](https://jiraeu.epam.com/browse/EPMDEDP-8257)
 - Exclude autogenerated code in SonarQube check. [EPMDEDP-8313](https://jiraeu.epam.com/browse/EPMDEDP-8313)
 - Update edp-jenkins-helm-agent version to use helm-docs [EPMDEDP-8329](https://jiraeu.epam.com/browse/EPMDEDP-8329)
@@ -194,4 +196,4 @@ Custom resource will have two keys: 'tag' for single tag and 'tags' for the list
 Job provisioner create jenkinsfile and configure in jenkins pipeline as pipeline script.
 
 
-[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.15.2...HEAD
+[Unreleased]: https://github.com/epam/edp-jenkins-operator/compare/v2.15.3...HEAD
